@@ -71,7 +71,7 @@ function patchShopCards() {
 
     // Tier label
     const tierEl = card.querySelector('[data-tier]');
-    const tierText = maxed ? 'MAX' : `[${tier}/${entry.maxTier}]`;
+    const tierText = maxed ? 'MAX' : entry.maxTier === null ? `[${tier}/∞]` : `[${tier}/${entry.maxTier}]`;
     if (tierEl.textContent !== tierText) tierEl.textContent = tierText;
     const wantMaxedClass = maxed;
     if (tierEl.classList.contains('maxed') !== wantMaxedClass) {

@@ -7,8 +7,8 @@ const UPGRADES = [
   {
     id: 'damage',
     name: 'Damage',
-    description: 'Increases projectile damage.',
-    maxTier: 10,
+    description: 'Increases projectile damage. No level cap — the primary late-game money sink.',
+    maxTier: null,
     baseCost: 50,
     costMult: 1.4,
     apply(tower, game, tier) {
@@ -51,14 +51,14 @@ const UPGRADES = [
   {
     id: 'maxHp',
     name: 'Max HP',
-    description: 'Increases maximum tower HP.',
-    maxTier: 8,
+    description: 'Increases maximum tower HP. No level cap — the primary late-game money sink.',
+    maxTier: null,
     baseCost: 70,
     costMult: 1.4,
     apply(tower, game, tier) {
       const delta = Math.floor(tower.maxHp * 0.20);
       tower.maxHp += delta;
-      tower.hp    += delta; // heal by the gained amount
+      tower.hp    += delta;
     },
   },
   {
@@ -177,7 +177,9 @@ export class Shop {
 
   isMaxed(id) {
     const entry = this._entry(id);
-    return entry ? this.tier(id) >= entry.maxTier : true;
+    if (!entry) return true;
+    if (entry.maxTier === null) return false; // unlimited
+    return this.tier(id) >= entry.maxTier;
   }
 
   purchase(id) {
