@@ -114,32 +114,74 @@ export class Renderer {
         ? [{ angle: t.ringAngle }, { angle: t.ringAngle2 }]
         : [{ angle: t.ringAngle }];
 
+      // Scale visuals with tier
+      const coreWidth  = 2 + t.ringTier * 1.2;
+      const glowWidth  = coreWidth * 3;
+      const bloomWidth = coreWidth * 7;
+      const glowBlur   = 16 + t.ringTier * 8;
+
       for (const ring of rings) {
         const startA = ring.angle - arcRad / 2;
         const endA   = ring.angle + arcRad / 2;
 
         ctx.save();
-        ctx.shadowBlur  = 22;
-        ctx.shadowColor = '#ff6d00';
+
+        // Pass 1 — wide soft bloom
+        ctx.globalAlpha = 0.15;
         ctx.strokeStyle = '#ff6d00';
-        ctx.lineWidth   = 5;
-        ctx.globalAlpha = 0.9;
+        ctx.shadowBlur  = 0;
+        ctx.lineWidth   = bloomWidth;
+        ctx.lineCap     = 'round';
         ctx.beginPath();
         ctx.arc(cx, cy, orbitR, startA, endA);
         ctx.stroke();
 
-        // Bright inner core of the arc
-        ctx.shadowBlur  = 8;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth   = 2;
-        ctx.globalAlpha = 0.7;
+        // Pass 2 — colored glow
+        ctx.globalAlpha = 0.85;
+        ctx.strokeStyle = '#ff6d00';
+        ctx.shadowBlur  = glowBlur;
+        ctx.shadowColor = '#ff6d00';
+        ctx.lineWidth   = glowWidth;
         ctx.beginPath();
         ctx.arc(cx, cy, orbitR, startA, endA);
         ctx.stroke();
+
+        // Pass 3 — white hot core
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#ffffff';
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#ff6d00';
+        ctx.lineWidth   = coreWidth;
+        ctx.beginPath();
+        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.stroke();
+
+        // Bright leading-edge dot — punchy focal point
+        const tipX = cx + Math.cos(endA) * orbitR;
+        const tipY = cy + Math.sin(endA) * orbitR;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle   = '#ffffff';
+        ctx.shadowBlur  = glowBlur;
+        ctx.shadowColor = '#ff6d00';
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, coreWidth * 1.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Emit a trailing spark from the tip each frame (low rate via random gate)
+        if (game.particles && Math.random() < 0.4) {
+          game.particles._emit(
+            tipX, tipY,
+            (Math.random() - 0.5) * 60,
+            (Math.random() - 0.5) * 60,
+            0.15 + Math.random() * 0.1,
+            1.5 + Math.random() * 1.5,
+            Math.random() < 0.5 ? '#ff6d00' : '#ffffff',
+          );
+        }
+
         ctx.restore();
       }
     }
-
     // Tower hex
     ctx.save();
     ctx.shadowBlur  = t.hitFlash > 0 ? 32 : 24;
@@ -191,29 +233,58 @@ export class Renderer {
     const ex = cx + Math.cos(a) * t.laserRange;
     const ey = cy + Math.sin(a) * t.laserRange;
 
-    // Beam width scales with tier — thicker at higher tiers
-    const outerWidth = 2 + t.laserTier * 1.5;
-    const innerWidth = 1 + t.laserTier * 0.5;
+    // Flicker — slight random width variation each frame for electricity feel
+    const flicker      = 0.85 + Math.random() * 0.3;
+    const outerWidth   = (2 + t.laserTier * 1.5) * flicker;
+    const innerWidth   = (1 + t.laserTier * 0.5) * flicker;
+    const bloomWidth   = outerWidth * 4;
+    const glowStrength = 12 + t.laserTier * 8;
 
     ctx.save();
-    ctx.shadowBlur  = 12 + t.laserTier * 6;
-    ctx.shadowColor = COLORS.laser;
+
+    // Pass 1 — wide soft bloom
+    ctx.globalAlpha = 0.18;
     ctx.strokeStyle = COLORS.laser;
-    ctx.lineWidth   = outerWidth;
-    ctx.globalAlpha = 0.85;
+    ctx.shadowBlur  = 0;
+    ctx.lineWidth   = bloomWidth;
+    ctx.lineCap     = 'round';
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(ex, ey);
     ctx.stroke();
 
-    // Bright core
+    // Pass 2 — colored outer beam
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = COLORS.laser;
+    ctx.shadowBlur  = glowStrength;
+    ctx.shadowColor = COLORS.laser;
+    ctx.lineWidth   = outerWidth;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+
+    // Pass 3 — white hot core
     ctx.globalAlpha = 1;
     ctx.strokeStyle = '#ffffff';
+    ctx.shadowBlur  = 6;
+    ctx.shadowColor = '#ffffff';
     ctx.lineWidth   = innerWidth;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(ex, ey);
     ctx.stroke();
+
+    // Glowing impact dot at beam tip
+    const tipR = (3 + t.laserTier * 1.5) * flicker;
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle   = '#ffffff';
+    ctx.shadowBlur  = glowStrength * 1.5;
+    ctx.shadowColor = COLORS.laser;
+    ctx.beginPath();
+    ctx.arc(ex, ey, tipR, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
   }
 
@@ -264,22 +335,58 @@ export class Renderer {
 
   _drawExplosions() {
     const { ctx, game } = this;
-    // Tick and draw, remove expired
     game.explosions = game.explosions.filter(ex => {
       ex.t -= 1 / 60;
       if (ex.t <= 0) return false;
-      const progress = 1 - ex.t / 0.25;
-      const alpha    = 1 - progress;
+
+      const life     = ex.t / 0.45;          // 1→0 over lifetime
+      const progress = 1 - life;             // 0→1
+
+      // ── center flash — bright filled circle that fades fast
+      const flashR = ex.r * 0.55 * Math.pow(1 - Math.min(progress / 0.25, 1), 0.5);
+      if (flashR > 0) {
+        ctx.save();
+        ctx.globalAlpha = life * 0.6;
+        ctx.fillStyle   = '#ffffff';
+        ctx.shadowBlur  = 24;
+        ctx.shadowColor = COLORS.explosion;
+        ctx.beginPath();
+        ctx.arc(ex.x, ex.y, flashR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // ── inner ring — expands to ~60% of splash radius, fades quickly
+      const innerProgress = Math.min(progress / 0.5, 1);
       ctx.save();
-      ctx.globalAlpha = alpha * 0.7;
-      ctx.strokeStyle = COLORS.explosion;
-      ctx.shadowBlur  = 12;
+      ctx.globalAlpha = (1 - innerProgress) * 0.9;
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowBlur  = 16;
       ctx.shadowColor = COLORS.explosion;
-      ctx.lineWidth   = 2;
+      ctx.lineWidth   = 3;
+      ctx.beginPath();
+      ctx.arc(ex.x, ex.y, ex.r * 0.6 * innerProgress, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // ── outer ring — expands to full splash radius, lingers longer
+      ctx.save();
+      ctx.globalAlpha = life * 0.85;
+      ctx.strokeStyle = COLORS.explosion;
+      ctx.shadowBlur  = 18;
+      ctx.shadowColor = COLORS.explosion;
+      ctx.lineWidth   = 2.5;
+      ctx.beginPath();
+      ctx.arc(ex.x, ex.y, ex.r * progress, 0, Math.PI * 2);
+      ctx.stroke();
+      // Faint wide bloom behind outer ring
+      ctx.globalAlpha = life * 0.25;
+      ctx.lineWidth   = 8;
       ctx.beginPath();
       ctx.arc(ex.x, ex.y, ex.r * progress, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
+
       return true;
     });
   }

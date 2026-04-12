@@ -115,8 +115,24 @@ export class Projectile {
           _damageEnemy(e, this.damage * 0.6, game);
         }
       }
-      // Register explosion flash for renderer
-      game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.25 });
+      // Register explosion flash for renderer — extended lifetime + shrapnel
+      game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.45 });
+      if (game.particles) {
+        // Dense shrapnel burst — more particles, faster, orange/white
+        const count = 18;
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+          const speed = 90 + Math.random() * 160;
+          game.particles._emit(
+            this.x, this.y,
+            Math.cos(angle) * speed,
+            Math.sin(angle) * speed,
+            0.35 + Math.random() * 0.2,
+            2.5 + Math.random() * 2,
+            Math.random() < 0.5 ? '#ff9100' : '#ffffff',
+          );
+        }
+      }
     }
 
     // Chain lightning
