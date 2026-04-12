@@ -79,11 +79,26 @@ export class Tower {
     const ny  = dy / len;
 
     if (this.spreadShot) {
-      const half   = (this.spreadAngle / 2) * (Math.PI / 180);
-      const step   = this.spreadPellets > 1 ? (half * 2) / (this.spreadPellets - 1) : 0;
-      const startA = Math.atan2(ny, nx) - half;
-      for (let i = 0; i < this.spreadPellets; i++) {
-        const a  = startA + step * i;
+      const baseA = Math.atan2(ny, nx);
+      const half  = (this.spreadAngle / 2) * (Math.PI / 180);
+      const extra = this.spreadPellets - 1; // pellets beyond the center shot
+
+      // Center shot — always aimed dead at target
+      game.projectilePool.fire(
+        ox, oy,
+        nx * this.projectileSpeed,
+        ny * this.projectileSpeed,
+        this.damage,
+        this.explosiveRadius,
+        this.chainJumps,
+      );
+
+      // Extra pellets distributed evenly on both sides
+      const step = extra > 0 ? half / Math.ceil(extra / 2) : 0;
+      for (let i = 1; i <= extra; i++) {
+        const side   = i % 2 === 1 ? 1 : -1;         // alternate left/right
+        const offset = Math.ceil(i / 2) * step * side;
+        const a      = baseA + offset;
         game.projectilePool.fire(
           ox, oy,
           Math.cos(a) * this.projectileSpeed,
