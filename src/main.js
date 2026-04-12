@@ -145,8 +145,13 @@ export function newGame(confirmed) {
   beginWave();
 }
 
+// --- self-destruct: treat as a voluntary defeat (keeps upgrades + currency) ---
+export function selfDestruct() {
+  onDefeated();
+}
+
 // Expose to UI
-window.__apex = { newGame, shop, game, hasSave };
+window.__apex = { newGame, selfDestruct, shop, game, hasSave };
 
 // --- go ---
 bootstrap();

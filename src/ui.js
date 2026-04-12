@@ -110,6 +110,11 @@ function wireButtons() {
     patchShopCards();
   });
 
+  // Self-destruct — voluntary defeat, no confirmation needed
+  document.getElementById('self-destruct-btn').addEventListener('click', () => {
+    getApex()?.selfDestruct();
+  });
+
   // New Game
   document.getElementById('new-game-btn').addEventListener('click', () => {
     const apex = getApex();
