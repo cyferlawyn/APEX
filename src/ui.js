@@ -143,7 +143,7 @@ function wireButtons() {
     if (!apex) return;
     const vol = parseInt(e.target.value, 10) / 100;
     apex.audio?.setVolume(vol);
-    apex.savePrefs({ quality: apex.game.quality, volume: vol });
+    apex.savePrefs({ quality: apex.game.quality, volume: vol, autoQuality: apex.game.autoQuality });
   });
 
   // Quality buttons
@@ -178,8 +178,8 @@ function syncPrefsUI() {
   const apex = getApex();
   if (!apex) return;
 
-  // Quality buttons
-  const q = apex.game.quality ?? 'high';
+  // Quality buttons — AUTO takes precedence if active
+  const q = apex.game.autoQuality ? 'auto' : (apex.game.quality ?? 'high');
   document.querySelectorAll('.quality-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.q === q);
   });

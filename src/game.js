@@ -35,7 +35,11 @@ export class Game {
 
     // Visual quality: 'high' | 'medium' | 'low'
     // Loaded from localStorage in main.js; default high.
-    this.quality = 'high';
+    this.quality     = 'high';
+    this.autoQuality = false;  // when true, AUTO mode may step quality down
+
+    // FPS tracking — maintained by main.js loop, read by renderer
+    this.fps         = 60;     // smoothed display value
   }
 
   transition(newState) {

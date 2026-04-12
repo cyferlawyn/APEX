@@ -671,6 +671,17 @@ export class Renderer {
     ctx.font        = '13px monospace';
     ctx.fillText(`$ ${game.currency}`, canvas.width - 12, 22);
 
+    // FPS counter — colour shifts red when below 55
+    const fps      = game.fps ?? 60;
+    const fpsColor = fps < 45 ? '#ff1744' : fps < 55 ? '#ffea00' : 'rgba(255,255,255,0.28)';
+    ctx.textAlign  = 'right';
+    ctx.fillStyle  = fpsColor;
+    ctx.font       = '10px monospace';
+    const fpsLabel = game.autoQuality
+      ? `${fps} fps  AUTO:${game.quality.toUpperCase()}`
+      : `${fps} fps`;
+    ctx.fillText(fpsLabel, canvas.width - 12, 36);
+
     // Currency popups — +$N floaters that drift up and fade
     const DT = 1 / 60;
     game.currencyPopups = game.currencyPopups.filter(p => {

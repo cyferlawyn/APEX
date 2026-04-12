@@ -27,8 +27,9 @@ function bootstrap() {
 
   // Restore preferences (quality, volume) — independent of save data
   if (prefs) {
-    if (prefs.quality) game.quality = prefs.quality;
-    if (prefs.volume  != null) audio.setVolume(prefs.volume);
+    if (prefs.quality)            game.quality     = prefs.quality;
+    if (prefs.autoQuality != null) game.autoQuality = prefs.autoQuality;
+    if (prefs.volume != null)     audio.setVolume(prefs.volume);
   }
 
   if (saved) {
@@ -71,9 +72,53 @@ function beginWave() {
 // --- main loop ---
 let lastTime = 0;
 
+// FPS tracking — ring buffer of last 120 frame durations
+const FPS_BUF_SIZE = 120;
+const _fpsBuf      = new Float32Array(FPS_BUF_SIZE);
+let   _fpsCursor   = 0;
+let   _fpsSum      = 0;
+
+// AUTO quality state
+let _autoLowTimer  = 0;   // seconds of sustained sub-55 fps
+let _autoCooldown  = 0;   // seconds until next AUTO step-down is allowed
+
+const AUTO_THRESHOLD = 55;   // fps below this triggers the timer
+const AUTO_SUSTAIN   = 3.0;  // seconds below threshold before stepping down
+const AUTO_COOLDOWN  = 10.0; // seconds locked out after a step-down
+
 function loop(timestamp) {
   const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
   lastTime = timestamp;
+
+  // Rolling FPS average
+  _fpsSum -= _fpsBuf[_fpsCursor];
+  _fpsBuf[_fpsCursor] = dt;
+  _fpsSum += dt;
+  _fpsCursor = (_fpsCursor + 1) % FPS_BUF_SIZE;
+  const avgDt = _fpsSum / FPS_BUF_SIZE;
+  game.fps = Math.round(1 / avgDt);
+
+  // AUTO quality step-down
+  if (game.autoQuality && game.quality !== 'low') {
+    if (_autoCooldown > 0) {
+      _autoCooldown -= dt;
+    } else if (game.fps < AUTO_THRESHOLD) {
+      _autoLowTimer += dt;
+      if (_autoLowTimer >= AUTO_SUSTAIN) {
+        _autoLowTimer = 0;
+        _autoCooldown = AUTO_COOLDOWN;
+        const next = game.quality === 'high' ? 'medium' : 'low';
+        game.quality = next;
+        savePrefs({ quality: next, volume: audio.volume, autoQuality: true });
+        // Sync the quality buttons in the UI
+        document.querySelectorAll('.quality-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.q === next);
+        });
+      }
+    } else {
+      _autoLowTimer = 0; // reset timer whenever FPS recovers
+    }
+  }
 
   update(dt);
   renderer.render();
@@ -174,8 +219,18 @@ export function selfDestruct() {
 
 // --- quality setting ---
 export function setQuality(q) {
-  game.quality = q;
-  savePrefs({ quality: q, volume: audio.volume });
+  if (q === 'auto') {
+    game.autoQuality = true;
+    // Reset timers so it starts fresh from current quality
+    _autoLowTimer = 0;
+    _autoCooldown = 0;
+  } else {
+    game.autoQuality = false;
+    game.quality     = q;
+    _autoLowTimer    = 0;
+    _autoCooldown    = 0;
+  }
+  savePrefs({ quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality });
 }
 
 // Expose to UI
