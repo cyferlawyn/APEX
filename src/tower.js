@@ -59,11 +59,9 @@ export class Tower {
     this.fireCooldown -= dt;
     if (this.fireCooldown > 0) return;
 
-    const targets = _nearestEnemies(game.enemyPool.pool, this, this.multiShotCount);
+    const r2      = this.range * this.range;
+    const targets = _nearestEnemies(game.enemyPool.pool, this, this.multiShotCount, r2);
     if (targets.length === 0) return;
-
-    // Only fire if the primary target is within range
-    if (_dist2(targets[0], this) > this.range * this.range) return;
 
     for (const target of targets) {
       this._fireAt(target, game, this.x, this.y);
@@ -122,9 +120,9 @@ export class Tower {
       const tx = this.x + Math.cos(a) * orbitR;
       const ty = this.y + Math.sin(a) * orbitR;
 
-      const target = _nearestEnemies(game.enemyPool.pool, { x: tx, y: ty }, 1)[0];
+      const r2     = this.range * this.range;
+      const target = _nearestEnemies(game.enemyPool.pool, { x: tx, y: ty }, 1, r2)[0];
       if (!target) continue;
-      if (_dist2(target, { x: tx, y: ty }) > this.range * this.range) continue;
 
       const dx  = target.x - tx;
       const dy  = target.y - ty;
@@ -192,9 +190,9 @@ export class Tower {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function _nearestEnemies(pool, origin, count) {
+function _nearestEnemies(pool, origin, count, maxR2 = Infinity) {
   return pool
-    .filter(e => e.active)
+    .filter(e => e.active && _dist2(e, origin) <= maxR2)
     .sort((a, b) => _dist2(a, origin) - _dist2(b, origin))
     .slice(0, count);
 }
