@@ -63,7 +63,7 @@ export class Enemy {
 
       this.damageTick -= dt;
       if (this.damageTick <= 0) {
-        game.tower.takeDamage(this.damage);
+        game.tower.takeDamage(this.damage, game);
         this.damageTick = 1; // hit again every second
       }
       return; // stay in place — do not move

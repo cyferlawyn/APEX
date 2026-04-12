@@ -51,6 +51,9 @@ export class Projectile {
   _onHit(target, game) {
     this.active = false;
 
+    // Particle hit sparks
+    if (game.particles) game.particles.emitHit(this.x, this.y, target.color);
+
     // Direct hit
     _damageEnemy(target, this.damage, game);
 
@@ -82,6 +85,11 @@ function _damageEnemy(e, dmg, game) {
   e.hp -= dmg;
   if (e.hp <= 0) {
     game.waveEarned += e.reward;
+    // Death burst particles + expanding ring
+    if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
+    game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
+    // Boss arrival / death edge flash
+    if (e.type === 'BOSS') game.edgeFlash = 0.5;
     e.active = false;
   }
 }

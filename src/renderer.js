@@ -52,11 +52,14 @@ export class Renderer {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     this._drawBackground();
     this._drawExplosions();
+    this._drawDeathRings();
     this._drawEnemies();
     this._drawProjectiles();
     this._drawLightningArcs();
     this._drawLaser();
     this._drawTower();
+    if (game.particles) game.particles.draw(ctx);
+    this._drawEdgeFlash();
     this._drawHUD();
     this._drawStateOverlay();
   }
@@ -143,14 +146,19 @@ export class Renderer {
     ctx.stroke();
     ctx.restore();
 
-    // Core dot — pulses when laser is active
-    const coreR = t.laserActive
+    // Core dot — pulses when laser active, breathes otherwise
+    const pulse = t.laserActive
       ? r * 0.25 + Math.sin(Date.now() / 60) * r * 0.08
-      : r * 0.25;
+      : r * 0.18 + Math.sin(Date.now() / 600) * r * 0.06; // gentle idle breath
+    ctx.save();
+    ctx.shadowBlur  = t.laserActive ? 20 : 10;
+    ctx.shadowColor = glowColor;
+    ctx.fillStyle   = glowColor;
+    ctx.globalAlpha = t.laserActive ? 1 : 0.75 + Math.sin(Date.now() / 600) * 0.15;
     ctx.beginPath();
-    ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
-    ctx.fillStyle = glowColor;
+    ctx.arc(cx, cy, pulse, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
   }
 
   _hexPath(cx, cy, r) {
@@ -196,6 +204,49 @@ export class Renderer {
     ctx.moveTo(cx, cy);
     ctx.lineTo(ex, ey);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── death rings ──────────────────────────────────────────────────────────────
+
+  _drawDeathRings() {
+    const { ctx, game } = this;
+    const DT = 1 / 60;
+    game.deathRings = game.deathRings.filter(ring => {
+      ring.t -= DT;
+      if (ring.t <= 0) return false;
+      const progress = 1 - ring.t / 0.35;
+      const alpha    = (1 - progress) * 0.8;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = ring.color;
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = ring.color;
+      ctx.lineWidth   = 1.5;
+      ctx.beginPath();
+      ctx.arc(ring.x, ring.y, ring.r * progress, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      return true;
+    });
+  }
+
+  // ── screen-edge flash (boss arrival / boss death) ─────────────────────────────
+
+  _drawEdgeFlash() {
+    const { ctx, canvas, game } = this;
+    if (!game.edgeFlash || game.edgeFlash <= 0) return;
+    game.edgeFlash -= 1 / 60;
+    const alpha = Math.max(0, game.edgeFlash / 0.6) * 0.5;
+    const grad  = ctx.createRadialGradient(
+      canvas.width / 2, canvas.height / 2, canvas.height * 0.3,
+      canvas.width / 2, canvas.height / 2, canvas.height * 0.85,
+    );
+    grad.addColorStop(0, 'rgba(255,23,68,0)');
+    grad.addColorStop(1, `rgba(255,23,68,${alpha.toFixed(3)})`);
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
   }
 
@@ -333,18 +384,39 @@ export class Renderer {
     const { ctx, game } = this;
     if (!game.projectilePool) return;
 
-    ctx.save();
-    ctx.shadowBlur  = 8;
-    ctx.shadowColor = '#ffffff';
-    ctx.fillStyle   = '#ffffff';
-
     for (const p of game.projectilePool.pool) {
       if (!p.active) continue;
+
+      // Motion trail — 3 fading dots behind the projectile
+      const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (speed > 0) {
+        const nx = p.vx / speed;
+        const ny = p.vy / speed;
+        for (let i = 1; i <= 3; i++) {
+          const tx = p.x - nx * i * 5;
+          const ty = p.y - ny * i * 5;
+          ctx.save();
+          ctx.globalAlpha = (0.4 - i * 0.1);
+          ctx.shadowBlur  = 4;
+          ctx.shadowColor = '#ffffff';
+          ctx.fillStyle   = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(tx, ty, 3 - i * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      // Projectile dot
+      ctx.save();
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = '#ffffff';
+      ctx.fillStyle   = '#ffffff';
       ctx.beginPath();
       ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
     }
-    ctx.restore();
   }
 
   // ── HUD ───────────────────────────────────────────────────────────────────────
@@ -457,8 +529,12 @@ export class Renderer {
     ctx.font      = '14px monospace';
     ctx.fillText(`Best: wave ${game.bestWave}`, canvas.width / 2, canvas.height / 2 + 26);
 
+    ctx.fillStyle = COLORS.currency;
+    ctx.font      = '13px monospace';
+    ctx.fillText(`Total currency: $ ${game.currency}`, canvas.width / 2, canvas.height / 2 + 48);
+
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '12px monospace';
-    ctx.fillText('upgrades kept — restarting from wave 1...', canvas.width / 2, canvas.height / 2 + 52);
+    ctx.fillText('upgrades kept — restarting from wave 1...', canvas.width / 2, canvas.height / 2 + 68);
   }
 }

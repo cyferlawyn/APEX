@@ -44,6 +44,8 @@ export class WaveSpawner {
     }
 
     this.game.enemyPool.spawn(type, this.game.wave, x, y);
+    // Boss arrival: trigger screen-edge flash
+    if (type === EnemyType.BOSS) this.game.edgeFlash = 0.6;
   }
 }
 

@@ -40,9 +40,10 @@ export class Tower {
   }
 
   // Called by enemy when it reaches the tower
-  takeDamage(amount) {
+  takeDamage(amount, game) {
     this.hp       -= amount;
     this.hitFlash  = 0.12;
+    if (game && game.particles) game.particles.emitTowerHit(this.x, this.y);
   }
 
   update(dt, game) {
@@ -168,6 +169,9 @@ export class Tower {
           e.hp -= DPS * dt;
           if (e.hp <= 0) {
             game.waveEarned += e.reward;
+            if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
+            game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
+            if (e.type === 'BOSS') game.edgeFlash = 0.5;
             e.active = false;
           }
         }
