@@ -1,4 +1,4 @@
-# Cyfer Tower
+# APEX
 
 A browser-based single-tower defense game. One tower. Endless waves. Countless upgrades.
 
