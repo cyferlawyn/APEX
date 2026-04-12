@@ -150,7 +150,6 @@ function _spawnCurrencyPopup(amount, game) {
   const x = bounds.w - 12 - Math.random() * 120;
   game.currencyPopups.push({ amount, x, y: 38, t: 1.2 });
 }
-}
 
 function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   const CHAIN_RANGE = 120;
