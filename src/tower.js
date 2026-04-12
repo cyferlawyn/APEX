@@ -47,7 +47,7 @@ export class Tower {
     this.hp       -= amount;
     this.hitFlash  = 0.12;
     audio.towerHit();
-    if (game && game.particles) game.particles.emitTowerHit(this.x, this.y);
+    if (game && game.particles && game.quality !== 'low') game.particles.emitTowerHit(this.x, this.y);
   }
 
   update(dt, game) {
@@ -168,7 +168,7 @@ export class Tower {
             game.currency   += earned;
             game.waveEarned += earned;
             _spawnCurrencyPopup(earned, game);
-            if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
+            if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
             if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
             else if (e.type === 'BRUTE')   audio.deathLarge();
@@ -217,7 +217,7 @@ export class Tower {
             game.currency   += earned;
             game.waveEarned += earned;
             _spawnCurrencyPopup(earned, game);
-            if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
+            if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
             if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
             else if (e.type === 'BRUTE')   audio.deathLarge();

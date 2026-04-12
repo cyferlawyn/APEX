@@ -100,8 +100,10 @@ export class Projectile {
   _onHit(target, game) {
     this.active = false;
 
-    // Particle hit sparks
-    if (game.particles) game.particles.emitHit(this.x, this.y, target.color);
+    // Particle hit sparks (skip on low quality)
+    if (game.particles && game.quality !== 'low') {
+      game.particles.emitHit(this.x, this.y, target.color);
+    }
 
     // Direct hit
     _damageEnemy(target, this.damage, game);
@@ -120,8 +122,8 @@ export class Projectile {
       // Register explosion flash for renderer — extended lifetime + shrapnel
       game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.45 });
       audio.fireExplosive();
-      if (game.particles) {
-        // Dense shrapnel burst — more particles, faster, orange/white
+      // Shrapnel burst: full on high, skip on medium/low
+      if (game.particles && game.quality === 'high') {
         const count = 18;
         for (let i = 0; i < count; i++) {
           const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
@@ -155,7 +157,7 @@ function _damageEnemy(e, dmg, game) {
     game.waveEarned += earned;
     _spawnCurrencyPopup(earned, game);
     // Death burst particles + expanding ring
-    if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
+    if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
     game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
     // Death sound — sized by enemy type
     if      (e.type === 'BOSS')              audio.deathBoss();
@@ -194,8 +196,8 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   game.lightningArcs.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.35 });
   audio.fireChain();
 
-  // Spark burst at the chain impact point
-  if (game.particles) game.particles.emitHit(best.x, best.y, '#e040fb');
+  // Spark burst at the chain impact point (skip on low quality)
+  if (game.particles && game.quality !== 'low') game.particles.emitHit(best.x, best.y, '#e040fb');
 
   _damageEnemy(best, damage, game);
 

@@ -32,6 +32,10 @@ export class Game {
 
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;
+
+    // Visual quality: 'high' | 'medium' | 'low'
+    // Loaded from localStorage in main.js; default high.
+    this.quality = 'high';
   }
 
   transition(newState) {

@@ -57,7 +57,7 @@ export class Renderer {
     this._drawLightningArcs();
     this._drawLaser();
     this._drawTower();
-    if (game.particles) game.particles.draw(ctx);
+    if (game.particles) game.particles.draw(ctx, game.quality);
     this._drawEdgeFlash();
     this._drawHUD();
     this._drawStateOverlay();
@@ -169,8 +169,8 @@ export class Renderer {
         ctx.arc(tipX, tipY, coreWidth * 1.8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Emit a trailing spark from the tip each frame (low rate via random gate)
-        if (game.particles && Math.random() < 0.4) {
+        // Emit a trailing spark from the tip each frame (high quality only)
+        if (game.quality === 'high' && game.particles && Math.random() < 0.4) {
           game.particles._emit(
             tipX, tipY,
             (Math.random() - 0.5) * 60,
@@ -294,6 +294,7 @@ export class Renderer {
 
   _drawDeathRings() {
     const { ctx, game } = this;
+    if (game.quality === 'low') { game.deathRings = []; return; }
     const DT = 1 / 60;
     game.deathRings = game.deathRings.filter(ring => {
       ring.t -= DT;
@@ -319,6 +320,7 @@ export class Renderer {
   _drawEdgeFlash() {
     const { ctx, canvas, game } = this;
     if (!game.edgeFlash || game.edgeFlash <= 0) return;
+    if (game.quality === 'low') { game.edgeFlash = 0; return; }
     game.edgeFlash -= 1 / 60;
     const alpha = Math.max(0, game.edgeFlash / 0.6) * 0.5;
     const grad  = ctx.createRadialGradient(
@@ -337,6 +339,8 @@ export class Renderer {
 
   _drawExplosions() {
     const { ctx, game } = this;
+    if (game.quality === 'low') { game.explosions = []; return; }
+    const noGlow = game.quality === 'medium';
     game.explosions = game.explosions.filter(ex => {
       ex.t -= 1 / 60;
       if (ex.t <= 0) return false;
@@ -350,7 +354,7 @@ export class Renderer {
         ctx.save();
         ctx.globalAlpha = life * 0.6;
         ctx.fillStyle   = '#ffffff';
-        ctx.shadowBlur  = 24;
+        ctx.shadowBlur  = noGlow ? 0 : 24;
         ctx.shadowColor = COLORS.explosion;
         ctx.beginPath();
         ctx.arc(ex.x, ex.y, flashR, 0, Math.PI * 2);
@@ -363,7 +367,7 @@ export class Renderer {
       ctx.save();
       ctx.globalAlpha = (1 - innerProgress) * 0.9;
       ctx.strokeStyle = '#ffffff';
-      ctx.shadowBlur  = 16;
+      ctx.shadowBlur  = noGlow ? 0 : 16;
       ctx.shadowColor = COLORS.explosion;
       ctx.lineWidth   = 3;
       ctx.beginPath();
@@ -375,7 +379,7 @@ export class Renderer {
       ctx.save();
       ctx.globalAlpha = life * 0.85;
       ctx.strokeStyle = COLORS.explosion;
-      ctx.shadowBlur  = 18;
+      ctx.shadowBlur  = noGlow ? 0 : 18;
       ctx.shadowColor = COLORS.explosion;
       ctx.lineWidth   = 2.5;
       ctx.beginPath();
@@ -397,23 +401,22 @@ export class Renderer {
 
   _drawLightningArcs() {
     const { ctx, game } = this;
+    if (game.quality === 'low') { game.lightningArcs = []; return; }
+    const noGlow = game.quality === 'medium';
     game.lightningArcs = game.lightningArcs.filter(arc => {
       arc.t -= 1 / 60;
       if (arc.t <= 0) return false;
 
-      const alpha = Math.min(1, arc.t / 0.12); // full opacity except last 0.12s fade
+      const alpha = Math.min(1, arc.t / 0.12);
 
-      // Build a jagged polyline: divide the arc into segments with random perp offsets
       const SEGS    = 6;
       const dx      = arc.x2 - arc.x1;
       const dy      = arc.y2 - arc.y1;
       const len     = Math.sqrt(dx * dx + dy * dy);
-      const px      = -dy / len; // perpendicular unit vector
+      const px      = -dy / len;
       const py      =  dx / len;
-      const spread  = Math.min(len * 0.25, 28); // jag amplitude scales with arc length
+      const spread  = Math.min(len * 0.25, 28);
 
-      // Pre-compute jag points (stable per-arc per-frame via stored seed would be
-      // ideal, but recomputing each frame gives a nice electrical shimmer)
       const pts = [{ x: arc.x1, y: arc.y1 }];
       for (let i = 1; i < SEGS; i++) {
         const t      = i / SEGS;
@@ -424,24 +427,29 @@ export class Renderer {
       }
       pts.push({ x: arc.x2, y: arc.y2 });
 
-      // Pass 1 — wide outer glow
-      ctx.save();
-      ctx.globalAlpha = alpha * 0.4;
-      ctx.strokeStyle = COLORS.chain;
-      ctx.shadowBlur  = 20;
-      ctx.shadowColor = COLORS.chain;
-      ctx.lineWidth   = 6;
-      ctx.lineJoin    = 'round';
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.stroke();
+      // Pass 1 — wide outer glow (skipped on medium)
+      if (!noGlow) {
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.4;
+        ctx.strokeStyle = COLORS.chain;
+        ctx.shadowBlur  = 20;
+        ctx.shadowColor = COLORS.chain;
+        ctx.lineWidth   = 6;
+        ctx.lineJoin    = 'round';
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.stroke();
+        ctx.restore();
+      }
 
+      ctx.save();
       // Pass 2 — colored mid stroke
       ctx.globalAlpha = alpha * 0.9;
       ctx.strokeStyle = COLORS.chain;
-      ctx.shadowBlur  = 10;
+      ctx.shadowBlur  = noGlow ? 0 : 10;
       ctx.lineWidth   = 2.5;
+      ctx.lineJoin    = 'round';
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
@@ -450,7 +458,7 @@ export class Renderer {
       // Pass 3 — bright white core
       ctx.globalAlpha = alpha;
       ctx.strokeStyle = '#ffffff';
-      ctx.shadowBlur  = 4;
+      ctx.shadowBlur  = 0;
       ctx.lineWidth   = 1;
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
@@ -484,7 +492,7 @@ export class Renderer {
 
     for (const { color, shape, arr } of buckets.values()) {
       ctx.save();
-      ctx.shadowBlur  = 10;
+      ctx.shadowBlur  = game.quality === 'high' ? 10 : 0;
       ctx.shadowColor = color;
       ctx.strokeStyle = color;
       ctx.lineWidth   = 1.5;
@@ -568,29 +576,31 @@ export class Renderer {
       if (p.x < -20 || p.x > canvas.width + 20 ||
           p.y < -20 || p.y > canvas.height + 20) continue;
 
-      // Motion trail — 3 fading dots behind the projectile
-      const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-      if (speed > 0) {
-        const nx = p.vx / speed;
-        const ny = p.vy / speed;
-        for (let i = 1; i <= 3; i++) {
-          const tx = p.x - nx * i * 5;
-          const ty = p.y - ny * i * 5;
-          ctx.save();
-          ctx.globalAlpha = (0.4 - i * 0.1);
-          ctx.shadowBlur  = 4;
-          ctx.shadowColor = '#ffffff';
-          ctx.fillStyle   = '#ffffff';
-          ctx.beginPath();
-          ctx.arc(tx, ty, 3 - i * 0.6, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
+      // Motion trail — 3 fading dots behind the projectile (high quality only)
+      if (game.quality === 'high') {
+        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (speed > 0) {
+          const nx = p.vx / speed;
+          const ny = p.vy / speed;
+          for (let i = 1; i <= 3; i++) {
+            const tx = p.x - nx * i * 5;
+            const ty = p.y - ny * i * 5;
+            ctx.save();
+            ctx.globalAlpha = (0.4 - i * 0.1);
+            ctx.shadowBlur  = 4;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle   = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(tx, ty, 3 - i * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
         }
       }
 
       // Projectile dot
       ctx.save();
-      ctx.shadowBlur  = 8;
+      ctx.shadowBlur  = game.quality === 'low' ? 0 : 8;
       ctx.shadowColor = '#ffffff';
       ctx.fillStyle   = '#ffffff';
       ctx.beginPath();

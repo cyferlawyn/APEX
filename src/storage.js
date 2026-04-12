@@ -1,4 +1,5 @@
-const SAVE_KEY = 'apex_save';
+const SAVE_KEY  = 'apex_save';
+const PREFS_KEY = 'apex_prefs';
 
 export function save(state) {
   try {
@@ -24,4 +25,21 @@ export function clear() {
 
 export function hasSave() {
   return localStorage.getItem(SAVE_KEY) !== null;
+}
+
+export function savePrefs(prefs) {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch (e) {
+    console.warn('Prefs save failed:', e);
+  }
+}
+
+export function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
 }

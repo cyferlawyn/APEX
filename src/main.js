@@ -7,7 +7,7 @@ import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
 import { ParticleSystem }  from './particles.js';
 import { audio }           from './audio.js';
-import { save, load, clear, hasSave } from './storage.js';
+import { save, load, clear, hasSave, savePrefs, loadPrefs } from './storage.js';
 
 const canvas   = document.getElementById('gameCanvas');
 const game     = new Game();
@@ -17,12 +17,19 @@ const shop     = new Shop(game);
 // --- bootstrap ---
 function bootstrap() {
   const saved = load();
+  const prefs = loadPrefs();
 
   game.tower          = new Tower();
   game.enemyPool      = new EnemyPool(512);
   game.projectilePool = new ProjectilePool(2048);
   game.waveSpawner    = new WaveSpawner(game);
   game.particles      = new ParticleSystem(512);
+
+  // Restore preferences (quality, volume) — independent of save data
+  if (prefs) {
+    if (prefs.quality) game.quality = prefs.quality;
+    if (prefs.volume  != null) audio.setVolume(prefs.volume);
+  }
 
   if (saved) {
     game.wave               = saved.wave               ?? 1;
@@ -165,8 +172,14 @@ export function selfDestruct() {
   onDefeated();
 }
 
+// --- quality setting ---
+export function setQuality(q) {
+  game.quality = q;
+  savePrefs({ quality: q, volume: audio.volume });
+}
+
 // Expose to UI
-window.__apex = { newGame, selfDestruct, shop, game, hasSave, audio };
+window.__apex = { newGame, selfDestruct, shop, game, hasSave, audio, setQuality, savePrefs };
 
 // Init AudioContext on first user gesture (browser autoplay policy)
 document.addEventListener('click',    () => audio.init(), { once: true });

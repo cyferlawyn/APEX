@@ -139,7 +139,24 @@ function wireButtons() {
 
   // Volume slider
   document.getElementById('volume-slider').addEventListener('input', e => {
-    getApex()?.audio?.setVolume(parseInt(e.target.value, 10) / 100);
+    const apex = getApex();
+    if (!apex) return;
+    const vol = parseInt(e.target.value, 10) / 100;
+    apex.audio?.setVolume(vol);
+    apex.savePrefs({ quality: apex.game.quality, volume: vol });
+  });
+
+  // Quality buttons
+  document.getElementById('quality-buttons').addEventListener('click', e => {
+    const btn = e.target.closest('.quality-btn');
+    if (!btn) return;
+    const q    = btn.dataset.q;
+    const apex = getApex();
+    if (!apex) return;
+    apex.setQuality(q);
+    document.querySelectorAll('.quality-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.q === q);
+    });
   });
 }
 
@@ -151,6 +168,23 @@ window.addEventListener('load', () => {
     buildShopCards();
     wireButtons();
     patchShopCards();
+    syncPrefsUI();
     setInterval(patchShopCards, 250);
   });
 });
+
+// Reflect saved prefs back onto the controls
+function syncPrefsUI() {
+  const apex = getApex();
+  if (!apex) return;
+
+  // Quality buttons
+  const q = apex.game.quality ?? 'high';
+  document.querySelectorAll('.quality-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.q === q);
+  });
+
+  // Volume slider
+  const vol = apex.audio?.volume ?? 0.4;
+  document.getElementById('volume-slider').value = Math.round(vol * 100);
+}

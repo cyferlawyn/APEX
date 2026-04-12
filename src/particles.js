@@ -113,13 +113,13 @@ export class ParticleSystem {
     }
   }
 
-  draw(ctx) {
+  draw(ctx, quality = 'high') {
     for (const p of this.pool) {
       if (!p.active) continue;
       const alpha = p.life / p.maxLife;
       ctx.save();
       ctx.globalAlpha  = alpha;
-      ctx.shadowBlur   = 6;
+      ctx.shadowBlur   = quality === 'high' ? 6 : 0;
       ctx.shadowColor  = p.color;
       ctx.fillStyle    = p.color;
       ctx.beginPath();
