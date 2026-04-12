@@ -251,12 +251,12 @@ Saved after every wave result. Save includes:
 
 ### M6 — Polish
 *See Post-MVP Phase P2 for detailed checklist.*
-- [ ] Particle system (hit sparks, death explosions, tower hit flash)
-- [ ] Projectile motion trails
-- [ ] Tower core glow animation
-- [ ] Enemy death animations
-- [ ] Boss arrival emphasis
-- [ ] Defeated screen improvements
+- [x] Particle system (hit sparks, death explosions, tower hit flash)
+- [x] Projectile motion trails
+- [x] Tower core glow animation
+- [x] Enemy death animations
+- [x] Boss arrival emphasis
+- [x] Defeated screen improvements
 - [ ] Sound effects (stretch goal — see P5)
 
 ### M7 — Balance Pass
@@ -483,4 +483,4 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 
 ---
 
-*Last updated: 2026-04-12 — post-MVP phases P1–P5 added*
+*Last updated: 2026-04-13 — P1/P2/P3 complete; visual polish for all fire modes committed; P4 balance pass next*
