@@ -20,7 +20,9 @@ export class Enemy {
     this.reward       = 0;
     this.type         = EnemyType.DRONE;
     this.atTower      = false;  // true once the enemy has reached the tower
-    this.damageTick   = 0;      // countdown to next tower hit (seconds)
+        this.damageTick = 0;
+    this.damage     = def.damage;      // countdown to next tower hit (seconds)
+    this.damage       = 0;      // flat damage per hit, type-specific
   }
 
   init(type, wave, x, y) {
@@ -61,7 +63,7 @@ export class Enemy {
 
       this.damageTick -= dt;
       if (this.damageTick <= 0) {
-        game.tower.takeDamage(Math.ceil(this.maxHp * 0.1));
+        game.tower.takeDamage(this.damage);
         this.damageTick = 1; // hit again every second
       }
       return; // stay in place — do not move
@@ -107,9 +109,9 @@ export class EnemyPool {
 }
 
 const BASE_STATS = {
-  [EnemyType.DRONE]: { hp: 60,   speed: 90,  radius: 8,  color: '#00e5ff', shape: 'circle',  reward: 5  },
-  [EnemyType.SWARM]: { hp: 20,   speed: 70,  radius: 5,  color: '#69ff47', shape: 'circle',  reward: 2  },
-  [EnemyType.BRUTE]: { hp: 300,  speed: 45,  radius: 16, color: '#ff9100', shape: 'square',  reward: 20 },
-  [EnemyType.ELITE]: { hp: 150,  speed: 75,  radius: 11, color: '#ea00ff', shape: 'triangle',reward: 12 },
-  [EnemyType.BOSS]:  { hp: 2000, speed: 35,  radius: 28, color: '#ff1744', shape: 'hexagon', reward: 100},
+  [EnemyType.DRONE]: { hp: 60,   speed: 90,  radius: 8,  color: '#00e5ff', shape: 'circle',   reward: 5,   damage: 15  },
+  [EnemyType.SWARM]: { hp: 20,   speed: 70,  radius: 5,  color: '#69ff47', shape: 'circle',   reward: 2,   damage: 5   },
+  [EnemyType.BRUTE]: { hp: 300,  speed: 45,  radius: 16, color: '#ff9100', shape: 'square',   reward: 20,  damage: 50  },
+  [EnemyType.ELITE]: { hp: 150,  speed: 75,  radius: 11, color: '#ea00ff', shape: 'triangle', reward: 12,  damage: 30  },
+  [EnemyType.BOSS]:  { hp: 2000, speed: 35,  radius: 28, color: '#ff1744', shape: 'hexagon',  reward: 100, damage: 150 },
 };
