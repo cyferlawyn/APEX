@@ -383,7 +383,7 @@ export class Renderer {
     ctx.fillStyle   = COLORS.text;
     ctx.textAlign   = 'center';
     ctx.font        = '11px monospace';
-    ctx.fillText(`${Math.ceil(t.hp)} / ${t.maxHp}`, canvas.width / 2, barY + barH - 1);
+    ctx.fillText(`${Math.ceil(t.hp)} / ${t.maxHp}`, canvas.width / 2, barY - 3);
 
     // Laser cooldown indicator
     if (t.laserUnlocked && !t.laserActive) {
