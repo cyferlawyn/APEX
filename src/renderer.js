@@ -303,7 +303,7 @@ export class Renderer {
   // ── enemies ───────────────────────────────────────────────────────────────────
 
   _drawEnemies() {
-    const { ctx, game } = this;
+    const { ctx, canvas, game } = this;
     if (!game.enemyPool) return;
 
     // --- Batched draw: group by shape+color, one path per group ---
@@ -397,7 +397,7 @@ export class Renderer {
   // ── projectiles ───────────────────────────────────────────────────────────────
 
   _drawProjectiles() {
-    const { ctx, game } = this;
+    const { ctx, canvas, game } = this;
     if (!game.projectilePool) return;
 
     for (const p of game.projectilePool.pool) {
