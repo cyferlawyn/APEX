@@ -111,8 +111,8 @@ export class Renderer {
       const arcRad  = arcDeg * (Math.PI / 180);
       const orbitR  = r + 36;
       const rings   = t.ringTier >= 3
-        ? [{ angle: t.ringAngle }, { angle: t.ringAngle2 }]
-        : [{ angle: t.ringAngle }];
+        ? [{ angle: t.ringAngle, ccw: false }, { angle: t.ringAngle2, ccw: true }]
+        : [{ angle: t.ringAngle, ccw: false }];
 
       // Scale visuals with tier
       const coreWidth  = 2 + t.ringTier * 1.2;
@@ -123,6 +123,8 @@ export class Renderer {
       for (const ring of rings) {
         const startA = ring.angle - arcRad / 2;
         const endA   = ring.angle + arcRad / 2;
+        // Leading edge: endA when rotating clockwise, startA when counter-clockwise
+        const leadA  = ring.ccw ? startA : endA;
 
         ctx.save();
 
@@ -133,7 +135,7 @@ export class Renderer {
         ctx.lineWidth   = bloomWidth;
         ctx.lineCap     = 'round';
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.arc(cx, cy, orbitR, startA, endA, ring.ccw);
         ctx.stroke();
 
         // Pass 2 — colored glow
@@ -143,7 +145,7 @@ export class Renderer {
         ctx.shadowColor = '#ff6d00';
         ctx.lineWidth   = glowWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.arc(cx, cy, orbitR, startA, endA, ring.ccw);
         ctx.stroke();
 
         // Pass 3 — white hot core
@@ -153,12 +155,12 @@ export class Renderer {
         ctx.shadowColor = '#ff6d00';
         ctx.lineWidth   = coreWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.arc(cx, cy, orbitR, startA, endA, ring.ccw);
         ctx.stroke();
 
         // Bright leading-edge dot — punchy focal point
-        const tipX = cx + Math.cos(endA) * orbitR;
-        const tipY = cy + Math.sin(endA) * orbitR;
+        const tipX = cx + Math.cos(leadA) * orbitR;
+        const tipY = cy + Math.sin(leadA) * orbitR;
         ctx.globalAlpha = 1;
         ctx.fillStyle   = '#ffffff';
         ctx.shadowBlur  = glowBlur;
