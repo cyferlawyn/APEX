@@ -211,33 +211,33 @@ Saved after every wave result. Save includes:
 ## Milestones
 
 ### M1 — Skeleton
-- [ ] Project scaffolding (HTML, CSS, JS module structure)
-- [ ] Canvas setup, game loop, delta-time
-- [ ] State machine: shop → combat → results → shop
-- [ ] Save/load/reset via localStorage
+- [x] Project scaffolding (HTML, CSS, JS module structure)
+- [x] Canvas setup, game loop, delta-time
+- [x] State machine: shop → combat → results → shop
+- [x] Save/load/reset via localStorage
 
 ### M2 — Combat Core
-- [ ] Tower renders at center with basic hex shape
-- [ ] Enemy spawning (Drone only) from random off-screen positions
-- [ ] Enemy marches straight to center
-- [ ] Tower targets nearest enemy, fires single projectile
-- [ ] Projectile hits enemy, deals damage, enemy dies
-- [ ] Tower takes damage when enemy reaches center
-- [ ] Wave ends when all enemies dead or tower destroyed
+- [x] Tower renders at center with basic hex shape
+- [x] Enemy spawning (Drone only) from random off-screen positions
+- [x] Enemy marches straight to center
+- [x] Tower targets nearest enemy, fires single projectile
+- [x] Projectile hits enemy, deals damage, enemy dies
+- [x] Tower takes damage when enemy reaches center
+- [x] Wave ends when all enemies dead or tower destroyed
 
 ### M3 — Wave Scaling
-- [ ] Wave number tracked and displayed
-- [ ] Enemy HP/speed/count scales with wave formula
-- [ ] Boss spawns on wave 10, 20, 30 …
-- [ ] All five enemy types implemented
-- [ ] Currency awarded on enemy death, totalled at wave end
+- [x] Wave number tracked and displayed
+- [x] Enemy HP/speed/count scales with wave formula
+- [x] Boss spawns on wave 10, 20, 30 …
+- [x] All five enemy types implemented
+- [x] Currency awarded on enemy death, totalled at wave end
 
 ### M4 — Shop & Upgrades
-- [ ] Shop UI panel renders between waves
-- [ ] All 14 upgrade categories implemented
-- [ ] Purchase logic: deduct currency, increment tier, apply stat changes
-- [ ] Upgrade state persists across waves
-- [ ] "Start Wave N" button
+- [x] Shop UI panel renders between waves
+- [x] All 14 upgrade categories implemented
+- [x] Purchase logic: deduct currency, increment tier, apply stat changes
+- [x] Upgrade state persists across waves
+- [x] "Start Wave N" button
 
 ### M5 — Fire Modes
 - [ ] Multi-Shot
@@ -282,70 +282,70 @@ These are added in subsequent passes once the loop is verified playable.
 
 ### Phase 1 — Project Scaffold
 
-- [ ] Create `index.html` — canvas element, shop panel div, script module entry point
-- [ ] Create `style.css` — dark background, layout (canvas left, shop panel right), base font
-- [ ] Create `src/main.js` — `requestAnimationFrame` loop, delta-time calculation, kick-off
-- [ ] Create `src/game.js` — state machine enum (`SHOP`, `COMBAT`, `RESULTS`, `GAME_OVER`), transition logic
-- [ ] Create `src/storage.js` — `save(state)`, `load()`, `clear()` using `localStorage`
-- [ ] Wire save/load into game init: load existing save on startup or start fresh
+- [x] Create `index.html` — canvas element, shop panel div, script module entry point
+- [x] Create `style.css` — dark background, layout (canvas left, shop panel right), base font
+- [x] Create `src/main.js` — `requestAnimationFrame` loop, delta-time calculation, kick-off
+- [x] Create `src/game.js` — state machine enum (`SHOP`, `COMBAT`, `RESULTS`, `GAME_OVER`), transition logic
+- [x] Create `src/storage.js` — `save(state)`, `load()`, `clear()` using `localStorage`
+- [x] Wire save/load into game init: load existing save on startup or start fresh
 
 ---
 
 ### Phase 2 — Renderer Foundation
 
-- [ ] Create `src/renderer.js` — canvas context setup, `clear()`, coordinate system (0,0 = top-left, tower at center)
-- [ ] Draw faint grid background
-- [ ] Draw tower: filled hexagon, neon outline, fixed at canvas center
-- [ ] Draw HUD overlay: wave number (top-left), tower HP bar (top-center), currency (top-right)
-- [ ] Draw state overlays: "Wave N complete — earned X" results screen, game over screen
+- [x] Create `src/renderer.js` — canvas context setup, `clear()`, coordinate system (0,0 = top-left, tower at center)
+- [x] Draw faint grid background
+- [x] Draw tower: filled hexagon, neon outline, fixed at canvas center
+- [x] Draw HUD overlay: wave number (top-left), tower HP bar (top-center), currency (top-right)
+- [x] Draw state overlays: "Wave N complete — earned X" results screen, game over screen
 
 ---
 
 ### Phase 3 — Enemy System
 
-- [ ] Create `src/enemy.js` — `Enemy` class with fields: `x, y, hp, maxHp, speed, radius, color, shape, reward, active`
-- [ ] Implement enemy object pool (`EnemyPool`) — fixed array, `acquire()` / `release()`
-- [ ] Implement `spawnEnemy(type, wave)` — random off-screen position, stats scaled by wave formula
-- [ ] Implement `Enemy.update(dt)` — move straight toward canvas center, detect arrival (deal damage to tower)
-- [ ] Draw enemies by shape: circle (Drone/Swarm), square (Brute), triangle (Elite), hexagon (Boss) — neon outlined, with HP bar above
-- [ ] Define all 5 enemy types with base stats (Drone, Swarm, Brute, Elite, Boss)
+- [x] Create `src/enemy.js` — `Enemy` class with fields: `x, y, hp, maxHp, speed, radius, color, shape, reward, active`
+- [x] Implement enemy object pool (`EnemyPool`) — fixed array, `acquire()` / `release()`
+- [x] Implement `spawnEnemy(type, wave)` — random off-screen position, stats scaled by wave formula
+- [x] Implement `Enemy.update(dt)` — move straight toward canvas center, detect arrival (deal damage to tower)
+- [x] Draw enemies by shape: circle (Drone/Swarm), square (Brute), triangle (Elite), hexagon (Boss) — neon outlined, with HP bar above
+- [x] Define all 5 enemy types with base stats (Drone, Swarm, Brute, Elite, Boss)
 
 ---
 
 ### Phase 4 — Wave System
 
-- [ ] Create `src/wave.js` — `buildWave(waveNumber)` returns spawn list: `[{type, delay}]`
-- [ ] Wave composition rules:
+- [x] Create `src/wave.js` — `buildWave(waveNumber)` returns spawn list: `[{type, delay}]`
+- [x] Wave composition rules:
   - Waves 1–4: Drones only
   - Wave 5+: add Elites to mix
   - Wave 8+: add Brutes to mix
   - Every 10th wave: single Boss (no other enemies)
   - Swarm: random 20% chance of cluster replacing a Drone group from wave 3+
-- [ ] Enemy count formula: `floor(5 + wave * 1.5)`, capped at 80 for non-boss waves
-- [ ] HP scaling: `base_hp × 1.15^wave`
-- [ ] Speed scaling: `base_speed × 1.02^wave`
-- [ ] Spawn sequencer in `game.js`: releases enemies from spawn list on a per-enemy delay (staggered, not all at once)
-- [ ] Wave-end detection: all enemies dead → transition to RESULTS
-- [ ] Tower-death detection: HP ≤ 0 → transition to GAME_OVER
+- [x] Enemy count formula: `floor(5 + wave * 1.5)`, capped at 80 for non-boss waves
+- [x] HP scaling: `base_hp × 1.15^wave`
+- [x] Speed scaling: `base_speed × 1.02^wave`
+- [x] Spawn sequencer in `game.js`: releases enemies from spawn list on a per-enemy delay (staggered, not all at once)
+- [x] Wave-end detection: all enemies dead → transition to RESULTS
+- [x] Tower-death detection: HP ≤ 0 → transition to GAME_OVER
 
 ---
 
 ### Phase 5 — Tower & Projectiles
 
-- [ ] Create `src/tower.js` — `Tower` class with fields: `hp, maxHp, damage, fireRate, range, projectileSpeed, fireCooldown`
-- [ ] Targeting logic: scan active enemies, pick nearest within range; if none in range, pick globally nearest
-- [ ] Fire cooldown: accumulate `dt`, fire when `fireCooldown` reached, reset
-- [ ] Create `src/projectile.js` — `Projectile` class: `x, y, vx, vy, damage, active`; object pool (`ProjectilePool`)
-- [ ] `Projectile.update(dt)` — move by velocity; check bounds (deactivate if off-screen)
-- [ ] Collision detection: per-frame, each active projectile vs each active enemy — circle overlap test; on hit: deal damage, deactivate projectile, if enemy HP ≤ 0 award currency and release enemy
-- [ ] Draw projectiles: bright filled circle with simple 2px glow (shadow blur on canvas)
+- [x] Create `src/tower.js` — `Tower` class with fields: `hp, maxHp, damage, fireRate, range, projectileSpeed, fireCooldown`
+- [x] Targeting logic: scan active enemies, pick nearest within range; if none in range, pick globally nearest
+- [x] Fire cooldown: accumulate `dt`, fire when `fireCooldown` reached, reset
+- [x] Create `src/projectile.js` — `Projectile` class: `x, y, vx, vy, damage, active`; object pool (`ProjectilePool`)
+- [x] `Projectile.update(dt)` — move by velocity; check bounds (deactivate if off-screen)
+- [x] Collision detection: per-frame, each active projectile vs each active enemy — circle overlap test; on hit: deal damage, deactivate projectile, if enemy HP ≤ 0 award currency and release enemy
+- [x] Draw projectiles: bright filled circle with simple 2px glow (shadow blur on canvas)
 
 ---
 
 ### Phase 6 — Shop & Upgrades
 
-- [ ] Create `src/shop.js` — upgrade catalogue array; each entry: `{ id, name, description, maxTier, baseCost, costMultiplier, apply(tower, tier) }`
-- [ ] Implement all 13 MVP upgrades (Armor Pierce deferred):
+- [x] Create `src/shop.js` — upgrade catalogue array; each entry: `{ id, name, description, maxTier, baseCost, costMultiplier, apply(tower, tier) }`
+- [x] Implement all 13 MVP upgrades (Armor Pierce deferred):
   - **Damage** — `tower.damage *= 1.15`
   - **Fire Rate** — `tower.fireRate *= 1.10`
   - **Projectile Speed** — `tower.projectileSpeed *= 1.12`
@@ -359,30 +359,30 @@ These are added in subsequent passes once the loop is verified playable.
   - **Chain Lightning** (tier 1 = unlock) — sets `tower.chainJumps`
   - **Laser Burst** (tier 1 = unlock) — sets `tower.laserUnlocked` flag
   - **Rotating Turrets** (tier 1 = unlock, tiers 2–4 add turrets) — sets `tower.turretCount`
-- [ ] `Shop.cost(id)` — returns `baseCost × 1.4^currentTier`
-- [ ] `Shop.purchase(id, game)` — validate afford, deduct currency, increment tier, call `apply()`
-- [ ] Upgrade tiers saved with game state; re-applied on load via `reapplyAll(tower, upgradeLevels)`
+- [x] `Shop.cost(id)` — returns `baseCost × 1.4^currentTier`
+- [x] `Shop.purchase(id, game)` — validate afford, deduct currency, increment tier, call `apply()`
+- [x] Upgrade tiers saved with game state; re-applied on load via `reapplyAll(tower, upgradeLevels)`
 
 ---
 
 ### Phase 7 — Shop UI
 
-- [ ] Render shop panel (right side): currency display, "Start Wave N" button, scrollable upgrade card list
-- [ ] Each upgrade card: name, tier indicator (`[2/10]`), description, next-tier effect, cost button
-- [ ] Unaffordable upgrades: cost button greyed out, non-interactive
-- [ ] Maxed upgrades: show "MAX" badge, no button
-- [ ] Locked mechanic upgrades (tier 0): show unlock cost and flavor description
-- [ ] Currency updates live as purchases are made
-- [ ] "Start Wave N" button: only active during SHOP phase; clicking transitions to COMBAT
+- [x] Render shop panel (right side): currency display, "Start Wave N" button, scrollable upgrade card list
+- [x] Each upgrade card: name, tier indicator (`[2/10]`), description, next-tier effect, cost button
+- [x] Unaffordable upgrades: cost button greyed out, non-interactive
+- [x] Maxed upgrades: show "MAX" badge, no button
+- [x] Locked mechanic upgrades (tier 0): show unlock cost and flavor description
+- [x] Currency updates live as purchases are made
+- [x] "Start Wave N" button: only active during SHOP phase; clicking transitions to COMBAT
 
 ---
 
 ### Phase 8 — Game Over & Persistence UX
 
-- [ ] Game over screen: wave number reached, total currency ever earned (stat), "New Game" button
-- [ ] New Game button: if save exists → show inline confirmation ("Erase save and start over?", Confirm / Cancel); if no save → start directly
-- [ ] Auto-save after every RESULTS transition (wave number, currency, tower HP, all upgrade tiers)
-- [ ] On startup: if save found → restore and land on SHOP; if no save → land on SHOP at wave 1 with starter currency
+- [x] Game over screen: wave number reached, "New Game" button
+- [x] New Game button: if save exists → show inline confirmation ("Erase save and start over?", Confirm / Cancel); if no save → start directly
+- [x] Auto-save after every RESULTS transition (wave number, currency, tower HP, all upgrade tiers)
+- [x] On startup: if save found → restore and land on SHOP; if no save → land on SHOP at wave 1 with starter currency
 
 ---
 
