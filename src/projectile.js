@@ -167,7 +167,10 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   if (!best) return;
 
   // Register arc for renderer
-  game.lightningArcs.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.15 });
+  game.lightningArcs.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.35 });
+
+  // Spark burst at the chain impact point
+  if (game.particles) game.particles.emitHit(best.x, best.y, '#e040fb');
 
   _damageEnemy(best, damage, game);
 

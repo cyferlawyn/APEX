@@ -291,20 +291,63 @@ export class Renderer {
     game.lightningArcs = game.lightningArcs.filter(arc => {
       arc.t -= 1 / 60;
       if (arc.t <= 0) return false;
-      const alpha = arc.t / 0.15;
+
+      const alpha = Math.min(1, arc.t / 0.12); // full opacity except last 0.12s fade
+
+      // Build a jagged polyline: divide the arc into segments with random perp offsets
+      const SEGS    = 6;
+      const dx      = arc.x2 - arc.x1;
+      const dy      = arc.y2 - arc.y1;
+      const len     = Math.sqrt(dx * dx + dy * dy);
+      const px      = -dy / len; // perpendicular unit vector
+      const py      =  dx / len;
+      const spread  = Math.min(len * 0.25, 28); // jag amplitude scales with arc length
+
+      // Pre-compute jag points (stable per-arc per-frame via stored seed would be
+      // ideal, but recomputing each frame gives a nice electrical shimmer)
+      const pts = [{ x: arc.x1, y: arc.y1 }];
+      for (let i = 1; i < SEGS; i++) {
+        const t      = i / SEGS;
+        const bx     = arc.x1 + dx * t;
+        const by     = arc.y1 + dy * t;
+        const offset = (Math.random() - 0.5) * 2 * spread;
+        pts.push({ x: bx + px * offset, y: by + py * offset });
+      }
+      pts.push({ x: arc.x2, y: arc.y2 });
+
+      // Pass 1 — wide outer glow
       ctx.save();
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = alpha * 0.4;
+      ctx.strokeStyle = COLORS.chain;
+      ctx.shadowBlur  = 20;
+      ctx.shadowColor = COLORS.chain;
+      ctx.lineWidth   = 6;
+      ctx.lineJoin    = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.stroke();
+
+      // Pass 2 — colored mid stroke
+      ctx.globalAlpha = alpha * 0.9;
       ctx.strokeStyle = COLORS.chain;
       ctx.shadowBlur  = 10;
-      ctx.shadowColor = COLORS.chain;
-      ctx.lineWidth   = 2;
+      ctx.lineWidth   = 2.5;
       ctx.beginPath();
-      ctx.moveTo(arc.x1, arc.y1);
-      // Slight jag midpoint for lightning feel
-      const mx = (arc.x1 + arc.x2) / 2 + (Math.random() - 0.5) * 20;
-      const my = (arc.y1 + arc.y2) / 2 + (Math.random() - 0.5) * 20;
-      ctx.quadraticCurveTo(mx, my, arc.x2, arc.y2);
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
       ctx.stroke();
+
+      // Pass 3 — bright white core
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#ffffff';
+      ctx.shadowBlur  = 4;
+      ctx.lineWidth   = 1;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.stroke();
+
       ctx.restore();
       return true;
     });
