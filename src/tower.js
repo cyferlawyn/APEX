@@ -1,3 +1,5 @@
+import { audio } from './audio.js';
+
 export class Tower {
   constructor() {
     this.maxHp           = 1000;
@@ -44,6 +46,7 @@ export class Tower {
   takeDamage(amount, game) {
     this.hp       -= amount;
     this.hitFlash  = 0.12;
+    audio.towerHit();
     if (game && game.particles) game.particles.emitTowerHit(this.x, this.y);
   }
 
@@ -68,6 +71,11 @@ export class Tower {
     for (const target of targets) {
       this._fireAt(target, game, this.x, this.y);
     }
+
+    // Fire sound — pick variant based on active modes
+    if (this.spreadShot)         audio.fireSpread();
+    else if (this.multiShotCount > 1) audio.fireMulti();
+    else                         audio.fireSingle();
 
     this.fireCooldown = 1 / this.fireRate;
   }
@@ -162,7 +170,10 @@ export class Tower {
             _spawnCurrencyPopup(earned, game);
             if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-            if (e.type === 'BOSS') game.edgeFlash = 0.5;
+            if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
+            else if (e.type === 'BRUTE')   audio.deathLarge();
+            else if (e.type === 'ELITE')   audio.deathMedium();
+            else                           audio.deathSmall();
             e.active = false;
           }
           break; // one ring hit is enough per frame
@@ -208,7 +219,10 @@ export class Tower {
             _spawnCurrencyPopup(earned, game);
             if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-            if (e.type === 'BOSS') game.edgeFlash = 0.5;
+            if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
+            else if (e.type === 'BRUTE')   audio.deathLarge();
+            else if (e.type === 'ELITE')   audio.deathMedium();
+            else                           audio.deathSmall();
             e.active = false;
           }
         }
@@ -217,6 +231,7 @@ export class Tower {
       if (this.laserTimer <= 0) {
         this.laserActive   = false;
         this.laserCooldown = BURST_COOLDOWN;
+        audio.laserStop();
       }
     } else {
       this.laserCooldown -= dt;
@@ -224,6 +239,7 @@ export class Tower {
         this.laserActive = true;
         this.laserTimer  = BURST_DURATION;
         this.laserAngle  = 0;
+        audio.laserStart(this.laserTier);
       }
     }
   }

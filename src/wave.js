@@ -1,4 +1,5 @@
 import { EnemyType } from './enemy.js';
+import { audio }     from './audio.js';
 
 export class WaveSpawner {
   constructor(game) {
@@ -45,7 +46,10 @@ export class WaveSpawner {
     }
 
     this.game.enemyPool.spawn(type, this.game.wave, x, y);
-    if (type === EnemyType.BOSS) this.game.edgeFlash = 0.6;
+    if (type === EnemyType.BOSS) {
+      this.game.edgeFlash = 0.6;
+      audio.bossArrival();
+    }
   }
 }
 

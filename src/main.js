@@ -6,6 +6,7 @@ import { WaveSpawner }     from './wave.js';
 import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
 import { ParticleSystem }  from './particles.js';
+import { audio }           from './audio.js';
 import { save, load, clear, hasSave } from './storage.js';
 
 const canvas   = document.getElementById('gameCanvas');
@@ -107,6 +108,7 @@ function onWaveComplete() {
   if (game.wave > game.bestWave) game.bestWave = game.wave;
 
   saveGame();
+  audio.waveComplete();
 
   // Show results overlay but start next wave immediately
   game.resultsTimer = game.RESULTS_DURATION;
@@ -120,6 +122,8 @@ function onDefeated() {
   if (game.wave > game.bestWave) game.bestWave = game.wave;
 
   saveGame();
+  audio.laserStop(); // cut laser drone if it was active
+  audio.defeated();
   game.transition(State.DEFEATED);
 }
 
@@ -162,7 +166,12 @@ export function selfDestruct() {
 }
 
 // Expose to UI
-window.__apex = { newGame, selfDestruct, shop, game, hasSave };
+window.__apex = { newGame, selfDestruct, shop, game, hasSave, audio };
+
+// Init AudioContext on first user gesture (browser autoplay policy)
+document.addEventListener('click',    () => audio.init(), { once: true });
+document.addEventListener('keydown',  () => audio.init(), { once: true });
+document.addEventListener('pointerdown', () => audio.init(), { once: true });
 
 // --- go ---
 bootstrap();

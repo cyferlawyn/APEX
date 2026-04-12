@@ -1,3 +1,5 @@
+import { audio } from './audio.js';
+
 // ── Spatial grid ─────────────────────────────────────────────────────────────
 // Divides the canvas into fixed-size cells. Enemies register themselves each
 // frame; projectiles query only the cells they overlap, cutting collision work
@@ -117,6 +119,7 @@ export class Projectile {
       }
       // Register explosion flash for renderer — extended lifetime + shrapnel
       game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.45 });
+      audio.fireExplosive();
       if (game.particles) {
         // Dense shrapnel burst — more particles, faster, orange/white
         const count = 18;
@@ -154,6 +157,11 @@ function _damageEnemy(e, dmg, game) {
     // Death burst particles + expanding ring
     if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
     game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
+    // Death sound — sized by enemy type
+    if      (e.type === 'BOSS')              audio.deathBoss();
+    else if (e.type === 'BRUTE')             audio.deathLarge();
+    else if (e.type === 'ELITE')             audio.deathMedium();
+    else                                     audio.deathSmall();
     // Boss arrival / death edge flash
     if (e.type === 'BOSS') game.edgeFlash = 0.5;
     e.active = false;
@@ -184,6 +192,7 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
 
   // Register arc for renderer
   game.lightningArcs.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.35 });
+  audio.fireChain();
 
   // Spark burst at the chain impact point
   if (game.particles) game.particles.emitHit(best.x, best.y, '#e040fb');

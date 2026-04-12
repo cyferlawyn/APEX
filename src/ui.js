@@ -136,6 +136,11 @@ function wireButtons() {
   document.getElementById('confirm-no').addEventListener('click', () => {
     document.getElementById('confirm-overlay').classList.add('hidden');
   });
+
+  // Volume slider
+  document.getElementById('volume-slider').addEventListener('input', e => {
+    getApex()?.audio?.setVolume(parseInt(e.target.value, 10) / 100);
+  });
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
