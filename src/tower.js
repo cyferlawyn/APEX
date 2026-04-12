@@ -19,6 +19,7 @@ export class Tower {
     // Laser burst
     this.laserUnlocked   = false;
     this.laserTier       = 0;
+    this.laserRange      = 220;   // px — updated each tier by _updateLaser
     this.laserCooldown   = 0;     // time until next burst
     this.laserActive     = false; // currently sweeping
     this.laserAngle      = 0;     // current sweep angle (radians)
@@ -170,11 +171,15 @@ export class Tower {
   // ── Laser burst ─────────────────────────────────────────────────────────────
 
   _updateLaser(dt, game) {
-    const BURST_DURATION = 1.5 + this.laserTier * 0.3;  // sec
-    const BURST_COOLDOWN = 8   - this.laserTier * 1.0;  // sec (min ~4s at tier 4)
-    const LASER_RANGE    = 180;
-    const SWEEP_SPEED    = (Math.PI * 2) / BURST_DURATION; // full 360° per burst
-    const DPS            = this.damage * this.fireRate * 0.5;
+    const BURST_DURATION = 1.5 + this.laserTier * 0.3;  // sec: 1.8 / 2.1 / 2.4 / 2.7
+    const BURST_COOLDOWN = 8   - this.laserTier * 1.0;  // sec: 7 / 6 / 5 / 4
+    const SWEEP_SPEED    = (Math.PI * 2) / BURST_DURATION;
+
+    // Range and DPS multiplier scale strongly per tier
+    const RANGE_BY_TIER = [0, 220, 300, 400, 520];
+    const DPS_MULT      = [0, 2.5, 3.5, 5.0, 7.0];
+    this.laserRange     = RANGE_BY_TIER[this.laserTier] ?? 220;
+    const DPS           = this.damage * this.fireRate * DPS_MULT[this.laserTier];
 
     if (this.laserActive) {
       this.laserTimer -= dt;
@@ -186,10 +191,10 @@ export class Tower {
         const dx   = e.x - this.x;
         const dy   = e.y - this.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > LASER_RANGE) continue;
+        if (dist > this.laserRange) continue;
 
-        const eAngle  = Math.atan2(dy, dx);
-        let   dAngle  = Math.abs(eAngle - (this.laserAngle % (Math.PI * 2)));
+        const eAngle = Math.atan2(dy, dx);
+        let dAngle   = Math.abs(eAngle - (this.laserAngle % (Math.PI * 2)));
         if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
         if (dAngle < 0.15) { // ~8.5° beam half-width
           e.hp -= DPS * dt;
@@ -204,7 +209,7 @@ export class Tower {
       }
 
       if (this.laserTimer <= 0) {
-        this.laserActive  = false;
+        this.laserActive   = false;
         this.laserCooldown = BURST_COOLDOWN;
       }
     } else {

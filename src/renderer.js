@@ -186,27 +186,30 @@ export class Renderer {
     const t = game.tower;
     if (!t || !t.laserActive) return;
 
-    const LASER_RANGE = 180;
     const cx = t.x, cy = t.y;
     const a  = t.laserAngle;
-    const ex = cx + Math.cos(a) * LASER_RANGE;
-    const ey = cy + Math.sin(a) * LASER_RANGE;
+    const ex = cx + Math.cos(a) * t.laserRange;
+    const ey = cy + Math.sin(a) * t.laserRange;
+
+    // Beam width scales with tier — thicker at higher tiers
+    const outerWidth = 2 + t.laserTier * 1.5;
+    const innerWidth = 1 + t.laserTier * 0.5;
 
     ctx.save();
-    ctx.shadowBlur  = 18;
+    ctx.shadowBlur  = 12 + t.laserTier * 6;
     ctx.shadowColor = COLORS.laser;
     ctx.strokeStyle = COLORS.laser;
-    ctx.lineWidth   = 3;
+    ctx.lineWidth   = outerWidth;
     ctx.globalAlpha = 0.85;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(ex, ey);
     ctx.stroke();
 
-    // Thin bright core
+    // Bright core
     ctx.globalAlpha = 1;
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth   = 1;
+    ctx.lineWidth   = innerWidth;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(ex, ey);
