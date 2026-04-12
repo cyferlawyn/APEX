@@ -62,6 +62,9 @@ export class Tower {
     const targets = _nearestEnemies(game.enemyPool.pool, this, this.multiShotCount);
     if (targets.length === 0) return;
 
+    // Only fire if the primary target is within range
+    if (_dist2(targets[0], this) > this.range * this.range) return;
+
     for (const target of targets) {
       this._fireAt(target, game, this.x, this.y);
     }
@@ -121,6 +124,7 @@ export class Tower {
 
       const target = _nearestEnemies(game.enemyPool.pool, { x: tx, y: ty }, 1)[0];
       if (!target) continue;
+      if (_dist2(target, { x: tx, y: ty }) > this.range * this.range) continue;
 
       const dx  = target.x - tx;
       const dy  = target.y - ty;
