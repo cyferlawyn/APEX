@@ -28,6 +28,7 @@ export class Game {
     this.lightningArcs = []; // { x1, y1, x2, y2, t }
     this.deathRings    = []; // { x, y, r, t, color } — expanding ring on enemy death
     this.edgeFlash     = 0;  // seconds remaining for boss screen-edge flash
+    this.currencyPopups = []; // { amount, x, y, t } — +$N floaters near currency HUD
 
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;

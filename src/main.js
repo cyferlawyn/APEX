@@ -41,10 +41,11 @@ function beginWave() {
   game.enemyPool.reset();
   game.projectilePool.reset();
   if (game.particles) game.particles.reset();
-  game.explosions    = [];
-  game.lightningArcs = [];
-  game.deathRings    = [];
-  game.edgeFlash     = 0;
+  game.explosions     = [];
+  game.lightningArcs  = [];
+  game.deathRings     = [];
+  game.edgeFlash      = 0;
+  game.currencyPopups = [];
   // Apply regen between waves; full heal only on wave 1 (fresh start)
   if (game.wave === 1) {
     game.tower.hp = game.tower.maxHp;

@@ -508,6 +508,25 @@ export class Renderer {
     ctx.fillStyle   = COLORS.currency;
     ctx.font        = '13px monospace';
     ctx.fillText(`$ ${game.currency}`, canvas.width - 12, 22);
+
+    // Currency popups — +$N floaters that drift up and fade
+    const DT = 1 / 60;
+    game.currencyPopups = game.currencyPopups.filter(p => {
+      p.t -= DT;
+      if (p.t <= 0) return false;
+      p.y -= 28 * DT; // drift upward
+      const alpha = Math.min(1, p.t / 0.4); // fade out over last 0.4s
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle   = COLORS.currency;
+      ctx.shadowBlur  = 6;
+      ctx.shadowColor = COLORS.currency;
+      ctx.font        = '11px monospace';
+      ctx.textAlign   = 'right';
+      ctx.fillText(`+$${p.amount}`, p.x, p.y);
+      ctx.restore();
+      return true;
+    });
   }
 
   // ── state overlays ────────────────────────────────────────────────────────────
