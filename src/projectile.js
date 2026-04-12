@@ -1,3 +1,49 @@
+// ── Spatial grid ─────────────────────────────────────────────────────────────
+// Divides the canvas into fixed-size cells. Enemies register themselves each
+// frame; projectiles query only the cells they overlap, cutting collision work
+// from O(projectiles × enemies) to roughly O(projectiles × local_density).
+
+class SpatialGrid {
+  constructor(cellSize) {
+    this.cellSize = cellSize;
+    this.cells    = new Map(); // key = "cx,cy" → Enemy[]
+  }
+
+  _key(cx, cy) { return (cx << 16) | (cy & 0xffff); }
+
+  clear() { this.cells.clear(); }
+
+  insert(e) {
+    const cs  = this.cellSize;
+    const cx  = Math.floor(e.x / cs);
+    const cy  = Math.floor(e.y / cs);
+    const key = this._key(cx, cy);
+    let   arr = this.cells.get(key);
+    if (!arr) { arr = []; this.cells.set(key, arr); }
+    arr.push(e);
+  }
+
+  // Return all enemies in cells overlapping the circle (x,y,r)
+  query(x, y, r) {
+    const cs      = this.cellSize;
+    const minCx   = Math.floor((x - r) / cs);
+    const maxCx   = Math.floor((x + r) / cs);
+    const minCy   = Math.floor((y - r) / cs);
+    const maxCy   = Math.floor((y + r) / cs);
+    const results = [];
+    for (let cx = minCx; cx <= maxCx; cx++) {
+      for (let cy = minCy; cy <= maxCy; cy++) {
+        const arr = this.cells.get(this._key(cx, cy));
+        if (arr) for (const e of arr) results.push(e);
+      }
+    }
+    return results;
+  }
+}
+
+// Module-level grid; rebuilt every update call from the current enemy pool.
+const _grid = new SpatialGrid(64);
+
 export class Projectile {
   constructor() {
     this.active          = false;
@@ -36,8 +82,9 @@ export class Projectile {
       return;
     }
 
-    // Collision vs enemies
-    for (const e of game.enemyPool.pool) {
+    // Collision vs enemies — query grid instead of full pool scan
+    const QUERY_R = 32; // slightly larger than max enemy radius (28)
+    for (const e of _grid.query(this.x, this.y, QUERY_R)) {
       if (!e.active) continue;
       const dx = this.x - e.x;
       const dy = this.y - e.y;
@@ -138,6 +185,12 @@ export class ProjectilePool {
   }
 
   update(dt, game) {
+    // Rebuild spatial grid once for the entire frame
+    _grid.clear();
+    for (const e of game.enemyPool.pool) {
+      if (e.active) _grid.insert(e);
+    }
+
     for (const p of this.pool) {
       if (p.active) p.update(dt, game, this._bounds);
     }

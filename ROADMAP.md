@@ -425,24 +425,24 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 
 ### P2 — Visual Polish
 
-- [ ] **Particle system** — implement `src/particles.js` pool; emit on: projectile hit (sparks), enemy death (burst), tower hit (red flash fragments)
-- [ ] **Projectile motion trails** — store last 4 positions per projectile; draw fading line behind each
-- [ ] **Enemy death animation** — brief expanding ring + fade at death position before releasing from pool
-- [ ] **Tower core glow pulse** — animate core dot radius/opacity on a sine curve; speed increases with fire rate
-- [ ] **Boss arrival emphasis** — brief screen-edge red flash when a boss spawns
+- [x] **Particle system** — implement `src/particles.js` pool; emit on: projectile hit (sparks), enemy death (burst), tower hit (red flash fragments)
+- [x] **Projectile motion trails** — store last 4 positions per projectile; draw fading line behind each
+- [x] **Enemy death animation** — brief expanding ring + fade at death position before releasing from pool
+- [x] **Tower core glow pulse** — animate core dot radius/opacity on a sine curve; speed increases with fire rate
+- [x] **Boss arrival emphasis** — brief screen-edge red flash when a boss spawns
 - [x] **Tower hit flash** — tower hex briefly turns red for 120ms when taking damage
 - [x] **Wave counter in HUD** — display current wave number more prominently; show enemy count remaining
-- [ ] **Defeated screen** — display total currency accumulated this run alongside wave reached
+- [x] **Defeated screen** — display total currency accumulated this run alongside wave reached
 
 ---
 
 ### P3 — Performance & Correctness
 
-- [ ] **Spatial grid collision** — replace O(n×m) projectile×enemy loop with a bucketed grid; target: handles 500 enemies + 2000 projectiles at 60 fps
-- [ ] **Enemy pool expansion** — increase pool size to 512; verify no pool starvation on wave 30+
-- [ ] **Projectile pool expansion** — increase to 2048; verify no starvation with spread shot + turrets active
-- [ ] **Canvas state batching** — group all enemies of same shape/color into a single path before stroking to reduce `save/restore` calls
-- [ ] **Off-screen cull** — skip draw calls for entities more than 50px outside canvas bounds
+- [x] **Spatial grid collision** — replace O(n×m) projectile×enemy loop with a bucketed grid; target: handles 500 enemies + 2000 projectiles at 60 fps
+- [x] **Enemy pool expansion** — increase pool size to 512; verify no pool starvation on wave 30+
+- [x] **Projectile pool expansion** — increase to 2048; verify no starvation with spread shot + turrets active
+- [x] **Canvas state batching** — group all enemies of same shape/color into a single path before stroking to reduce `save/restore` calls
+- [x] **Off-screen cull** — skip draw calls for entities more than 50px outside canvas bounds
 
 ---
 

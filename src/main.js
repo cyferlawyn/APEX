@@ -18,8 +18,8 @@ function bootstrap() {
   const saved = load();
 
   game.tower          = new Tower();
-  game.enemyPool      = new EnemyPool(256);
-  game.projectilePool = new ProjectilePool(1024);
+  game.enemyPool      = new EnemyPool(512);
+  game.projectilePool = new ProjectilePool(2048);
   game.waveSpawner    = new WaveSpawner(game);
   game.particles      = new ParticleSystem(512);
 

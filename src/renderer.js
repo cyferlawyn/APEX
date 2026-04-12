@@ -306,62 +306,78 @@ export class Renderer {
     const { ctx, game } = this;
     if (!game.enemyPool) return;
 
+    // --- Batched draw: group by shape+color, one path per group ---
+    // Bucket: key = shape+color → { color, shape, arr: [enemy, ...] }
+    const buckets = new Map();
     for (const e of game.enemyPool.pool) {
       if (!e.active) continue;
+      // Off-screen cull — skip enemies more than 50px outside canvas
+      if (e.x < -50 || e.x > canvas.width + 50 ||
+          e.y < -50 || e.y > canvas.height + 50) continue;
+      const key    = e.shape + e.color;
+      let   bucket = buckets.get(key);
+      if (!bucket) { bucket = { color: e.color, shape: e.shape, arr: [] }; buckets.set(key, bucket); }
+      bucket.arr.push(e);
+    }
 
+    for (const { color, shape, arr } of buckets.values()) {
       ctx.save();
       ctx.shadowBlur  = 10;
-      ctx.shadowColor = e.color;
-      ctx.strokeStyle = e.color;
+      ctx.shadowColor = color;
+      ctx.strokeStyle = color;
       ctx.lineWidth   = 1.5;
       ctx.fillStyle   = 'rgba(0,0,0,0.5)';
-
-      switch (e.shape) {
-        case 'circle':   this._drawCircleEnemy(e);   break;
-        case 'square':   this._drawSquareEnemy(e);   break;
-        case 'triangle': this._drawTriangleEnemy(e); break;
-        case 'hexagon':  this._drawHexEnemy(e);      break;
+      ctx.beginPath();
+      for (const e of arr) {
+        this._appendEnemyPath(e, shape);
       }
-
+      ctx.fill();
+      ctx.stroke();
       ctx.restore();
-      this._drawHpBar(e);
+    }
+
+    // HP bars drawn separately (no batching benefit, very cheap)
+    for (const e of game.enemyPool.pool) {
+      if (e.active) this._drawHpBar(e);
     }
   }
 
-  _drawCircleEnemy(e) {
-    const ctx = this.ctx;
-    ctx.beginPath();
-    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-    ctx.fill(); ctx.stroke();
-  }
-
-  _drawSquareEnemy(e) {
-    const ctx = this.ctx;
-    const s = e.radius * 1.6;
-    ctx.beginPath();
-    ctx.rect(e.x - s / 2, e.y - s / 2, s, s);
-    ctx.fill(); ctx.stroke();
-  }
-
-  _drawTriangleEnemy(e) {
-    const ctx = this.ctx;
-    const r = e.radius * 1.3;
-    ctx.beginPath();
-    for (let i = 0; i < 3; i++) {
-      const a = (Math.PI * 2 / 3) * i - Math.PI / 2;
-      const x = e.x + r * Math.cos(a);
-      const y = e.y + r * Math.sin(a);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  // Append a single enemy's shape sub-path to the current path (no fill/stroke)
+  _appendEnemyPath(e, shape) {
+    switch (shape) {
+      case 'circle': {
+        this.ctx.moveTo(e.x + e.radius, e.y);
+        this.ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        break;
+      }
+      case 'square': {
+        const s = e.radius * 1.6;
+        this.ctx.rect(e.x - s / 2, e.y - s / 2, s, s);
+        break;
+      }
+      case 'triangle': {
+        const r = e.radius * 1.3;
+        for (let i = 0; i < 3; i++) {
+          const a = (Math.PI * 2 / 3) * i - Math.PI / 2;
+          const x = e.x + r * Math.cos(a);
+          const y = e.y + r * Math.sin(a);
+          i === 0 ? this.ctx.moveTo(x, y) : this.ctx.lineTo(x, y);
+        }
+        this.ctx.closePath();
+        break;
+      }
+      case 'hexagon': {
+        const r = e.radius * 1.2;
+        for (let i = 0; i < 6; i++) {
+          const a = (Math.PI / 3) * i - Math.PI / 6;
+          const x = e.x + r * Math.cos(a);
+          const y = e.y + r * Math.sin(a);
+          i === 0 ? this.ctx.moveTo(x, y) : this.ctx.lineTo(x, y);
+        }
+        this.ctx.closePath();
+        break;
+      }
     }
-    ctx.closePath();
-    ctx.fill(); ctx.stroke();
-  }
-
-  _drawHexEnemy(e) {
-    const ctx = this.ctx;
-    ctx.beginPath();
-    this._hexPath(e.x, e.y, e.radius * 1.2);
-    ctx.fill(); ctx.stroke();
   }
 
   _drawHpBar(e) {
@@ -386,6 +402,9 @@ export class Renderer {
 
     for (const p of game.projectilePool.pool) {
       if (!p.active) continue;
+      // Off-screen cull
+      if (p.x < -20 || p.x > canvas.width + 20 ||
+          p.y < -20 || p.y > canvas.height + 20) continue;
 
       // Motion trail — 3 fading dots behind the projectile
       const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
