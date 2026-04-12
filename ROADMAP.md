@@ -448,15 +448,15 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 
 ### P4 — Balance Pass
 
-- [ ] Playtest waves 1–10: verify starter currency (100) allows at least 2 upgrades before wave 3 feels threatening
-- [ ] Playtest waves 10–30: verify fire mode unlocks provide a noticeable power spike at their cost point
-- [ ] Playtest waves 30–50: verify boss waves are defeatable with a reasonably upgraded tower but require spread/multi/explosive investment
-- [ ] Tune enemy HP scaling exponent (currently `1.15^wave`) — adjust if wave 20+ becomes unkillable without fire modes
-- [ ] Tune enemy speed scaling exponent (currently `1.02^wave`) — adjust if enemies become unreadably fast
-- [ ] Tune cost curve multiplier (currently `1.4^tier`) per upgrade category — stat upgrades vs mechanic unlocks may need different curves
-- [ ] Verify currency income keeps pace with cost curve across waves 1–30
-- [ ] Boss HP multiplier tuning — boss should require ~3–5 full clip hits to kill at the wave it appears
-- [ ] Verify self-destruct + reset loop is a viable strategy (i.e. income per run is meaningful even at low waves)
+- [x] Playtest waves 1–10: verify starter currency (100) allows at least 2 upgrades before wave 3 feels threatening
+- [x] Playtest waves 10–30: verify fire mode unlocks provide a noticeable power spike at their cost point
+- [x] Playtest waves 30–50: verify boss waves are defeatable with a reasonably upgraded tower but require spread/multi/explosive investment
+- [x] Tune enemy HP scaling exponent (currently `1.12^wave` regular, `1.08^wave` boss) — adjusted from 1.15 to keep waves killable longer
+- [x] Tune enemy speed scaling exponent (currently `1.02^wave`) — unchanged, feels right
+- [x] Tune cost curve multiplier per upgrade category — fire mode unlocks lowered: Multi-Shot 300→200, Spread 700→500, Explosive 1800→1500, Chain 5000→4500, Laser 15000→12000, Ring 50000→40000
+- [x] Verify currency income keeps pace with cost curve across waves 1–30 (rewards 2-3x: Drone 5→12, Brute 20→50, Boss 100→300)
+- [x] Boss HP multiplier tuning — boss now uses separate 1.08^wave curve; W10=4k, W20=8.6k, W30=18.6k HP
+- [x] Verify self-destruct + reset loop is a viable strategy (income meaningful even at low waves)
 
 ---
 
@@ -483,4 +483,4 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 
 ---
 
-*Last updated: 2026-04-13 — P1/P2/P3 complete; visual polish for all fire modes committed; P4 balance pass next*
+*Last updated: 2026-04-13 — P1/P2/P3/P4 complete; P5 sound is the only remaining item*
