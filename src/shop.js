@@ -21,7 +21,7 @@ const UPGRADES = [
     description: 'Increases attacks per second.',
     maxTier: 10,
     baseCost: 60,
-    costMult: 1.4,
+    costMult: 1.8,
     apply(tower, game, tier) {
       tower.fireRate *= 1.10;
     },
@@ -32,7 +32,7 @@ const UPGRADES = [
     description: 'Increases projectile velocity.',
     maxTier: 8,
     baseCost: 40,
-    costMult: 1.4,
+    costMult: 1.85,
     apply(tower, game, tier) {
       tower.projectileSpeed *= 1.12;
     },
@@ -43,7 +43,7 @@ const UPGRADES = [
     description: 'Increases tower detection radius.',
     maxTier: 15,
     baseCost: 45,
-    costMult: 1.35,
+    costMult: 1.55,
     apply(tower, game, tier) {
       tower.range *= 1.10;
     },
@@ -54,7 +54,7 @@ const UPGRADES = [
     description: 'Increases maximum tower HP.',
     maxTier: 8,
     baseCost: 70,
-    costMult: 1.4,
+    costMult: 1.85,
     apply(tower, game, tier) {
       const delta = Math.floor(tower.maxHp * 0.20);
       tower.maxHp += delta;
@@ -67,7 +67,7 @@ const UPGRADES = [
     description: 'Regenerate a percentage of max HP between waves.',
     maxTier: 12,
     baseCost: 80,
-    costMult: 1.35,
+    costMult: 1.65,
     apply(tower, game, tier) {
       tower.regenFraction = tier * 0.03; // 3% per tier, e.g. tier 4 = 12% max HP
     },
@@ -78,7 +78,7 @@ const UPGRADES = [
     description: 'Increases currency earned from enemies.',
     maxTier: 5,
     baseCost: 90,
-    costMult: 1.5,
+    costMult: 2.1,
     apply(tower, game, tier) {
       game.currencyMultiplier *= 1.10;
     },
