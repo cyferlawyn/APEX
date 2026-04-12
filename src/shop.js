@@ -193,7 +193,8 @@ export class Shop {
 
   // Re-apply all upgrades from scratch (used on load)
   reapplyAll(upgrades) {
-    this.game.tower = new Tower();
+    this.game.tower              = new Tower();
+    this.game.currencyMultiplier = 1.0;  // reset before re-applying so Bounty doesn't compound
     for (const entry of this.catalogue) {
       const tiers = upgrades[entry.id] ?? 0;
       for (let t = 1; t <= tiers; t++) {
