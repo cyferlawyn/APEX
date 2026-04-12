@@ -49,8 +49,8 @@ export class Enemy {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < game.tower.radius + this.radius) {
-      // Reached tower — deal damage
-      game.tower.hp -= Math.ceil(this.maxHp * 0.1); // deal 10% of own max HP as damage
+      // Reached tower — deal damage proportional to own max HP
+      game.tower.takeDamage(Math.ceil(this.maxHp * 0.1));
       this.active = false;
       return;
     }

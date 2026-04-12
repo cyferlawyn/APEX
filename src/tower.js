@@ -5,53 +5,76 @@ export class Tower {
     this.damage          = 20;
     this.fireRate        = 1.5;   // shots per second
     this.projectileSpeed = 400;   // px/sec
-    this.range           = 220;   // px — detection radius; if enemy outside, still target nearest
+    this.range           = 220;   // px
     this.fireCooldown    = 0;
 
     // Fire mode flags (set by upgrades)
-    this.multiShotCount  = 1;     // tier 1 = 1 target (default)
+    this.multiShotCount  = 1;
     this.spreadShot      = false;
     this.spreadPellets   = 3;
     this.spreadAngle     = 20;    // degrees
     this.explosiveRadius = 0;
     this.chainJumps      = 0;
-    this.laserUnlocked   = false;
-    this.turretCount     = 0;
 
-    // Regen (applied between waves)
+    // Laser burst
+    this.laserUnlocked   = false;
+    this.laserTier       = 0;
+    this.laserCooldown   = 0;     // time until next burst
+    this.laserActive     = false; // currently sweeping
+    this.laserAngle      = 0;     // current sweep angle (radians)
+    this.laserTimer      = 0;     // time remaining in current burst
+
+    // Rotating turrets
+    this.turretCount     = 0;
+    this.turretAngle     = 0;     // shared rotation angle (radians)
+    this.turretCooldown  = 0;     // independent fire cooldown for turrets
+
+    // Regen
     this.regenPerSec     = 0;
 
     // Visual
-    this.x               = 0;    // set by renderer to canvas center
+    this.x               = 0;
     this.y               = 0;
-    this.radius          = 24;   // hex "radius" for drawing
+    this.radius          = 24;
+    this.hitFlash        = 0;     // seconds remaining for red hit flash
+  }
+
+  // Called by enemy when it reaches the tower
+  takeDamage(amount) {
+    this.hp       -= amount;
+    this.hitFlash  = 0.12;
   }
 
   update(dt, game) {
+    if (this.hitFlash > 0) this.hitFlash -= dt;
+
+    this._updateMainGun(dt, game);
+    if (this.turretCount > 0) this._updateTurrets(dt, game);
+    if (this.laserUnlocked)   this._updateLaser(dt, game);
+  }
+
+  // ── Main gun ────────────────────────────────────────────────────────────────
+
+  _updateMainGun(dt, game) {
     this.fireCooldown -= dt;
     if (this.fireCooldown > 0) return;
 
-    // Gather targets: up to multiShotCount enemies, prioritise nearest
-    const enemies = game.enemyPool.pool
-      .filter(e => e.active)
-      .sort((a, b) => dist2(a, this) - dist2(b, this))
-      .slice(0, this.multiShotCount);
+    const targets = _nearestEnemies(game.enemyPool.pool, this, this.multiShotCount);
+    if (targets.length === 0) return;
 
-    if (enemies.length === 0) return;
-
-    for (const target of enemies) {
-      this._fireAt(target, game);
+    for (const target of targets) {
+      this._fireAt(target, game, this.x, this.y);
     }
 
     this.fireCooldown = 1 / this.fireRate;
   }
 
-  _fireAt(target, game) {
-    const dx   = target.x - this.x;
-    const dy   = target.y - this.y;
-    const len  = Math.sqrt(dx * dx + dy * dy);
-    const nx   = dx / len;
-    const ny   = dy / len;
+  _fireAt(target, game, ox, oy) {
+    const dx  = target.x - ox;
+    const dy  = target.y - oy;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const nx  = dx / len;
+    const ny  = dy / len;
 
     if (this.spreadShot) {
       const half   = (this.spreadAngle / 2) * (Math.PI / 180);
@@ -59,22 +82,120 @@ export class Tower {
       const startA = Math.atan2(ny, nx) - half;
       for (let i = 0; i < this.spreadPellets; i++) {
         const a  = startA + step * i;
-        const vx = Math.cos(a) * this.projectileSpeed;
-        const vy = Math.sin(a) * this.projectileSpeed;
-        game.projectilePool.fire(this.x, this.y, vx, vy, this.damage);
+        game.projectilePool.fire(
+          ox, oy,
+          Math.cos(a) * this.projectileSpeed,
+          Math.sin(a) * this.projectileSpeed,
+          this.damage,
+          this.explosiveRadius,
+          this.chainJumps,
+        );
       }
     } else {
       game.projectilePool.fire(
-        this.x, this.y,
+        ox, oy,
         nx * this.projectileSpeed,
         ny * this.projectileSpeed,
-        this.damage
+        this.damage,
+        this.explosiveRadius,
+        this.chainJumps,
       );
+    }
+  }
+
+  // ── Rotating turrets ────────────────────────────────────────────────────────
+
+  _updateTurrets(dt, game) {
+    // Turrets orbit at fixed angular spacing, rotate over time
+    this.turretAngle  += dt * 0.8; // rad/sec rotation speed
+    this.turretCooldown -= dt;
+
+    if (this.turretCooldown > 0) return;
+
+    // Each turret fires at the nearest enemy to its own position
+    const orbitR = this.radius + 18;
+    for (let i = 0; i < this.turretCount; i++) {
+      const a  = this.turretAngle + (Math.PI * 2 / this.turretCount) * i;
+      const tx = this.x + Math.cos(a) * orbitR;
+      const ty = this.y + Math.sin(a) * orbitR;
+
+      const target = _nearestEnemies(game.enemyPool.pool, { x: tx, y: ty }, 1)[0];
+      if (!target) continue;
+
+      const dx  = target.x - tx;
+      const dy  = target.y - ty;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      game.projectilePool.fire(
+        tx, ty,
+        (dx / len) * this.projectileSpeed,
+        (dy / len) * this.projectileSpeed,
+        this.damage * 0.7,   // turrets deal 70% of base damage
+        this.explosiveRadius,
+        0,                   // turrets don't chain (keeps visuals readable)
+      );
+    }
+
+    this.turretCooldown = 1 / this.fireRate;
+  }
+
+  // ── Laser burst ─────────────────────────────────────────────────────────────
+
+  _updateLaser(dt, game) {
+    const BURST_DURATION = 1.5 + this.laserTier * 0.3;  // sec
+    const BURST_COOLDOWN = 8   - this.laserTier * 1.0;  // sec (min ~4s at tier 4)
+    const LASER_RANGE    = 180;
+    const SWEEP_SPEED    = (Math.PI * 2) / BURST_DURATION; // full 360° per burst
+    const DPS            = this.damage * this.fireRate * 0.5;
+
+    if (this.laserActive) {
+      this.laserTimer -= dt;
+      this.laserAngle += SWEEP_SPEED * dt;
+
+      // Damage enemies within range near the beam angle
+      for (const e of game.enemyPool.pool) {
+        if (!e.active) continue;
+        const dx   = e.x - this.x;
+        const dy   = e.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > LASER_RANGE) continue;
+
+        const eAngle  = Math.atan2(dy, dx);
+        let   dAngle  = Math.abs(eAngle - (this.laserAngle % (Math.PI * 2)));
+        if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
+        if (dAngle < 0.15) { // ~8.5° beam half-width
+          e.hp -= DPS * dt;
+          if (e.hp <= 0) {
+            game.waveEarned += e.reward;
+            e.active = false;
+          }
+        }
+      }
+
+      if (this.laserTimer <= 0) {
+        this.laserActive  = false;
+        this.laserCooldown = BURST_COOLDOWN;
+      }
+    } else {
+      this.laserCooldown -= dt;
+      if (this.laserCooldown <= 0) {
+        this.laserActive = true;
+        this.laserTimer  = BURST_DURATION;
+        this.laserAngle  = 0;
+      }
     }
   }
 }
 
-function dist2(a, b) {
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function _nearestEnemies(pool, origin, count) {
+  return pool
+    .filter(e => e.active)
+    .sort((a, b) => _dist2(a, origin) - _dist2(b, origin))
+    .slice(0, count);
+}
+
+function _dist2(a, b) {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
   return dx * dx + dy * dy;

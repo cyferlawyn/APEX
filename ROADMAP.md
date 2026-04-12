@@ -241,13 +241,13 @@ Saved after every wave result. Save includes:
 
 ### M5 — Fire Modes
 *See Post-MVP Phase P1 for detailed checklist.*
-- [ ] Multi-Shot
-- [ ] Spread Shot
-- [ ] Explosive Rounds
-- [ ] Chain Lightning
-- [ ] Rotating Turrets
-- [ ] Laser Burst
-- [ ] Tower visual updates to reflect active modes
+- [x] Multi-Shot
+- [x] Spread Shot
+- [x] Explosive Rounds
+- [x] Chain Lightning
+- [x] Rotating Turrets
+- [x] Laser Burst
+- [x] Tower visual updates to reflect active modes
 
 ### M6 — Polish
 *See Post-MVP Phase P2 for detailed checklist.*
@@ -412,14 +412,14 @@ roadmap vision. Each section follows the same rule: implement → test → check
 
 The upgrade flags are already set by the shop. This phase wires their combat effects.
 
-- [ ] **Multi-Shot** — tower fires at up to `multiShotCount` nearest enemies per cooldown tick
-- [ ] **Spread Shot** — fire `spreadPellets` projectiles in a `spreadAngle` cone toward primary target
-- [ ] **Explosive Rounds** — on projectile hit, deal `damage * 0.6` to all enemies within `explosiveRadius`; visual ring flash on impact
-- [ ] **Chain Lightning** — on hit, arc to up to `chainJumps` nearest enemies within 120px, each jump deals 60% of previous damage
-- [ ] **Rotating Turrets** — `turretCount` additional emplacements orbit the tower at fixed angles, each with independent fire cooldown and targeting
-- [ ] **Laser Burst** — every 8s (reduced by tier), emit a 360° sweep beam over 1.5s; enemies in beam radius take continuous damage per frame
-- [ ] Tower visual: draw active turret emplacements as small neon diamonds orbiting the hex
-- [ ] Tower visual: pulse tower outline color when laser burst is charging vs. firing
+- [x] **Multi-Shot** — tower fires at up to `multiShotCount` nearest enemies per cooldown tick
+- [x] **Spread Shot** — fire `spreadPellets` projectiles in a `spreadAngle` cone toward primary target
+- [x] **Explosive Rounds** — on projectile hit, deal `damage * 0.6` to all enemies within `explosiveRadius`; visual ring flash on impact
+- [x] **Chain Lightning** — on hit, arc to up to `chainJumps` nearest enemies within 120px, each jump deals 60% of previous damage
+- [x] **Rotating Turrets** — `turretCount` additional emplacements orbit the tower at fixed angles, each with independent fire cooldown and targeting
+- [x] **Laser Burst** — every 8s (reduced by tier), emit a 360° sweep beam over 1.5s; enemies in beam radius take continuous damage per frame
+- [x] Tower visual: draw active turret emplacements as small neon diamonds orbiting the hex
+- [x] Tower visual: pulse tower outline color when laser burst is charging vs. firing
 
 ---
 
@@ -430,8 +430,8 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 - [ ] **Enemy death animation** — brief expanding ring + fade at death position before releasing from pool
 - [ ] **Tower core glow pulse** — animate core dot radius/opacity on a sine curve; speed increases with fire rate
 - [ ] **Boss arrival emphasis** — brief screen-edge red flash when a boss spawns
-- [ ] **Tower hit flash** — tower hex briefly turns red for 120ms when taking damage
-- [ ] **Wave counter in HUD** — display current wave number more prominently; show enemy count remaining
+- [x] **Tower hit flash** — tower hex briefly turns red for 120ms when taking damage
+- [x] **Wave counter in HUD** — display current wave number more prominently; show enemy count remaining
 - [ ] **Defeated screen** — display total currency accumulated this run alongside wave reached
 
 ---

@@ -1,27 +1,31 @@
 export const State = Object.freeze({
   COMBAT:   'COMBAT',
-  RESULTS:  'RESULTS',  // brief wave-complete flash before next wave
-  DEFEATED: 'DEFEATED', // tower died — brief screen before resetting to wave 1
+  RESULTS:  'RESULTS',
+  DEFEATED: 'DEFEATED',
 });
 
 export class Game {
   constructor() {
     this.state              = State.COMBAT;
     this.wave               = 1;
-    this.currency           = 100;   // starter currency
+    this.currency           = 100;
     this.currencyMultiplier = 1.0;
-    this.waveEarned         = 0;     // currency earned in the current wave (pre-multiplier)
-    this.lastWave           = 0;     // wave number just completed (for results display)
-    this.lastWaveEarned     = 0;     // post-multiplier currency shown on results screen
-    this.bestWave           = 1;     // furthest wave reached (shown on defeat screen)
-    this.upgrades           = {};    // { upgradeId: tier }
-    this.tower              = null;  // set by main after Tower is constructed
-    this.enemyPool          = null;  // set by main
-    this.projectilePool     = null;  // set by main
-    this.waveSpawner        = null;  // set by main
+    this.waveEarned         = 0;
+    this.lastWave           = 0;
+    this.lastWaveEarned     = 0;
+    this.bestWave           = 1;
+    this.upgrades           = {};
+    this.tower              = null;
+    this.enemyPool          = null;
+    this.projectilePool     = null;
+    this.waveSpawner        = null;
     this.overlayTimer       = 0;
-    this.RESULTS_DURATION   = 2;     // seconds to show wave-complete flash
-    this.DEFEATED_DURATION  = 3;     // seconds to show defeat screen
+    this.RESULTS_DURATION   = 2;
+    this.DEFEATED_DURATION  = 3;
+
+    // Short-lived visual effects (drained each frame by renderer)
+    this.explosions    = []; // { x, y, r, t } — t counts down to 0
+    this.lightningArcs = []; // { x1, y1, x2, y2, t }
   }
 
   transition(newState) {
