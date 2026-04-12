@@ -1,0 +1,8 @@
+{
+  "name": "apex",
+  "version": "1.0.0",
+  "description": "Single-tower defense game",
+  "scripts": {
+    "start": "npx serve . --listen 3000"
+  }
+}

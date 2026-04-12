@@ -4,7 +4,13 @@ A browser-based single-tower defense game. One tower. Endless waves. Countless u
 
 ## Playing the Game
 
-Open `index.html` in any modern browser. No build step, no server required.
+ES modules require a local HTTP server — opening `index.html` directly via `file://` will be blocked by the browser.
+
+```
+npm start
+```
+
+Then open **http://localhost:3000** in your browser. Node.js is the only requirement.
 
 ---
 
