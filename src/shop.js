@@ -51,8 +51,8 @@ const UPGRADES = [
   {
     id: 'maxHp',
     name: 'Max HP',
-    description: 'Increases maximum tower HP. No level cap — the primary late-game money sink.',
-    maxTier: null,
+    description: 'Increases maximum tower HP.',
+    maxTier: 8,
     baseCost: 70,
     costMult: 1.4,
     apply(tower, game, tier) {
