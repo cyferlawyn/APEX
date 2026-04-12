@@ -7,7 +7,7 @@ const UPGRADE_NEXT_EFFECT = {
   projectileSpeed: () => `+12% projectile speed`,
   range:           () => `+10% range`,
   maxHp:           () => `+20% max HP`,
-  hpRegen:         t => t === 0 ? `+5 HP per wave` : `+5 HP per wave (${(t + 1) * 5} total)`,
+  hpRegen:         t => t === 0 ? `+3% max HP per wave` : `+3% max HP per wave (${(t + 1) * 3}% total)`,
   currencyMult:    () => `+10% currency earned`,
   multiShot:       t  => t === 0 ? `Unlock (2 targets)` : `+1 target (${t + 2} total)`,
   spreadShot:      t  => t === 0 ? `Unlock (3 pellets, 20° cone)` : `+1 pellet, wider cone`,

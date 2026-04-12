@@ -64,12 +64,12 @@ const UPGRADES = [
   {
     id: 'hpRegen',
     name: 'HP Regen',
-    description: 'Regenerate HP between waves.',
-    maxTier: 8,
+    description: 'Regenerate a percentage of max HP between waves.',
+    maxTier: 12,
     baseCost: 80,
-    costMult: 1.4,
+    costMult: 1.35,
     apply(tower, game, tier) {
-      tower.regenPerSec += 5;
+      tower.regenFraction = tier * 0.03; // 3% per tier, e.g. tier 4 = 12% max HP
     },
   },
   {

@@ -42,7 +42,10 @@ function beginWave() {
   if (game.wave === 1) {
     game.tower.hp = game.tower.maxHp;
   } else {
-    game.tower.hp = Math.min(game.tower.hp + game.tower.regenPerSec, game.tower.maxHp);
+    game.tower.hp = Math.min(
+      game.tower.hp + Math.floor(game.tower.maxHp * game.tower.regenFraction),
+      game.tower.maxHp
+    );
   }
   game.waveSpawner.begin(game.wave);
   game.waveEarned = 0;

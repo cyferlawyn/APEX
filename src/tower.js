@@ -29,8 +29,8 @@ export class Tower {
     this.turretAngle     = 0;     // shared rotation angle (radians)
     this.turretCooldown  = 0;     // independent fire cooldown for turrets
 
-    // Regen
-    this.regenPerSec     = 0;
+    // Regen (applied between waves as a fraction of maxHp)
+    this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
 
     // Visual
     this.x               = 0;
