@@ -232,13 +232,15 @@ Saved after every wave result. Save includes:
 - [x] Currency awarded on enemy death, totalled at wave end
 
 ### M4 — Shop & Upgrades
-- [x] Shop UI panel renders between waves
-- [x] All 14 upgrade categories implemented
-- [x] Purchase logic: deduct currency, increment tier, apply stat changes
-- [x] Upgrade state persists across waves
-- [x] "Start Wave N" button
+- [x] Shop UI panel always visible, purchases allowed at any time
+- [x] All 13 upgrade categories implemented (Armor Pierce deferred)
+- [x] Purchase logic: deduct currency, increment tier, apply stat changes immediately
+- [x] Upgrade state persists across waves and resets
+- [x] Self-destruct button: voluntary wave reset, keeps all upgrades and currency
+- [x] New Game button with confirmation dialogue
 
 ### M5 — Fire Modes
+*See Post-MVP Phase P1 for detailed checklist.*
 - [ ] Multi-Shot
 - [ ] Spread Shot
 - [ ] Explosive Rounds
@@ -248,22 +250,22 @@ Saved after every wave result. Save includes:
 - [ ] Tower visual updates to reflect active modes
 
 ### M6 — Polish
-- [ ] Particle system (hit sparks, death explosions, muzzle flash)
+*See Post-MVP Phase P2 for detailed checklist.*
+- [ ] Particle system (hit sparks, death explosions, tower hit flash)
 - [ ] Projectile motion trails
 - [ ] Tower core glow animation
 - [ ] Enemy death animations
-- [ ] Wave result summary screen
-- [ ] Game over screen with final wave
-- [ ] New Game confirmation dialogue
-- [ ] Screen shake on boss arrival / tower hit
-- [ ] Sound effects (optional / stretch goal)
+- [ ] Boss arrival emphasis
+- [ ] Defeated screen improvements
+- [ ] Sound effects (stretch goal — see P5)
 
 ### M7 — Balance Pass
-- [ ] Playtest waves 1–30
-- [ ] Tune cost curves so upgrades feel meaningful but not trivially cheap
-- [ ] Tune enemy scaling so difficulty ramp feels fair
-- [ ] Verify object pools hold up at high enemy/projectile counts
-- [ ] Performance profiling pass
+*See Post-MVP Phase P4 for detailed checklist.*
+- [ ] Playtest waves 1–50
+- [ ] Tune cost curves
+- [ ] Tune enemy scaling
+- [ ] Verify pool sizes hold at high wave counts
+- [ ] Performance profiling pass (see P3)
 
 ---
 
@@ -387,14 +389,87 @@ These are added in subsequent passes once the loop is verified playable.
 
 ### Phase 9 — Integration & Smoke Test
 
-- [ ] All modules wired together in `main.js`
-- [ ] Full loop playable: spawn → fight → result → shop → next wave
-- [ ] Upgrades purchased in wave N active in wave N+1 (verified)
-- [ ] Save survives page reload
-- [ ] New Game confirmation works; save is cleared on confirm
-- [ ] Game over triggers correctly; new game resets all state
-- [ ] No object pool exhaustion errors in waves 1–15
-- [ ] Performance acceptable (60 fps) with 80 enemies + ~200 projectiles on screen
+- [x] All modules wired together in `main.js`
+- [x] Full loop playable: spawn → fight → result → next wave (automatic)
+- [x] Upgrades purchased mid-wave active immediately and in all subsequent waves
+- [x] Save survives page reload
+- [x] New Game confirmation works; save is cleared on confirm
+- [x] Defeat resets to wave 1 with upgrades and currency kept
+- [x] Self-destruct triggers voluntary defeat/reset
+- [x] No object pool exhaustion errors observed in waves 1–15
+- [x] Performance acceptable at 60 fps during normal play
+
+---
+
+## Post-MVP Work
+
+Items below represent the delta between the current shipped state and the full
+roadmap vision. Each section follows the same rule: implement → test → check off → commit.
+
+---
+
+### P1 — Fire Modes (Combat Depth)
+
+The upgrade flags are already set by the shop. This phase wires their combat effects.
+
+- [ ] **Multi-Shot** — tower fires at up to `multiShotCount` nearest enemies per cooldown tick
+- [ ] **Spread Shot** — fire `spreadPellets` projectiles in a `spreadAngle` cone toward primary target
+- [ ] **Explosive Rounds** — on projectile hit, deal `damage * 0.6` to all enemies within `explosiveRadius`; visual ring flash on impact
+- [ ] **Chain Lightning** — on hit, arc to up to `chainJumps` nearest enemies within 120px, each jump deals 60% of previous damage
+- [ ] **Rotating Turrets** — `turretCount` additional emplacements orbit the tower at fixed angles, each with independent fire cooldown and targeting
+- [ ] **Laser Burst** — every 8s (reduced by tier), emit a 360° sweep beam over 1.5s; enemies in beam radius take continuous damage per frame
+- [ ] Tower visual: draw active turret emplacements as small neon diamonds orbiting the hex
+- [ ] Tower visual: pulse tower outline color when laser burst is charging vs. firing
+
+---
+
+### P2 — Visual Polish
+
+- [ ] **Particle system** — implement `src/particles.js` pool; emit on: projectile hit (sparks), enemy death (burst), tower hit (red flash fragments)
+- [ ] **Projectile motion trails** — store last 4 positions per projectile; draw fading line behind each
+- [ ] **Enemy death animation** — brief expanding ring + fade at death position before releasing from pool
+- [ ] **Tower core glow pulse** — animate core dot radius/opacity on a sine curve; speed increases with fire rate
+- [ ] **Boss arrival emphasis** — brief screen-edge red flash when a boss spawns
+- [ ] **Tower hit flash** — tower hex briefly turns red for 120ms when taking damage
+- [ ] **Wave counter in HUD** — display current wave number more prominently; show enemy count remaining
+- [ ] **Defeated screen** — display total currency accumulated this run alongside wave reached
+
+---
+
+### P3 — Performance & Correctness
+
+- [ ] **Spatial grid collision** — replace O(n×m) projectile×enemy loop with a bucketed grid; target: handles 500 enemies + 2000 projectiles at 60 fps
+- [ ] **Enemy pool expansion** — increase pool size to 512; verify no pool starvation on wave 30+
+- [ ] **Projectile pool expansion** — increase to 2048; verify no starvation with spread shot + turrets active
+- [ ] **Canvas state batching** — group all enemies of same shape/color into a single path before stroking to reduce `save/restore` calls
+- [ ] **Off-screen cull** — skip draw calls for entities more than 50px outside canvas bounds
+
+---
+
+### P4 — Balance Pass
+
+- [ ] Playtest waves 1–10: verify starter currency (100) allows at least 2 upgrades before wave 3 feels threatening
+- [ ] Playtest waves 10–30: verify fire mode unlocks provide a noticeable power spike at their cost point
+- [ ] Playtest waves 30–50: verify boss waves are defeatable with a reasonably upgraded tower but require spread/multi/explosive investment
+- [ ] Tune enemy HP scaling exponent (currently `1.15^wave`) — adjust if wave 20+ becomes unkillable without fire modes
+- [ ] Tune enemy speed scaling exponent (currently `1.02^wave`) — adjust if enemies become unreadably fast
+- [ ] Tune cost curve multiplier (currently `1.4^tier`) per upgrade category — stat upgrades vs mechanic unlocks may need different curves
+- [ ] Verify currency income keeps pace with cost curve across waves 1–30
+- [ ] Boss HP multiplier tuning — boss should require ~3–5 full clip hits to kill at the wave it appears
+- [ ] Verify self-destruct + reset loop is a viable strategy (i.e. income per run is meaningful even at low waves)
+
+---
+
+### P5 — Sound (Stretch Goal)
+
+- [ ] Evaluate Web Audio API vs. pre-baked audio sprites
+- [ ] Projectile fire sound (per fire mode variant)
+- [ ] Enemy death sound (differentiated by type size)
+- [ ] Tower hit sound
+- [ ] Wave complete chime
+- [ ] Defeated sting
+- [ ] Boss arrival sound
+- [ ] Master volume control in shop panel footer
 
 ---
 
@@ -408,4 +483,4 @@ These are added in subsequent passes once the loop is verified playable.
 
 ---
 
-*Last updated: 2026-04-12*
+*Last updated: 2026-04-12 — post-MVP phases P1–P5 added*
