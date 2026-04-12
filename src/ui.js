@@ -5,7 +5,7 @@ const UPGRADE_NEXT_EFFECT = {
   damage:          () => `+15% damage`,
   fireRate:        () => `+10% fire rate`,
   projectileSpeed: () => `+12% projectile speed`,
-  range:           () => `+8% range`,
+  range:           () => `+10% range`,
   maxHp:           () => `+20% max HP`,
   hpRegen:         t => t === 0 ? `+5 HP per wave` : `+5 HP per wave (${(t + 1) * 5} total)`,
   currencyMult:    () => `+10% currency earned`,

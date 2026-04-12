@@ -41,11 +41,11 @@ const UPGRADES = [
     id: 'range',
     name: 'Range',
     description: 'Increases tower detection radius.',
-    maxTier: 8,
+    maxTier: 15,
     baseCost: 45,
-    costMult: 1.4,
+    costMult: 1.35,
     apply(tower, game, tier) {
-      tower.range *= 1.08;
+      tower.range *= 1.10;
     },
   },
   {
