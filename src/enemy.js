@@ -19,10 +19,9 @@ export class Enemy {
     this.shape        = 'circle';
     this.reward       = 0;
     this.type         = EnemyType.DRONE;
-    this.atTower      = false;  // true once the enemy has reached the tower
-        this.damageTick = 0;
-    this.damage     = def.damage;      // countdown to next tower hit (seconds)
-    this.damage       = 0;      // flat damage per hit, type-specific
+    this.atTower      = false;
+    this.damageTick   = 0;
+    this.damage       = 0;
   }
 
   init(type, wave, x, y) {
@@ -33,6 +32,7 @@ export class Enemy {
     this.active     = true;
     this.atTower    = false;
     this.damageTick = 0;
+    this.damage     = def.damage;
     this.type       = type;
     this.x          = x;
     this.y          = y;
