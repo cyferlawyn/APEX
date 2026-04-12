@@ -88,7 +88,7 @@ const UPGRADES = [
     name: 'Multi-Shot',
     description: 'Fire at multiple enemies simultaneously.',
     maxTier: 5,
-    baseCost: 300,
+    baseCost: 200,
     costMult: 1.8,
     apply(tower, game, tier) {
       tower.multiShotCount = tier + 1; // tier 1 = 2 targets, tier 2 = 3, etc.
@@ -99,7 +99,7 @@ const UPGRADES = [
     name: 'Spread Shot',
     description: 'Fire a fan of projectiles at the nearest enemy.',
     maxTier: 5,
-    baseCost: 700,
+    baseCost: 500,
     costMult: 1.9,
     apply(tower, game, tier) {
       tower.spreadShot    = true;
@@ -112,7 +112,7 @@ const UPGRADES = [
     name: 'Explosive Rounds',
     description: 'Projectiles deal splash damage on impact.',
     maxTier: 4,
-    baseCost: 1800,
+    baseCost: 1500,
     costMult: 2.0,
     apply(tower, game, tier) {
       tower.explosiveRadius = 20 + tier * 15; // 35px at tier 1
@@ -123,7 +123,7 @@ const UPGRADES = [
     name: 'Chain Lightning',
     description: 'Projectiles arc to nearby enemies on hit.',
     maxTier: 4,
-    baseCost: 5000,
+    baseCost: 4500,
     costMult: 2.1,
     apply(tower, game, tier) {
       tower.chainJumps = tier;
@@ -134,7 +134,7 @@ const UPGRADES = [
     name: 'Laser Burst',
     description: 'Periodic sweeping laser beam.',
     maxTier: 4,
-    baseCost: 15000,
+    baseCost: 12000,
     costMult: 2.2,
     apply(tower, game, tier) {
       tower.laserUnlocked = true;
@@ -146,7 +146,7 @@ const UPGRADES = [
     name: 'Orbital Death Ring',
     description: 'A permanent energy ring orbits the tower, continuously burning every enemy it touches.',
     maxTier: 4,
-    baseCost: 50000,
+    baseCost: 40000,
     costMult: 2.3,
     apply(tower, game, tier) {
       tower.ringTier = tier;
