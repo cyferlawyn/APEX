@@ -460,16 +460,17 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 
 ---
 
-### P5 — Sound (Stretch Goal)
+### P5 — Sound
 
-- [ ] Evaluate Web Audio API vs. pre-baked audio sprites
-- [ ] Projectile fire sound (per fire mode variant)
-- [ ] Enemy death sound (differentiated by type size)
-- [ ] Tower hit sound
-- [ ] Wave complete chime
-- [ ] Defeated sting
-- [ ] Boss arrival sound
-- [ ] Master volume control in shop panel footer
+- [x] Evaluate Web Audio API vs. pre-baked audio sprites — chose procedural Web Audio (no files, no dependencies)
+- [x] Projectile fire sound (per fire mode variant: single blip, multi pitched-up, spread whoosh, explosive thud, chain crackle)
+- [x] Enemy death sound (differentiated by type size: small pop, mid crack, large boom, boss sting)
+- [x] Tower hit sound (low thud + distorted buzz)
+- [x] Wave complete chime (ascending C-E-G major triad)
+- [x] Defeated sting (descending minor sting + sub rumble)
+- [x] Boss arrival sound (3-pulse deep throb + metallic accent click)
+- [x] Laser burst drone (starts on burst begin, cut on burst end, tier-scaled pitch)
+- [x] Master volume control in shop panel footer (VOL slider)
 
 ---
 
@@ -483,4 +484,4 @@ The upgrade flags are already set by the shop. This phase wires their combat eff
 
 ---
 
-*Last updated: 2026-04-13 — P1/P2/P3/P4 complete; P5 sound is the only remaining item*
+*Last updated: 2026-04-13 — ALL phases P1–P5 complete. Initial scope fully shipped.*
