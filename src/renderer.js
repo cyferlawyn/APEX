@@ -123,11 +123,8 @@ export class Renderer {
       for (const ring of rings) {
         const startA = ring.angle - arcRad / 2;
         const endA   = ring.angle + arcRad / 2;
-        // For a ccw ring swap the arc endpoints so ctx.arc (always clockwise here)
-        // still draws the short arc — the leading edge is still the visually forward tip.
-        const arcFrom = ring.ccw ? endA   : startA;
-        const arcTo   = ring.ccw ? startA : endA;
-        const leadA   = ring.ccw ? startA : endA;
+        // Leading edge: endA for cw ring, startA for ccw ring
+        const leadA  = ring.ccw ? startA : endA;
 
         ctx.save();
 
@@ -138,7 +135,7 @@ export class Renderer {
         ctx.lineWidth   = bloomWidth;
         ctx.lineCap     = 'round';
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, arcFrom, arcTo);
+        ctx.arc(cx, cy, orbitR, startA, endA);
         ctx.stroke();
 
         // Pass 2 — colored glow
@@ -148,7 +145,7 @@ export class Renderer {
         ctx.shadowColor = '#ff6d00';
         ctx.lineWidth   = glowWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, arcFrom, arcTo);
+        ctx.arc(cx, cy, orbitR, startA, endA);
         ctx.stroke();
 
         // Pass 3 — white hot core
@@ -158,7 +155,7 @@ export class Renderer {
         ctx.shadowColor = '#ff6d00';
         ctx.lineWidth   = coreWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, arcFrom, arcTo);
+        ctx.arc(cx, cy, orbitR, startA, endA);
         ctx.stroke();
 
         // Bright leading-edge dot — punchy focal point
