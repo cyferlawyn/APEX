@@ -8,17 +8,19 @@ export const EnemyType = Object.freeze({
 
 export class Enemy {
   constructor() {
-    this.active  = false;
-    this.x       = 0;
-    this.y       = 0;
-    this.hp      = 0;
-    this.maxHp   = 0;
-    this.speed   = 0;
-    this.radius  = 0;
-    this.color   = '#fff';
-    this.shape   = 'circle';
-    this.reward  = 0;
-    this.type    = EnemyType.DRONE;
+    this.active       = false;
+    this.x            = 0;
+    this.y            = 0;
+    this.hp           = 0;
+    this.maxHp        = 0;
+    this.speed        = 0;
+    this.radius       = 0;
+    this.color        = '#fff';
+    this.shape        = 'circle';
+    this.reward       = 0;
+    this.type         = EnemyType.DRONE;
+    this.atTower      = false;  // true once the enemy has reached the tower
+    this.damageTick   = 0;      // countdown to next tower hit (seconds)
   }
 
   init(type, wave, x, y) {
@@ -26,36 +28,47 @@ export class Enemy {
     const hpScale    = Math.pow(1.15, wave - 1);
     const speedScale = Math.pow(1.02, wave - 1);
 
-    this.active  = true;
-    this.type    = type;
-    this.x       = x;
-    this.y       = y;
-    this.maxHp   = Math.floor(def.hp * hpScale);
-    this.hp      = this.maxHp;
-    this.speed   = def.speed * speedScale;
-    this.radius  = def.radius;
-    this.color   = def.color;
-    this.shape   = def.shape;
-    this.reward  = def.reward;
+    this.active     = true;
+    this.atTower    = false;
+    this.damageTick = 0;
+    this.type       = type;
+    this.x          = x;
+    this.y          = y;
+    this.maxHp      = Math.floor(def.hp * hpScale);
+    this.hp         = this.maxHp;
+    this.speed      = def.speed * speedScale;
+    this.radius     = def.radius;
+    this.color      = def.color;
+    this.shape      = def.shape;
+    this.reward     = def.reward;
   }
 
   update(dt, game) {
     if (!this.active) return;
 
-    const tx = game.tower.x;
-    const ty = game.tower.y;
-    const dx = tx - this.x;
-    const dy = ty - this.y;
+    const tx   = game.tower.x;
+    const ty   = game.tower.y;
+    const dx   = tx - this.x;
+    const dy   = ty - this.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < game.tower.radius + this.radius) {
-      // Reached tower — deal damage proportional to own max HP
-      game.tower.takeDamage(Math.ceil(this.maxHp * 0.1));
-      this.active = false;
-      return;
+      // At the tower — deal damage on arrival and every second thereafter
+      if (!this.atTower) {
+        this.atTower    = true;
+        this.damageTick = 0; // immediate first hit
+      }
+
+      this.damageTick -= dt;
+      if (this.damageTick <= 0) {
+        game.tower.takeDamage(Math.ceil(this.maxHp * 0.1));
+        this.damageTick = 1; // hit again every second
+      }
+      return; // stay in place — do not move
     }
 
-    // Move straight toward tower
+    // Not yet at tower — move straight toward it
+    this.atTower = false;
     const nx = dx / dist;
     const ny = dy / dist;
     this.x += nx * this.speed * dt;
