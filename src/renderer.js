@@ -513,14 +513,18 @@ export class Renderer {
   // ── state overlays ────────────────────────────────────────────────────────────
 
   _drawStateOverlay() {
-    switch (this.game.state) {
-      case State.RESULTS:  this._drawResults();  break;
-      case State.DEFEATED: this._drawDefeated(); break;
-    }
+    // Results overlay: timer-driven, fades out over last 0.5s, combat runs beneath
+    if (this.game.resultsTimer > 0) this._drawResults();
+    if (this.game.state === State.DEFEATED) this._drawDefeated();
   }
 
   _drawResults() {
     const { ctx, canvas, game } = this;
+    // Fade out during the last 0.5s of the timer
+    const alpha = Math.min(1, game.resultsTimer / 0.5);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
 
     ctx.fillStyle = COLORS.dim;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -537,6 +541,8 @@ export class Renderer {
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '12px monospace';
     ctx.fillText('next wave incoming...', canvas.width / 2, canvas.height / 2 + 40);
+
+    ctx.restore();
   }
 
   _drawDefeated() {

@@ -1,6 +1,5 @@
 export const State = Object.freeze({
   COMBAT:   'COMBAT',
-  RESULTS:  'RESULTS',
   DEFEATED: 'DEFEATED',
 });
 
@@ -10,7 +9,7 @@ export class Game {
     this.wave               = 1;
     this.currency           = 100;
     this.currencyMultiplier = 1.0;
-    this.waveEarned         = 0;
+    this.waveEarned         = 0;  // display accumulator only — not banked at end
     this.lastWave           = 0;
     this.lastWaveEarned     = 0;
     this.bestWave           = 1;
@@ -20,8 +19,9 @@ export class Game {
     this.projectilePool     = null;
     this.waveSpawner        = null;
     this.overlayTimer       = 0;
-    this.RESULTS_DURATION   = 2;
     this.DEFEATED_DURATION  = 3;
+    this.resultsTimer       = 0;  // counts down; results overlay shown while > 0
+    this.RESULTS_DURATION   = 2;
 
     // Short-lived visual effects (drained each frame by renderer)
     this.explosions    = []; // { x, y, r, t } — t counts down to 0
@@ -40,9 +40,6 @@ export class Game {
 
   tickOverlay(dt) {
     this.overlayTimer += dt;
-    const dur = this.state === State.RESULTS
-      ? this.RESULTS_DURATION
-      : this.DEFEATED_DURATION;
-    return this.overlayTimer >= dur;
+    return this.overlayTimer >= this.DEFEATED_DURATION;
   }
 }

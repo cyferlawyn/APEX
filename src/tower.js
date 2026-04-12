@@ -156,7 +156,9 @@ export class Tower {
         if (dAngle < arcRad / 2) {
           e.hp -= DPS * dt;
           if (e.hp <= 0) {
-            game.waveEarned += e.reward;
+            const earned = Math.floor(e.reward * game.currencyMultiplier);
+            game.currency   += earned;
+            game.waveEarned += earned;
             if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
             if (e.type === 'BOSS') game.edgeFlash = 0.5;
@@ -199,7 +201,9 @@ export class Tower {
         if (dAngle < 0.15) { // ~8.5° beam half-width
           e.hp -= DPS * dt;
           if (e.hp <= 0) {
-            game.waveEarned += e.reward;
+            const earned = Math.floor(e.reward * game.currencyMultiplier);
+            game.currency   += earned;
+            game.waveEarned += earned;
             if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
             if (e.type === 'BOSS') game.edgeFlash = 0.5;

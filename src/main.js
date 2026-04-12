@@ -80,19 +80,13 @@ function update(dt) {
       game.projectilePool.update(dt, game);
       game.tower.update(dt, game);
       if (game.particles) game.particles.update(dt);
+      if (game.resultsTimer > 0) game.resultsTimer -= dt;
 
       if (game.tower.hp <= 0) {
         game.tower.hp = 0;
         onDefeated();
       } else if (game.waveSpawner.done && game.enemyPool.activeCount() === 0) {
         onWaveComplete();
-      }
-      break;
-
-    case State.RESULTS:
-      if (game.tickOverlay(dt)) {
-        game.wave += 1;
-        beginWave();
       }
       break;
 
@@ -105,22 +99,21 @@ function update(dt) {
 }
 
 function onWaveComplete() {
-  const earned        = Math.floor(game.waveEarned * game.currencyMultiplier);
-  game.currency      += earned;
-  game.lastWaveEarned = earned;
+  game.lastWaveEarned = game.waveEarned; // display value only — already credited live
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
 
   if (game.wave > game.bestWave) game.bestWave = game.wave;
 
   saveGame();
-  game.transition(State.RESULTS);
+
+  // Show results overlay but start next wave immediately
+  game.resultsTimer = game.RESULTS_DURATION;
+  game.wave += 1;
+  beginWave();
 }
 
 function onDefeated() {
-  // Bank whatever was earned before dying
-  const earned   = Math.floor(game.waveEarned * game.currencyMultiplier);
-  game.currency += earned;
   game.waveEarned = 0;
 
   if (game.wave > game.bestWave) game.bestWave = game.wave;
@@ -156,6 +149,7 @@ export function newGame(confirmed) {
   game.upgrades           = {};
   game.currencyMultiplier = 1.0;
   game.bestWave           = 1;
+  game.resultsTimer       = 0;
   game.tower              = new Tower();
   shop.reapplyAll({});
   beginWave();
