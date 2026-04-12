@@ -58,7 +58,7 @@ function buildWave(wave) {
     return entries;
   }
 
-  const count = Math.min(Math.floor(5 + wave * 1.5), 80);
+  const count = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
   const interval = 0.4; // seconds between spawns
 
   for (let i = 0; i < count; i++) {
