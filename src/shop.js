@@ -91,7 +91,7 @@ const UPGRADES = [
     baseCost: 120,
     costMult: 1.5,
     apply(tower, game, tier) {
-      tower.multiShotCount = tier; // tier 1 = 1 extra target (2 total), etc.
+      tower.multiShotCount = tier + 1; // tier 1 = 2 targets, tier 2 = 3, etc.
     },
   },
   {
