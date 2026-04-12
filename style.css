@@ -37,7 +37,7 @@ html, body {
 /* ── Shop header ─────────────────────────────────────── */
 
 #shop-header {
-  padding: 14px 16px 10px;
+  padding: 14px 16px 12px;
   border-bottom: 1px solid rgba(0, 229, 255, 0.15);
   flex-shrink: 0;
 }
@@ -60,30 +60,6 @@ html, body {
   font-size: 13px;
   color: rgba(255, 214, 0, 0.6);
   margin-right: 4px;
-}
-
-#start-wave-btn {
-  margin-top: 10px;
-  width: 100%;
-  padding: 9px 0;
-  background: transparent;
-  border: 1px solid #00e5ff;
-  color: #00e5ff;
-  font-family: monospace;
-  font-size: 13px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-#start-wave-btn:hover:not(:disabled) {
-  background: #00e5ff;
-  color: #0a0a12;
-}
-
-#start-wave-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
 }
 
 /* ── Upgrade list ────────────────────────────────────── */

@@ -62,24 +62,23 @@ tower-defense/
 ## Game Loop
 
 ```
-[SHOP PHASE]
-  Player inspects upgrades, purchases with available currency
-  "Start Wave" button → transitions to combat
-        │
-        ▼
-[COMBAT PHASE]  (zero-player, fully automatic)
+[COMBAT]  (zero-player, fully automatic, runs continuously)
   Enemies spawn off-screen, march straight to tower center
   Tower fires based on its current stats and unlocked fire modes
-  Wave ends when all enemies are dead
+  Player may purchase upgrades at any time from the side panel
         │
-        ├─ Tower HP > 0 → [RESULTS FLASH]
-        │    Currency earned displayed briefly
-        │    Auto-transition back to Shop Phase
+        ├─ All enemies dead → [WAVE COMPLETE FLASH]  (2 sec)
+        │    Currency earned displayed
+        │    Wave counter increments
+        │    Auto-starts next wave
         │
-        └─ Tower HP = 0 → [GAME OVER SCREEN]
-             Final wave number shown
-             "New Game" button (with confirmation dialogue if save exists)
+        └─ Tower HP = 0 → [DEFEATED FLASH]  (3 sec)
+             "Fell on wave N / Best: wave N" shown
+             Upgrades and currency are kept
+             Resets to wave 1 and resumes combat
 ```
+
+**New Game** (side panel button) — wipes all progress after confirmation dialogue.
 
 ---
 

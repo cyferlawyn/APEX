@@ -1,16 +1,16 @@
 import { Game, State } from './game.js';
-import { Tower }        from './tower.js';
-import { EnemyPool }    from './enemy.js';
+import { Tower }          from './tower.js';
+import { EnemyPool }      from './enemy.js';
 import { ProjectilePool } from './projectile.js';
-import { WaveSpawner }  from './wave.js';
-import { Renderer }     from './renderer.js';
-import { Shop }         from './shop.js';
+import { WaveSpawner }    from './wave.js';
+import { Renderer }       from './renderer.js';
+import { Shop }           from './shop.js';
 import { save, load, clear, hasSave } from './storage.js';
 
-const canvas  = document.getElementById('gameCanvas');
-const game    = new Game();
+const canvas   = document.getElementById('gameCanvas');
+const game     = new Game();
 const renderer = new Renderer(canvas, game);
-const shop    = new Shop(game);
+const shop     = new Shop(game);
 
 // --- bootstrap ---
 function bootstrap() {
@@ -22,22 +22,33 @@ function bootstrap() {
   game.waveSpawner    = new WaveSpawner(game);
 
   if (saved) {
-    game.wave      = saved.wave      ?? 1;
-    game.currency  = saved.currency  ?? 100;
-    game.upgrades  = saved.upgrades  ?? {};
-    game.tower.hp  = saved.towerHP   ?? game.tower.maxHp;
+    game.wave               = saved.wave               ?? 1;
+    game.currency           = saved.currency           ?? 100;
+    game.upgrades           = saved.upgrades           ?? {};
+    game.bestWave           = saved.bestWave           ?? 1;
     game.currencyMultiplier = saved.currencyMultiplier ?? 1.0;
     shop.reapplyAll(game.upgrades);
+    // Restore tower HP after reapplyAll rebuilt the tower
+    game.tower.hp = Math.min(saved.towerHP ?? game.tower.maxHp, game.tower.maxHp);
   }
 
-  game.transition(State.SHOP);
+  beginWave();
+}
+
+function beginWave() {
+  game.enemyPool.reset();
+  game.projectilePool.reset();
+  game.tower.hp = game.tower.maxHp; // full heal at wave start
+  game.waveSpawner.begin(game.wave);
+  game.waveEarned = 0;
+  game.transition(State.COMBAT);
 }
 
 // --- main loop ---
 let lastTime = 0;
 
 function loop(timestamp) {
-  const dt = Math.min((timestamp - lastTime) / 1000, 0.1); // seconds, capped at 100ms
+  const dt = Math.min((timestamp - lastTime) / 1000, 0.1);
   lastTime = timestamp;
 
   update(dt);
@@ -48,54 +59,65 @@ function loop(timestamp) {
 
 function update(dt) {
   switch (game.state) {
-    case State.SHOP:
-      // Idle — waiting for player to click Start Wave
-      break;
-
     case State.COMBAT:
       game.waveSpawner.update(dt);
       game.enemyPool.update(dt, game);
       game.projectilePool.update(dt, game);
       game.tower.update(dt, game);
 
-      // Check wave-end conditions
       if (game.tower.hp <= 0) {
         game.tower.hp = 0;
-        game.transition(State.GAME_OVER);
+        onDefeated();
       } else if (game.waveSpawner.done && game.enemyPool.activeCount() === 0) {
         onWaveComplete();
       }
       break;
 
     case State.RESULTS:
-      game.tickResults(dt);
+      if (game.tickOverlay(dt)) {
+        game.wave += 1;
+        beginWave();
+      }
       break;
 
-    case State.GAME_OVER:
-      // Idle — waiting for player input via UI
+    case State.DEFEATED:
+      if (game.tickOverlay(dt)) {
+        resetToWaveOne();
+      }
       break;
   }
 }
 
 function onWaveComplete() {
-  // Apply currency multiplier and bank earnings
-  const earned = Math.floor(game.waveEarned * game.currencyMultiplier);
+  const earned        = Math.floor(game.waveEarned * game.currencyMultiplier);
   game.currency      += earned;
   game.lastWaveEarned = earned;
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
 
-  // Advance wave counter
-  game.wave += 1;
+  if (game.wave > game.bestWave) game.bestWave = game.wave;
 
-  // HP regen between waves
-  game.tower.hp = Math.min(game.tower.hp + game.tower.regenPerSec * 10, game.tower.maxHp);
-
-  // Auto-save
   saveGame();
-
-  game.resultsTimer = 0;
   game.transition(State.RESULTS);
+}
+
+function onDefeated() {
+  // Bank whatever was earned before dying
+  const earned   = Math.floor(game.waveEarned * game.currencyMultiplier);
+  game.currency += earned;
+  game.waveEarned = 0;
+
+  if (game.wave > game.bestWave) game.bestWave = game.wave;
+
+  saveGame();
+  game.transition(State.DEFEATED);
+}
+
+function resetToWaveOne() {
+  game.wave = 1;
+  // Upgrades and currency are kept — tower is rebuilt from upgrades
+  shop.reapplyAll(game.upgrades);
+  beginWave();
 }
 
 function saveGame() {
@@ -104,33 +126,27 @@ function saveGame() {
     currency:           game.currency,
     towerHP:            game.tower.hp,
     upgrades:           game.upgrades,
+    bestWave:           game.bestWave,
     currencyMultiplier: game.currencyMultiplier,
   });
 }
 
-// --- UI event wiring (delegated from renderer/shop UI) ---
-export function startWave() {
-  if (game.state !== State.SHOP) return;
-  game.waveSpawner.begin(game.wave);
-  game.waveEarned = 0;
-  game.transition(State.COMBAT);
-}
-
+// --- new game (full reset) ---
 export function newGame(confirmed) {
-  if (!confirmed && hasSave()) return; // renderer must show dialogue first
+  if (!confirmed && hasSave()) return;
   clear();
-  game.wave      = 1;
-  game.currency  = 100;
-  game.upgrades  = {};
+  game.wave               = 1;
+  game.currency           = 100;
+  game.upgrades           = {};
   game.currencyMultiplier = 1.0;
-  game.tower     = new Tower();
-  game.enemyPool.reset();
-  game.projectilePool.reset();
-  game.transition(State.SHOP);
+  game.bestWave           = 1;
+  game.tower              = new Tower();
+  shop.reapplyAll({});
+  beginWave();
 }
 
-// Expose to renderer for button handlers
-window.__apex = { startWave, newGame, shop, game, hasSave };
+// Expose to UI
+window.__apex = { newGame, shop, game, hasSave };
 
 // --- go ---
 bootstrap();

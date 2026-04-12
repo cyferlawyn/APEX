@@ -272,8 +272,8 @@ export class Renderer {
   _drawStateOverlay() {
     const { game } = this;
     switch (game.state) {
-      case State.RESULTS:   this._drawResults();  break;
-      case State.GAME_OVER: this._drawGameOver(); break;
+      case State.RESULTS:  this._drawResults();  break;
+      case State.DEFEATED: this._drawDefeated(); break;
     }
   }
 
@@ -283,29 +283,41 @@ export class Renderer {
     ctx.fillStyle = COLORS.dim;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.textAlign  = 'center';
-    ctx.fillStyle  = '#00e676';
-    ctx.font       = 'bold 28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#00e676';
+    ctx.font      = 'bold 28px monospace';
     ctx.fillText(`Wave ${game.lastWave} complete!`, canvas.width / 2, canvas.height / 2 - 20);
 
-    ctx.fillStyle  = COLORS.currency;
-    ctx.font       = '18px monospace';
+    ctx.fillStyle = COLORS.currency;
+    ctx.font      = '18px monospace';
     ctx.fillText(`+$ ${game.lastWaveEarned} earned`, canvas.width / 2, canvas.height / 2 + 14);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font      = '12px monospace';
+    ctx.fillText('next wave incoming...', canvas.width / 2, canvas.height / 2 + 40);
   }
 
-  _drawGameOver() {
+  _drawDefeated() {
     const { ctx, canvas, game } = this;
 
     ctx.fillStyle = COLORS.dim;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.textAlign  = 'center';
-    ctx.fillStyle  = '#ff1744';
-    ctx.font       = 'bold 36px monospace';
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 30);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff1744';
+    ctx.font      = 'bold 32px monospace';
+    ctx.fillText('TOWER DESTROYED', canvas.width / 2, canvas.height / 2 - 36);
 
-    ctx.fillStyle  = COLORS.text;
-    ctx.font       = '18px monospace';
-    ctx.fillText(`Reached wave ${game.wave}`, canvas.width / 2, canvas.height / 2 + 10);
+    ctx.fillStyle = COLORS.text;
+    ctx.font      = '18px monospace';
+    ctx.fillText(`Fell on wave ${game.wave}`, canvas.width / 2, canvas.height / 2 + 2);
+
+    ctx.fillStyle = COLORS.currency;
+    ctx.font      = '14px monospace';
+    ctx.fillText(`Best: wave ${game.bestWave}`, canvas.width / 2, canvas.height / 2 + 26);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font      = '12px monospace';
+    ctx.fillText('upgrades kept — restarting from wave 1...', canvas.width / 2, canvas.height / 2 + 52);
   }
 }

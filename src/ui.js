@@ -1,27 +1,56 @@
-// ui.js — shop panel rendering and button wiring
-// Runs after main.js has set up window.__apex
+// ui.js — shop panel and button wiring
+// Patches DOM in-place to avoid hover flicker from full re-renders.
 
 const UPGRADE_NEXT_EFFECT = {
-  damage:          t => `+15% damage`,
-  fireRate:        t => `+10% fire rate`,
-  projectileSpeed: t => `+12% projectile speed`,
-  range:           t => `+8% range`,
-  maxHp:           t => `+20% max HP`,
-  hpRegen:         t => `+5 HP regen / wave`,
-  currencyMult:    t => `+10% currency earned`,
-  multiShot:       t => t === 0 ? `Unlock (${2} targets)` : `+1 target (${t + 2} total)`,
-  spreadShot:      t => t === 0 ? `Unlock (3 pellets, 20° cone)` : `+1 pellet, wider cone`,
-  explosive:       t => t === 0 ? `Unlock splash damage` : `+15px radius`,
-  chainLightning:  t => t === 0 ? `Unlock (1 chain jump)` : `+1 chain jump`,
-  laserBurst:      t => t === 0 ? `Unlock laser burst` : `Reduce cooldown / extend duration`,
-  turrets:         t => t === 0 ? `Unlock 1st turret` : `+1 rotating turret`,
+  damage:          () => `+15% damage`,
+  fireRate:        () => `+10% fire rate`,
+  projectileSpeed: () => `+12% projectile speed`,
+  range:           () => `+8% range`,
+  maxHp:           () => `+20% max HP`,
+  hpRegen:         () => `+5 HP regen / wave`,
+  currencyMult:    () => `+10% currency earned`,
+  multiShot:       t  => t === 0 ? `Unlock (2 targets)` : `+1 target (${t + 2} total)`,
+  spreadShot:      t  => t === 0 ? `Unlock (3 pellets, 20° cone)` : `+1 pellet, wider cone`,
+  explosive:       t  => t === 0 ? `Unlock splash damage` : `+15px radius`,
+  chainLightning:  t  => t === 0 ? `Unlock (1 chain jump)` : `+1 chain jump`,
+  laserBurst:      t  => t === 0 ? `Unlock laser burst` : `Reduce cooldown / extend duration`,
+  turrets:         t  => t === 0 ? `Unlock 1st turret` : `+1 rotating turret`,
 };
 
-function getApex() {
-  return window.__apex;
+function getApex() { return window.__apex; }
+
+// ── Initial DOM build (runs once) ──────────────────────────────────────────
+
+function buildShopCards() {
+  const apex = getApex();
+  if (!apex) return;
+
+  const list = document.getElementById('upgrade-list');
+  list.innerHTML = '';
+
+  for (const entry of apex.shop.catalogue) {
+    const card = document.createElement('div');
+    card.className   = 'upgrade-card';
+    card.dataset.upg = entry.id;
+
+    card.innerHTML = `
+      <div class="upgrade-card-top">
+        <span class="upgrade-name">${entry.name}</span>
+        <span class="upgrade-tier" data-tier></span>
+      </div>
+      <div class="upgrade-desc">${entry.description}</div>
+      <button class="upgrade-buy-btn" data-id="${entry.id}"></button>
+    `;
+
+    list.appendChild(card);
+  }
 }
 
-function renderShop() {
+// ── Patch update (runs every 250ms) ────────────────────────────────────────
+// Only touches text/attributes that actually changed — never recreates nodes,
+// so hover state and focus are preserved.
+
+function patchShopCards() {
   const apex = getApex();
   if (!apex) return;
 
@@ -30,70 +59,55 @@ function renderShop() {
   // Currency
   document.getElementById('currency-value').textContent = game.currency;
 
-  // Start Wave button
-  const btn = document.getElementById('start-wave-btn');
-  const inShop = game.state === 'SHOP';
-  btn.disabled    = !inShop;
-  btn.textContent = `START WAVE ${game.wave}`;
-
-  // Upgrade cards
-  const list = document.getElementById('upgrade-list');
-  list.innerHTML = '';
-
   for (const entry of shop.catalogue) {
-    const tier    = shop.tier(entry.id);
-    const maxed   = shop.isMaxed(entry.id);
-    const cost    = shop.cost(entry.id);
-    const afford  = game.currency >= cost;
-    const nextFx  = (UPGRADE_NEXT_EFFECT[entry.id] ?? (() => ''))(tier);
+    const card = document.querySelector(`.upgrade-card[data-upg="${entry.id}"]`);
+    if (!card) continue;
 
-    const card = document.createElement('div');
-    card.className = 'upgrade-card';
+    const tier   = shop.tier(entry.id);
+    const maxed  = shop.isMaxed(entry.id);
+    const cost   = shop.cost(entry.id);
+    const afford = game.currency >= cost;
+    const nextFx = (UPGRADE_NEXT_EFFECT[entry.id] ?? (() => ''))(tier);
 
-    const tierLabel = maxed
-      ? `<span class="upgrade-tier maxed">MAX</span>`
-      : `<span class="upgrade-tier">[${tier}/${entry.maxTier}]</span>`;
-
-    let btnHtml;
-    if (maxed) {
-      btnHtml = `<button class="upgrade-buy-btn maxed" disabled>MAXED</button>`;
-    } else if (!inShop) {
-      btnHtml = `<button class="upgrade-buy-btn" disabled>$ ${cost}</button>`;
-    } else {
-      btnHtml = `<button class="upgrade-buy-btn" ${afford ? '' : 'disabled'}
-                   data-id="${entry.id}">
-                   $ ${cost} — ${nextFx}
-                 </button>`;
+    // Tier label
+    const tierEl = card.querySelector('[data-tier]');
+    const tierText = maxed ? 'MAX' : `[${tier}/${entry.maxTier}]`;
+    if (tierEl.textContent !== tierText) tierEl.textContent = tierText;
+    const wantMaxedClass = maxed;
+    if (tierEl.classList.contains('maxed') !== wantMaxedClass) {
+      tierEl.classList.toggle('maxed', wantMaxedClass);
     }
 
-    card.innerHTML = `
-      <div class="upgrade-card-top">
-        <span class="upgrade-name">${entry.name}</span>
-        ${tierLabel}
-      </div>
-      <div class="upgrade-desc">${entry.description}</div>
-      ${btnHtml}
-    `;
-
-    list.appendChild(card);
+    // Buy button
+    const btn = card.querySelector('.upgrade-buy-btn');
+    if (maxed) {
+      setBtn(btn, 'MAXED', true, true);
+    } else {
+      const label = `$ ${cost} — ${nextFx}`;
+      setBtn(btn, label, !afford, false);
+      // Ensure data-id stays (shouldn't change but be safe)
+      if (btn.dataset.id !== entry.id) btn.dataset.id = entry.id;
+    }
   }
 }
 
-function wireButtons() {
-  // Start Wave
-  document.getElementById('start-wave-btn').addEventListener('click', () => {
-    getApex()?.startWave();
-    renderShop();
-  });
+function setBtn(btn, text, disabled, maxed) {
+  if (btn.textContent !== text) btn.textContent = text;
+  if (btn.disabled !== disabled) btn.disabled = disabled;
+  if (btn.classList.contains('maxed') !== maxed) btn.classList.toggle('maxed', maxed);
+}
 
-  // Upgrade purchases (delegated)
+// ── Button wiring ──────────────────────────────────────────────────────────
+
+function wireButtons() {
+  // Upgrade purchases (delegated — single listener on the list)
   document.getElementById('upgrade-list').addEventListener('click', e => {
     const btn = e.target.closest('[data-id]');
-    if (!btn) return;
+    if (!btn || btn.disabled) return;
     const apex = getApex();
     if (!apex) return;
     apex.shop.purchase(btn.dataset.id);
-    renderShop();
+    patchShopCards();
   });
 
   // New Game
@@ -104,33 +118,29 @@ function wireButtons() {
       document.getElementById('confirm-overlay').classList.remove('hidden');
     } else {
       apex.newGame(true);
-      renderShop();
+      patchShopCards();
     }
   });
 
-  // Confirm yes
   document.getElementById('confirm-yes').addEventListener('click', () => {
     document.getElementById('confirm-overlay').classList.add('hidden');
-    const apex = getApex();
-    apex?.newGame(true);
-    renderShop();
+    getApex()?.newGame(true);
+    patchShopCards();
   });
 
-  // Confirm no
   document.getElementById('confirm-no').addEventListener('click', () => {
     document.getElementById('confirm-overlay').classList.add('hidden');
   });
 }
 
-// Poll every 250ms to keep the shop panel in sync with game state
-// (cheap; avoids threading a full event bus for Phase 1)
-function startPolling() {
-  setInterval(renderShop, 250);
-}
+// ── Init ───────────────────────────────────────────────────────────────────
 
-// Wait for main.js to expose window.__apex
 window.addEventListener('load', () => {
-  wireButtons();
-  startPolling();
-  renderShop();
+  // Give main.js one tick to set window.__apex
+  requestAnimationFrame(() => {
+    buildShopCards();
+    wireButtons();
+    patchShopCards();
+    setInterval(patchShopCards, 250);
+  });
 });
