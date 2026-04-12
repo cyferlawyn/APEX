@@ -88,8 +88,8 @@ const UPGRADES = [
     name: 'Multi-Shot',
     description: 'Fire at multiple enemies simultaneously.',
     maxTier: 5,
-    baseCost: 120,
-    costMult: 1.5,
+    baseCost: 150,
+    costMult: 1.6,
     apply(tower, game, tier) {
       tower.multiShotCount = tier + 1; // tier 1 = 2 targets, tier 2 = 3, etc.
     },
@@ -99,8 +99,8 @@ const UPGRADES = [
     name: 'Spread Shot',
     description: 'Fire a fan of projectiles at the nearest enemy.',
     maxTier: 5,
-    baseCost: 150,
-    costMult: 1.5,
+    baseCost: 250,
+    costMult: 1.65,
     apply(tower, game, tier) {
       tower.spreadShot    = true;
       tower.spreadPellets = 2 + tier; // 3 at tier 1, up to 7
@@ -112,8 +112,8 @@ const UPGRADES = [
     name: 'Explosive Rounds',
     description: 'Projectiles deal splash damage on impact.',
     maxTier: 4,
-    baseCost: 200,
-    costMult: 1.5,
+    baseCost: 400,
+    costMult: 1.7,
     apply(tower, game, tier) {
       tower.explosiveRadius = 20 + tier * 15; // 35px at tier 1
     },
@@ -123,8 +123,8 @@ const UPGRADES = [
     name: 'Chain Lightning',
     description: 'Projectiles arc to nearby enemies on hit.',
     maxTier: 4,
-    baseCost: 220,
-    costMult: 1.5,
+    baseCost: 600,
+    costMult: 1.75,
     apply(tower, game, tier) {
       tower.chainJumps = tier;
     },
@@ -134,11 +134,11 @@ const UPGRADES = [
     name: 'Laser Burst',
     description: 'Periodic sweeping laser beam.',
     maxTier: 4,
-    baseCost: 250,
-    costMult: 1.5,
+    baseCost: 900,
+    costMult: 1.8,
     apply(tower, game, tier) {
-      tower.laserUnlocked    = true;
-      tower.laserTier        = tier;
+      tower.laserUnlocked = true;
+      tower.laserTier     = tier;
     },
   },
   {
@@ -146,8 +146,8 @@ const UPGRADES = [
     name: 'Rotating Turrets',
     description: 'Add independent gun emplacements.',
     maxTier: 4,
-    baseCost: 300,
-    costMult: 1.6,
+    baseCost: 1400,
+    costMult: 1.85,
     apply(tower, game, tier) {
       tower.turretCount = tier;
     },
