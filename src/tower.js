@@ -24,10 +24,10 @@ export class Tower {
     this.laserAngle      = 0;     // current sweep angle (radians)
     this.laserTimer      = 0;     // time remaining in current burst
 
-    // Rotating turrets
-    this.turretCount     = 0;
-    this.turretAngle     = 0;     // shared rotation angle (radians)
-    this.turretCooldown  = 0;     // independent fire cooldown for turrets
+    // Orbital Death Ring
+    this.ringTier        = 0;     // 0 = not unlocked
+    this.ringAngle       = 0;     // angle of ring 1 (radians)
+    this.ringAngle2      = 0;     // angle of ring 2 (counter-rotating, tier 3+)
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -50,8 +50,8 @@ export class Tower {
     if (this.hitFlash > 0) this.hitFlash -= dt;
 
     this._updateMainGun(dt, game);
-    if (this.turretCount > 0) this._updateTurrets(dt, game);
-    if (this.laserUnlocked)   this._updateLaser(dt, game);
+    if (this.ringTier > 0)  this._updateRings(dt, game);
+    if (this.laserUnlocked) this._updateLaser(dt, game);
   }
 
   // ── Main gun ────────────────────────────────────────────────────────────────
@@ -120,40 +120,51 @@ export class Tower {
     }
   }
 
-  // ── Rotating turrets ────────────────────────────────────────────────────────
+  // ── Orbital Death Ring ──────────────────────────────────────────────────────
 
-  _updateTurrets(dt, game) {
-    // Turrets orbit at fixed angular spacing, rotate over time
-    this.turretAngle  += dt * 0.8; // rad/sec rotation speed
-    this.turretCooldown -= dt;
+  _updateRings(dt, game) {
+    // Tier 1: 1 ring, 30° arc, 90°/s
+    // Tier 2: 1 ring, 45° arc, 110°/s
+    // Tier 3: 2 rings (counter-rotating), 45° arc each, 110°/s
+    // Tier 4: 2 rings (counter-rotating), 60° arc each, 130°/s
+    const t           = this.ringTier;
+    const rotSpeed    = (t <= 2 ? 90 : 110) + (t === 4 ? 20 : 0); // degrees/sec
+    const arcDeg      = t === 1 ? 30 : t === 2 ? 45 : t === 3 ? 45 : 60;
+    const arcRad      = arcDeg * (Math.PI / 180);
+    const ORBIT_R     = this.radius + 36;
+    const DPS         = this.damage * this.fireRate * 1.2; // strong — it's the late unlock
+    const rotRad      = rotSpeed * (Math.PI / 180) * dt;
 
-    if (this.turretCooldown > 0) return;
+    this.ringAngle  = (this.ringAngle  + rotRad)          % (Math.PI * 2);
+    this.ringAngle2 = (this.ringAngle2 - rotRad * 0.7 + Math.PI * 2) % (Math.PI * 2); // slower counter-rotation
 
-    // Each turret fires at the nearest enemy to its own position
-    const orbitR = this.radius + 18;
-    for (let i = 0; i < this.turretCount; i++) {
-      const a  = this.turretAngle + (Math.PI * 2 / this.turretCount) * i;
-      const tx = this.x + Math.cos(a) * orbitR;
-      const ty = this.y + Math.sin(a) * orbitR;
+    const rings = t >= 3 ? [this.ringAngle, this.ringAngle2] : [this.ringAngle];
 
-      const r2     = this.range * this.range;
-      const target = _nearestEnemies(game.enemyPool.pool, { x: tx, y: ty }, 1, r2)[0];
-      if (!target) continue;
+    for (const e of game.enemyPool.pool) {
+      if (!e.active) continue;
+      const dx   = e.x - this.x;
+      const dy   = e.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > ORBIT_R + e.radius || dist < ORBIT_R - e.radius) continue; // rough radial band
 
-      const dx  = target.x - tx;
-      const dy  = target.y - ty;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      game.projectilePool.fire(
-        tx, ty,
-        (dx / len) * this.projectileSpeed,
-        (dy / len) * this.projectileSpeed,
-        this.damage * 0.7,   // turrets deal 70% of base damage
-        this.explosiveRadius,
-        0,                   // turrets don't chain (keeps visuals readable)
-      );
+      const eAngle = Math.atan2(dy, dx);
+
+      for (const rAngle of rings) {
+        let dAngle = Math.abs(eAngle - rAngle) % (Math.PI * 2);
+        if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
+        if (dAngle < arcRad / 2) {
+          e.hp -= DPS * dt;
+          if (e.hp <= 0) {
+            game.waveEarned += e.reward;
+            if (game.particles) game.particles.emitDeath(e.x, e.y, e.color);
+            game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
+            if (e.type === 'BOSS') game.edgeFlash = 0.5;
+            e.active = false;
+          }
+          break; // one ring hit is enough per frame
+        }
+      }
     }
-
-    this.turretCooldown = 1 / this.fireRate;
   }
 
   // ── Laser burst ─────────────────────────────────────────────────────────────

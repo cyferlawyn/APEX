@@ -11,7 +11,6 @@ const COLORS = {
   text:      '#e0e0e0',
   dim:       'rgba(0,0,0,0.55)',
   laser:     '#ff4081',
-  turret:    '#b2ebf2',
   explosion: '#ff9100',
   chain:     '#e040fb',
 };
@@ -106,28 +105,36 @@ export class Renderer {
       glowColor = COLORS.laser;
     }
 
-    // Rotating turret emplacements (drawn behind tower)
-    if (t.turretCount > 0) {
-      const orbitR = r + 18;
-      for (let i = 0; i < t.turretCount; i++) {
-        const a  = t.turretAngle + (Math.PI * 2 / t.turretCount) * i;
-        const tx = cx + Math.cos(a) * orbitR;
-        const ty = cy + Math.sin(a) * orbitR;
+    // Orbital Death Ring (drawn behind tower hex)
+    if (t.ringTier > 0) {
+      const arcDeg  = t.ringTier === 1 ? 30 : t.ringTier === 2 ? 45 : t.ringTier === 3 ? 45 : 60;
+      const arcRad  = arcDeg * (Math.PI / 180);
+      const orbitR  = r + 36;
+      const rings   = t.ringTier >= 3
+        ? [{ angle: t.ringAngle }, { angle: t.ringAngle2 }]
+        : [{ angle: t.ringAngle }];
+
+      for (const ring of rings) {
+        const startA = ring.angle - arcRad / 2;
+        const endA   = ring.angle + arcRad / 2;
 
         ctx.save();
-        ctx.shadowBlur  = 10;
-        ctx.shadowColor = COLORS.turret;
-        ctx.strokeStyle = COLORS.turret;
-        ctx.fillStyle   = COLORS.towerFill;
-        ctx.lineWidth   = 1.5;
-        // Diamond shape
+        ctx.shadowBlur  = 22;
+        ctx.shadowColor = '#ff6d00';
+        ctx.strokeStyle = '#ff6d00';
+        ctx.lineWidth   = 5;
+        ctx.globalAlpha = 0.9;
         ctx.beginPath();
-        ctx.moveTo(tx,     ty - 5);
-        ctx.lineTo(tx + 5, ty);
-        ctx.lineTo(tx,     ty + 5);
-        ctx.lineTo(tx - 5, ty);
-        ctx.closePath();
-        ctx.fill();
+        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.stroke();
+
+        // Bright inner core of the arc
+        ctx.shadowBlur  = 8;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth   = 2;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(cx, cy, orbitR, startA, endA);
         ctx.stroke();
         ctx.restore();
       }

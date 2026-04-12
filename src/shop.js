@@ -143,13 +143,13 @@ const UPGRADES = [
   },
   {
     id: 'turrets',
-    name: 'Rotating Turrets',
-    description: 'Add independent gun emplacements.',
+    name: 'Orbital Death Ring',
+    description: 'A permanent energy ring orbits the tower, continuously burning every enemy it touches.',
     maxTier: 4,
     baseCost: 50000,
     costMult: 2.3,
     apply(tower, game, tier) {
-      tower.turretCount = tier;
+      tower.ringTier = tier;
     },
   },
 ];
