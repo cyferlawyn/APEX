@@ -20,31 +20,31 @@ export class WaveSpawner {
 
     while (this.queue.length > 0 && this.elapsed >= this.queue[0].delay) {
       const entry = this.queue.shift();
-      this._spawnOne(entry.type);
+      this._spawnOne(entry.type, entry.edge);
     }
 
     if (this.queue.length === 0) this.done = true;
   }
 
-  _spawnOne(type) {
-    const canvas = this.game.tower; // we need canvas size — use projectilePool bounds
+  _spawnOne(type, edge) {
     const bounds = this.game.projectilePool._bounds;
     const w = bounds.w;
     const h = bounds.h;
 
-    // Pick random edge
-    const edge = Math.floor(Math.random() * 4);
+    // Use supplied edge for clusters, random otherwise
+    const e = edge ?? Math.floor(Math.random() * 4);
     let x, y;
     const margin = 40;
-    switch (edge) {
-      case 0: x = Math.random() * w; y = -margin;    break; // top
-      case 1: x = Math.random() * w; y = h + margin; break; // bottom
-      case 2: x = -margin;           y = Math.random() * h; break; // left
-      case 3: x = w + margin;        y = Math.random() * h; break; // right
+    // Swarm units get a small positional jitter so they don't stack perfectly
+    const jitter = type === EnemyType.SWARM ? 20 : 0;
+    switch (e) {
+      case 0: x = Math.random() * w;         y = -margin + (Math.random() - 0.5) * jitter; break;
+      case 1: x = Math.random() * w;         y = h + margin + (Math.random() - 0.5) * jitter; break;
+      case 2: x = -margin + (Math.random() - 0.5) * jitter; y = Math.random() * h; break;
+      case 3: x = w + margin + (Math.random() - 0.5) * jitter; y = Math.random() * h; break;
     }
 
     this.game.enemyPool.spawn(type, this.game.wave, x, y);
-    // Boss arrival: trigger screen-edge flash
     if (type === EnemyType.BOSS) this.game.edgeFlash = 0.6;
   }
 }
@@ -54,27 +54,35 @@ function buildWave(wave) {
 
   // Boss wave
   if (wave % 10 === 0) {
-    entries.push({ type: EnemyType.BOSS, delay: 0 });
+    entries.push({ type: EnemyType.BOSS, delay: 0, edge: null });
     return entries;
   }
 
-  const count = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
-  const interval = 0.4; // seconds between spawns
+  const count    = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
+  const interval = 0.4; // seconds between normal spawns
 
+  let t = 0; // running delay cursor
   for (let i = 0; i < count; i++) {
-    entries.push({ type: pickType(wave, i, count), delay: i * interval });
+    // 15% chance per slot (wave 3+) to replace with a swarm cluster
+    if (wave >= 3 && Math.random() < 0.15) {
+      const clusterSize = 10 + Math.floor(Math.random() * 11); // 10–20
+      const edge        = Math.floor(Math.random() * 4);        // shared edge
+      for (let s = 0; s < clusterSize; s++) {
+        entries.push({ type: EnemyType.SWARM, delay: t + s * 0.06, edge });
+      }
+      // Advance time by one normal interval so the cluster doesn't overlap the next spawn
+      t += interval;
+    } else {
+      entries.push({ type: pickType(wave), delay: t, edge: null });
+      t += interval;
+    }
   }
 
   return entries;
 }
 
-function pickType(wave, index, total) {
-  // Swarm cluster: 20% chance on wave 3+, replace ~30% of a wave with swarm
-  if (wave >= 3 && index < Math.floor(total * 0.3) && Math.random() < 0.2) {
-    return EnemyType.SWARM;
-  }
-
-  // Weighted pool based on wave
+function pickType(wave) {
+  // Weighted pool based on wave — no swarm here, handled above
   const pool = [EnemyType.DRONE];
   if (wave >= 5)  pool.push(EnemyType.ELITE, EnemyType.ELITE);
   if (wave >= 8)  pool.push(EnemyType.BRUTE);
