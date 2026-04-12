@@ -38,7 +38,12 @@ function bootstrap() {
 function beginWave() {
   game.enemyPool.reset();
   game.projectilePool.reset();
-  game.tower.hp = game.tower.maxHp; // full heal at wave start
+  // Apply regen between waves; full heal only on wave 1 (fresh start)
+  if (game.wave === 1) {
+    game.tower.hp = game.tower.maxHp;
+  } else {
+    game.tower.hp = Math.min(game.tower.hp + game.tower.regenPerSec, game.tower.maxHp);
+  }
   game.waveSpawner.begin(game.wave);
   game.waveEarned = 0;
   game.transition(State.COMBAT);
