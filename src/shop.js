@@ -97,14 +97,14 @@ const UPGRADES = [
   {
     id: 'spreadShot',
     name: 'Spread Shot',
-    tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 20° cone.\nEach tier adds 1 pellet and widens the cone by 5°.\nMax (tier 5): 7 pellets, 40° cone.',
+    tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 14° cone.\nEach tier adds 1 pellet and widens the cone by 4°.\nMax (tier 5): 7 pellets, 30° cone.',
     maxTier: 5,
     baseCost: 500,
     costMult: 1.9,
     apply(tower, game, tier) {
       tower.spreadShot    = true;
       tower.spreadPellets = 2 + tier;
-      tower.spreadAngle   = 15 + tier * 5;
+      tower.spreadAngle   = 10 + tier * 4;
     },
   },
   {
