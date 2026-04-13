@@ -236,10 +236,20 @@ export class Tower {
     } else {
       this.laserCooldown -= dt;
       if (this.laserCooldown <= 0) {
-        this.laserActive = true;
-        this.laserTimer  = BURST_DURATION;
-        this.laserAngle  = 0;
-        audio.laserStart(this.laserTier);
+        // Only fire if at least one enemy is within laser range
+        const r2       = this.laserRange * this.laserRange;
+        const hasTarget = game.enemyPool.pool.some(
+          e => e.active && (e.x - this.x) ** 2 + (e.y - this.y) ** 2 <= r2
+        );
+        if (hasTarget) {
+          this.laserActive = true;
+          this.laserTimer  = BURST_DURATION;
+          this.laserAngle  = 0;
+          audio.laserStart(this.laserTier);
+        } else {
+          // Hold cooldown at zero — fire immediately once enemies arrive
+          this.laserCooldown = 0;
+        }
       }
     }
   }
