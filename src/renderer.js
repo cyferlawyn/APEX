@@ -26,14 +26,19 @@ export class Renderer {
   }
 
   _resize() {
-    this.canvas.width  = this.canvas.offsetWidth;
-    this.canvas.height = this.canvas.offsetHeight;
+    // Use a fixed logical resolution capped at 1600×900.
+    // canvas.offsetWidth reflects CSS layout size which balloons at low browser
+    // zoom levels — capping prevents off-screen spawns from being unreachably far.
+    const W = Math.min(Math.max(this.canvas.offsetWidth,  400), 1600);
+    const H = Math.min(Math.max(this.canvas.offsetHeight, 300),  900);
+    this.canvas.width  = W;
+    this.canvas.height = H;
     if (this.game.tower) {
-      this.game.tower.x = this.canvas.width  / 2;
-      this.game.tower.y = this.canvas.height / 2;
+      this.game.tower.x = W / 2;
+      this.game.tower.y = H / 2;
     }
     if (this.game.projectilePool) {
-      this.game.projectilePool._bounds = { w: this.canvas.width, h: this.canvas.height };
+      this.game.projectilePool._bounds = { w: W, h: H };
     }
   }
 
