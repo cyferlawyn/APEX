@@ -60,6 +60,23 @@ export class ParticleSystem {
 
   // ── emitters ────────────────────────────────────────────────────────────────
 
+  emitProjectileTrail(x, y, nx, ny) {
+    // One spark per call — offset slightly behind the projectile and given a small
+    // perpendicular wobble so the trail fans out rather than drawing a solid line.
+    const perp   = (Math.random() - 0.5) * 30; // perpendicular drift speed
+    const speed  = 20 + Math.random() * 30;
+    const color  = Math.random() < 0.6 ? '#00e5ff' : '#ffffff';
+    this._emit(
+      x - nx * 4 + (-ny) * (perp * 0.05),  // start just behind the dot
+      y - ny * 4 + ( nx) * (perp * 0.05),
+      -nx * speed + (-ny) * perp,           // drift backward + sideways wobble
+       -ny * speed + ( nx) * perp,
+      0.08 + Math.random() * 0.08,          // very short lived
+      1.0 + Math.random() * 0.8,
+      color,
+    );
+  }
+
   emitHit(x, y, color) {
     const count = 6;
     for (let i = 0; i < count; i++) {

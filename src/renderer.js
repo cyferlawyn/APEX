@@ -570,43 +570,51 @@ export class Renderer {
     const { ctx, canvas, game } = this;
     if (!game.projectilePool) return;
 
+    const quality = game.quality;
+
     for (const p of game.projectilePool.pool) {
       if (!p.active) continue;
       // Off-screen cull
       if (p.x < -20 || p.x > canvas.width + 20 ||
           p.y < -20 || p.y > canvas.height + 20) continue;
 
-      // Motion trail — 3 fading dots behind the projectile (high quality only)
-      if (game.quality === 'high') {
+      // Particle trail — emitted into the particle system each frame (high only)
+      if (quality === 'high' && game.particles) {
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         if (speed > 0) {
-          const nx = p.vx / speed;
-          const ny = p.vy / speed;
-          for (let i = 1; i <= 3; i++) {
-            const tx = p.x - nx * i * 5;
-            const ty = p.y - ny * i * 5;
-            ctx.save();
-            ctx.globalAlpha = (0.4 - i * 0.1);
-            ctx.shadowBlur  = 4;
-            ctx.shadowColor = '#ffffff';
-            ctx.fillStyle   = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(tx, ty, 3 - i * 0.6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-          }
+          game.particles.emitProjectileTrail(p.x, p.y, p.vx / speed, p.vy / speed);
         }
       }
 
-      // Projectile dot
-      ctx.save();
-      ctx.shadowBlur  = game.quality === 'low' ? 0 : 8;
-      ctx.shadowColor = '#ffffff';
-      ctx.fillStyle   = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+      if (quality === 'low') {
+        // LOW — plain dot, no glow
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        // MEDIUM / HIGH — two-pass glowing bullet: halo + bright core
+        // Pass 1: soft cyan halo (no shadowBlur — cheap)
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle   = '#00e5ff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Pass 2: white-hot core with a single cheap shadowBlur
+        ctx.save();
+        ctx.shadowBlur  = 10;
+        ctx.shadowColor = '#00e5ff';
+        ctx.fillStyle   = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
     }
   }
 
