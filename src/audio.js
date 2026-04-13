@@ -17,16 +17,20 @@ export class AudioManager {
   // Call once on first user gesture (click / keypress).
   // Safe to call multiple times.
   init() {
-    if (this._ctx) return;
-    this._ctx    = new (window.AudioContext || window.webkitAudioContext)();
-    this._master = this._ctx.createGain();
-    this._master.gain.value = this._volume;
-    this._master.connect(this._ctx.destination);
+    if (!this._ctx) {
+      this._ctx    = new (window.AudioContext || window.webkitAudioContext)();
+      this._master = this._ctx.createGain();
+      this._master.gain.value = this._volume;
+      this._master.connect(this._ctx.destination);
+    }
+    // Resume if the browser suspended the context (common after page reload)
+    if (this._ctx.state === 'suspended') this._ctx.resume();
   }
 
   setVolume(v) {
     this._volume = Math.max(0, Math.min(1, v));
     if (this._master) this._master.gain.value = this._volume;
+    if (this._ctx && this._ctx.state === 'suspended') this._ctx.resume();
   }
 
   get volume() { return this._volume; }
