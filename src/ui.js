@@ -153,17 +153,27 @@ function wireButtons() {
     apex.savePrefs({ quality: apex.game.quality, volume: vol, autoQuality: apex.game.autoQuality });
   });
 
-  // Quality buttons
+  // FX level buttons (HIGH / MED / LOW) — clicking one disables AUTO
   document.getElementById('quality-buttons').addEventListener('click', e => {
     const btn = e.target.closest('.quality-btn');
     if (!btn) return;
-    const q    = btn.dataset.q;
     const apex = getApex();
     if (!apex) return;
-    apex.setQuality(q);
-    document.querySelectorAll('.quality-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.q === q);
-    });
+    apex.setQuality(btn.dataset.q); // sets autoQuality = false
+    syncQualityUI(apex.game);
+  });
+
+  // AUTO toggle button
+  document.getElementById('auto-quality-btn').addEventListener('click', () => {
+    const apex = getApex();
+    if (!apex) return;
+    if (apex.game.autoQuality) {
+      // Turn AUTO off — revert to the quality AUTO currently holds
+      apex.setQuality(apex.game.quality);
+    } else {
+      apex.setQuality('auto');
+    }
+    syncQualityUI(apex.game);
   });
 }
 
@@ -180,18 +190,35 @@ window.addEventListener('load', () => {
   });
 });
 
+// Exposed so main.js can sync the UI after an AUTO step-down
+window.__syncQualityUI = () => {
+  const apex = getApex();
+  if (apex) syncQualityUI(apex.game);
+};
+
 // Reflect saved prefs back onto the controls
 function syncPrefsUI() {
   const apex = getApex();
   if (!apex) return;
-
-  // Quality buttons — AUTO takes precedence if active
-  const q = apex.game.autoQuality ? 'auto' : (apex.game.quality ?? 'high');
-  document.querySelectorAll('.quality-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.q === q);
-  });
+  syncQualityUI(apex.game);
 
   // Volume slider
   const vol = apex.audio?.volume ?? 0.4;
   document.getElementById('volume-slider').value = Math.round(vol * 100);
+}
+
+// Sync quality buttons to current game state.
+// Called on load, on manual quality change, and after AUTO steps down.
+function syncQualityUI(game) {
+  const isAuto = game.autoQuality;
+  const q      = game.quality ?? 'high';
+
+  // Level buttons: cyan .active when manually chosen, yellow .auto-active when AUTO picked it
+  document.querySelectorAll('.quality-btn').forEach(b => {
+    b.classList.toggle('active',      !isAuto && b.dataset.q === q);
+    b.classList.toggle('auto-active',  isAuto && b.dataset.q === q);
+  });
+
+  // AUTO toggle button
+  document.getElementById('auto-quality-btn').classList.toggle('active', isAuto);
 }

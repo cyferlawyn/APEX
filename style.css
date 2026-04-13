@@ -296,6 +296,51 @@ html, body {
   background: rgba(0,229,255,0.08);
 }
 
+/* Level button highlighted by AUTO (yellow, not user-chosen) */
+.quality-btn.auto-active {
+  border-color: rgba(255,214,0,0.5);
+  color: rgba(255,214,0,0.7);
+  background: rgba(255,214,0,0.06);
+}
+
+/* ── AUTO toggle row ─────────────────────────────────── */
+
+#auto-quality-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#auto-quality-btn {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,214,0,0.25);
+  color: rgba(255,214,0,0.35);
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+#auto-quality-btn:hover:not(.active) {
+  border-color: rgba(255,214,0,0.5);
+  color: rgba(255,214,0,0.7);
+}
+
+#auto-quality-btn.active {
+  border-color: #ffd600;
+  color: #ffd600;
+  background: rgba(255,214,0,0.1);
+}
+
+#auto-quality-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.2);
+  line-height: 1.3;
+}
+
 #self-destruct-btn {
   width: 100%;
   padding: 7px 0;

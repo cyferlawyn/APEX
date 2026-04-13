@@ -110,10 +110,8 @@ function loop(timestamp) {
         const next = game.quality === 'high' ? 'medium' : 'low';
         game.quality = next;
         savePrefs({ quality: next, volume: audio.volume, autoQuality: true });
-        // Sync the quality buttons in the UI
-        document.querySelectorAll('.quality-btn').forEach(b => {
-          b.classList.toggle('active', b.dataset.q === next);
-        });
+        // Sync quality UI (defined in ui.js, exposed on window)
+        window.__syncQualityUI?.();
       }
     } else {
       _autoLowTimer = 0; // reset timer whenever FPS recovers
