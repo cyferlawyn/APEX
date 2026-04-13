@@ -167,7 +167,7 @@ export class Tower {
             const earned = Math.floor(e.reward * game.currencyMultiplier);
             game.currency   += earned;
             game.waveEarned += earned;
-            _spawnCurrencyPopup(earned, game);
+            _spawnCurrencyPopup(earned, game, e.x, e.y);
             if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
             if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
@@ -216,7 +216,7 @@ export class Tower {
             const earned = Math.floor(e.reward * game.currencyMultiplier);
             game.currency   += earned;
             game.waveEarned += earned;
-            _spawnCurrencyPopup(earned, game);
+            _spawnCurrencyPopup(earned, game, e.x, e.y);
             if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
             if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
@@ -260,8 +260,6 @@ function _dist2(a, b) {
   return dx * dx + dy * dy;
 }
 
-function _spawnCurrencyPopup(amount, game) {
-  const bounds = game.projectilePool._bounds;
-  const x = bounds.w - 12 - Math.random() * 120;
-  game.currencyPopups.push({ amount, x, y: 38, t: 1.2 });
+function _spawnCurrencyPopup(amount, game, x, y) {
+  game.currencyPopups.push({ amount, x, y, t: 0.9 });
 }

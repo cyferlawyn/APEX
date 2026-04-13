@@ -155,7 +155,7 @@ function _damageEnemy(e, dmg, game) {
     const earned = Math.floor(e.reward * game.currencyMultiplier);
     game.currency   += earned;
     game.waveEarned += earned;
-    _spawnCurrencyPopup(earned, game);
+    _spawnCurrencyPopup(earned, game, e.x, e.y);
     // Death burst particles + expanding ring
     if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
     game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
@@ -170,11 +170,8 @@ function _damageEnemy(e, dmg, game) {
   }
 }
 
-function _spawnCurrencyPopup(amount, game) {
-  const bounds = game.projectilePool._bounds;
-  // Spread across a band in the top-right, below the currency counter
-  const x = bounds.w - 12 - Math.random() * 120;
-  game.currencyPopups.push({ amount, x, y: 38, t: 1.2 });
+function _spawnCurrencyPopup(amount, game, x, y) {
+  game.currencyPopups.push({ amount, x, y, t: 0.9 });
 }
 
 function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
