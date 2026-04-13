@@ -37,8 +37,10 @@ function buildShopCards() {
       <div class="upgrade-card-top">
         <span class="upgrade-name">${entry.name}</span>
         <span class="upgrade-tier" data-tier></span>
+        <span class="upgrade-tooltip-icon" aria-label="${entry.tooltip}">?
+          <span class="upgrade-tooltip-box">${(entry.tooltip ?? '').replace(/\n/g, '<br>')}</span>
+        </span>
       </div>
-      <div class="upgrade-desc">${entry.description}</div>
       <button class="upgrade-buy-btn" data-id="${entry.id}"></button>
     `;
 
@@ -68,6 +70,11 @@ function patchShopCards() {
     const cost   = shop.cost(entry.id);
     const afford = game.currency >= cost;
     const nextFx = (UPGRADE_NEXT_EFFECT[entry.id] ?? (() => ''))(tier);
+
+    // Collapsed state for maxed cards
+    if (card.classList.contains('is-maxed') !== maxed) {
+      card.classList.toggle('is-maxed', maxed);
+    }
 
     // Tier label
     const tierEl = card.querySelector('[data-tier]');

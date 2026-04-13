@@ -89,28 +89,86 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 3px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .upgrade-name {
   font-size: 13px;
   color: #e0e0e0;
+  flex: 1 1 auto;
 }
 
 .upgrade-tier {
   font-size: 11px;
   color: rgba(255,255,255,0.35);
+  flex-shrink: 0;
 }
 
 .upgrade-tier.maxed {
   color: #ffd600;
 }
 
-.upgrade-desc {
-  font-size: 11px;
-  color: rgba(255,255,255,0.45);
-  margin-bottom: 7px;
-  line-height: 1.4;
+/* ── Tooltip ──────────────────────────────────────────── */
+
+.upgrade-tooltip-icon {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,229,255,0.35);
+  color: rgba(0,229,255,0.5);
+  font-size: 9px;
+  cursor: default;
+  line-height: 1;
+}
+
+.upgrade-tooltip-icon:hover {
+  border-color: rgba(0,229,255,0.7);
+  color: #00e5ff;
+}
+
+.upgrade-tooltip-box {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  width: 230px;
+  background: #0d0d1a;
+  border: 1px solid rgba(0,229,255,0.3);
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.7);
+  white-space: normal;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+}
+
+.upgrade-tooltip-icon:hover .upgrade-tooltip-box {
+  display: block;
+}
+
+/* ── Maxed (collapsed) card ───────────────────────────── */
+
+.upgrade-card.is-maxed {
+  padding: 5px 10px;
+  background: rgba(255,214,0,0.03);
+  border-color: rgba(255,214,0,0.12);
+}
+
+.upgrade-card.is-maxed .upgrade-card-top {
+  margin-bottom: 0;
+}
+
+.upgrade-card.is-maxed .upgrade-buy-btn {
+  display: none;
 }
 
 .upgrade-buy-btn {

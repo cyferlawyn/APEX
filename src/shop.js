@@ -1,13 +1,13 @@
 import { Tower } from './tower.js';
 
 // Upgrade catalogue
-// Each entry: { id, name, description, maxTier, baseCost, costMult, apply(tower, game, tier) }
+// Each entry: { id, name, tooltip, maxTier, baseCost, costMult, apply(tower, game, tier) }
 
 const UPGRADES = [
   {
     id: 'damage',
     name: 'Damage',
-    description: 'Increases projectile damage. No level cap — the primary late-game money sink.',
+    tooltip: 'Multiplies base damage by ×1.15 per purchase. No tier cap.\nBase: 35. Affects all weapons — main gun, laser, and orbital ring.',
     maxTier: null,
     baseCost: 50,
     costMult: 1.4,
@@ -18,7 +18,7 @@ const UPGRADES = [
   {
     id: 'fireRate',
     name: 'Fire Rate',
-    description: 'Increases attacks per second.',
+    tooltip: 'Multiplies fire rate by ×1.10 per tier.\nBase: 1.5 shots/s → max (tier 10): ~3.9 shots/s.',
     maxTier: 10,
     baseCost: 60,
     costMult: 1.8,
@@ -29,7 +29,7 @@ const UPGRADES = [
   {
     id: 'projectileSpeed',
     name: 'Projectile Speed',
-    description: 'Increases projectile velocity.',
+    tooltip: 'Multiplies projectile velocity by ×1.12 per tier.\nBase: 400 px/s → max (tier 8): ~990 px/s.\nFaster projectiles reach distant enemies before they close in.',
     maxTier: 8,
     baseCost: 40,
     costMult: 1.85,
@@ -40,7 +40,7 @@ const UPGRADES = [
   {
     id: 'range',
     name: 'Range',
-    description: 'Increases tower detection radius.',
+    tooltip: 'Multiplies detection radius by ×1.10 per tier.\nBase: 220 px → max (tier 15): ~918 px.\nAlso extends the laser beam range.',
     maxTier: 15,
     baseCost: 45,
     costMult: 1.55,
@@ -51,7 +51,7 @@ const UPGRADES = [
   {
     id: 'maxHp',
     name: 'Max HP',
-    description: 'Increases maximum tower HP.',
+    tooltip: 'Adds 20% of current max HP per tier.\nBase: 1000 HP → max (tier 8): ~4300 HP.\nThe bonus is added to current HP immediately.',
     maxTier: 8,
     baseCost: 70,
     costMult: 1.85,
@@ -64,18 +64,18 @@ const UPGRADES = [
   {
     id: 'hpRegen',
     name: 'HP Regen',
-    description: 'Regenerate a percentage of max HP between waves.',
+    tooltip: 'Heals tier × 3% of max HP at the end of each wave.\nTier 1: 3% — tier 6: 18% — max (tier 12): 36% per wave.',
     maxTier: 12,
     baseCost: 80,
     costMult: 1.65,
     apply(tower, game, tier) {
-      tower.regenFraction = tier * 0.03; // 3% per tier, e.g. tier 4 = 12% max HP
+      tower.regenFraction = tier * 0.03;
     },
   },
   {
     id: 'currencyMult',
     name: 'Bounty',
-    description: 'Increases currency earned from enemies.',
+    tooltip: 'Multiplies all kill rewards by ×1.10 per tier.\nMax (tier 5): ×1.61 on all currency earned.\nApplies to every weapon and kill source.',
     maxTier: 5,
     baseCost: 90,
     costMult: 2.1,
@@ -86,42 +86,42 @@ const UPGRADES = [
   {
     id: 'multiShot',
     name: 'Multi-Shot',
-    description: 'Fire at multiple enemies simultaneously.',
+    tooltip: 'The main gun targets and fires at multiple enemies per shot.\nTier 1: 2 targets. Each tier adds 1 more.\nMax (tier 5): 6 simultaneous targets.',
     maxTier: 5,
     baseCost: 200,
     costMult: 1.8,
     apply(tower, game, tier) {
-      tower.multiShotCount = tier + 1; // tier 1 = 2 targets, tier 2 = 3, etc.
+      tower.multiShotCount = tier + 1;
     },
   },
   {
     id: 'spreadShot',
     name: 'Spread Shot',
-    description: 'Fire a fan of projectiles at the nearest enemy.',
+    tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 20° cone.\nEach tier adds 1 pellet and widens the cone by 5°.\nMax (tier 5): 7 pellets, 40° cone.',
     maxTier: 5,
     baseCost: 500,
     costMult: 1.9,
     apply(tower, game, tier) {
       tower.spreadShot    = true;
-      tower.spreadPellets = 2 + tier; // 3 at tier 1, up to 7
-      tower.spreadAngle   = 15 + tier * 5; // 20° at tier 1, up to 40°
+      tower.spreadPellets = 2 + tier;
+      tower.spreadAngle   = 15 + tier * 5;
     },
   },
   {
     id: 'explosive',
     name: 'Explosive Rounds',
-    description: 'Projectiles deal splash damage on impact.',
+    tooltip: 'Projectiles detonate on impact, dealing full damage in a blast radius.\nTier 1: 35 px radius. Each tier adds 15 px.\nMax (tier 4): 80 px radius.',
     maxTier: 4,
     baseCost: 1500,
     costMult: 2.0,
     apply(tower, game, tier) {
-      tower.explosiveRadius = 20 + tier * 15; // 35px at tier 1
+      tower.explosiveRadius = 20 + tier * 15;
     },
   },
   {
     id: 'chainLightning',
     name: 'Chain Lightning',
-    description: 'Projectiles arc to nearby enemies on hit.',
+    tooltip: 'On hit, lightning jumps to a nearby enemy dealing full damage.\nEach tier adds one additional jump.\nMax (tier 4): 4 chain jumps per projectile.',
     maxTier: 4,
     baseCost: 4500,
     costMult: 2.1,
@@ -132,7 +132,7 @@ const UPGRADES = [
   {
     id: 'laserBurst',
     name: 'Laser Burst',
-    description: 'Periodic sweeping laser beam.',
+    tooltip: 'A sweeping laser fires periodically, making a full 360° rotation.\nDPS = damage × fire rate × multiplier.\nTier 1: 1.8 s burst / 7 s cooldown / 220 px / ×2.5 DPS.\nEach tier: +0.3 s burst, −1 s cooldown, more range, higher DPS.\nMax (tier 4): 2.7 s / 4 s cooldown / 520 px / ×7.0 DPS.',
     maxTier: 4,
     baseCost: 12000,
     costMult: 2.2,
@@ -144,7 +144,7 @@ const UPGRADES = [
   {
     id: 'turrets',
     name: 'Orbital Death Ring',
-    description: 'A permanent energy ring orbits the tower, continuously burning every enemy it touches.',
+    tooltip: 'An energy arc orbits the tower, burning any enemy it sweeps through.\nDPS = damage × fire rate × 1.2.\nTier 1: 1 ring, 30° arc, 90°/s.\nTier 2: 1 ring, 45° arc, 110°/s.\nTier 3: second counter-rotating ring added.\nTier 4: both rings at 60° arc, 130°/s.',
     maxTier: 4,
     baseCost: 40000,
     costMult: 2.3,
