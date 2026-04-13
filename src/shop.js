@@ -132,7 +132,7 @@ const UPGRADES = [
   {
     id: 'laserBurst',
     name: 'Laser Burst',
-    tooltip: 'A sweeping laser fires periodically, making a full 360° rotation.\nDPS = damage × fire rate × multiplier.\nTier 1: 1.8 s burst / 7 s cooldown / 220 px / ×2.5 DPS.\nEach tier: +0.3 s burst, −1 s cooldown, more range, higher DPS.\nMax (tier 4): 2.7 s / 4 s cooldown / 520 px / ×7.0 DPS.',
+    tooltip: 'A sweeping laser fires periodically, making a full 360° rotation.\nDPS = damage × fire rate × multiplier (high — contact time per pass is brief).\nTier 1: 1.8 s burst / 7 s cooldown / 220 px / ×8 DPS.\nEach tier: +0.3 s burst, −1 s cooldown, more range, higher DPS.\nMax (tier 4): 2.7 s / 4 s cooldown / 520 px / ×26 DPS.\nOnly activates when at least one enemy is in range.',
     maxTier: 4,
     baseCost: 12000,
     costMult: 2.2,
@@ -144,7 +144,7 @@ const UPGRADES = [
   {
     id: 'turrets',
     name: 'Orbital Death Ring',
-    tooltip: 'An energy arc orbits the tower, burning any enemy it sweeps through.\nDPS = damage × fire rate × 1.2.\nTier 1: 1 ring, 30° arc, 90°/s.\nTier 2: 1 ring, 45° arc, 110°/s.\nTier 3: second counter-rotating ring added.\nTier 4: both rings at 60° arc, 130°/s.',
+    tooltip: 'An energy arc orbits the tower, burning any enemy it sweeps through.\nDPS = damage × fire rate × 8 (high — contact time per pass is brief).\nTier 1: 1 ring, 30° arc, 90°/s.\nTier 2: 1 ring, 45° arc, 110°/s.\nTier 3: second counter-rotating ring added.\nTier 4: both rings at 60° arc, 130°/s.',
     maxTier: 4,
     baseCost: 40000,
     costMult: 2.3,

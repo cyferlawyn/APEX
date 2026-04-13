@@ -141,7 +141,7 @@ export class Tower {
     const arcDeg      = t === 1 ? 30 : t === 2 ? 45 : t === 3 ? 45 : 60;
     const arcRad      = arcDeg * (Math.PI / 180);
     const ORBIT_R     = this.radius + 36;
-    const DPS         = this.damage * this.fireRate * 1.2; // strong — it's the late unlock
+    const DPS         = this.damage * this.fireRate * 8.0; // high — contact time per pass is very short
     const rotRad      = rotSpeed * (Math.PI / 180) * dt;
 
     this.ringAngle  = (this.ringAngle  + rotRad)          % (Math.PI * 2);
@@ -163,6 +163,10 @@ export class Tower {
         if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
         if (dAngle < arcRad / 2) {
           e.hp -= DPS * dt;
+          // Hit spark — visible feedback that the ring is doing damage
+          if (game.particles && game.quality !== 'low' && Math.random() < 0.3) {
+            game.particles.emitHit(e.x, e.y, '#ff6d00');
+          }
           if (e.hp <= 0) {
             const earned = Math.floor(e.reward * game.currencyMultiplier);
             game.currency   += earned;
@@ -189,9 +193,10 @@ export class Tower {
     const BURST_COOLDOWN = 8   - this.laserTier * 1.0;  // sec: 7 / 6 / 5 / 4
     const SWEEP_SPEED    = (Math.PI * 2) / BURST_DURATION;
 
-    // Range and DPS multiplier scale strongly per tier
+    // Range and DPS multiplier scale strongly per tier — high multipliers needed
+    // because the beam only contacts each enemy for ~0.08s per sweep pass
     const RANGE_BY_TIER = [0, 220, 300, 400, 520];
-    const DPS_MULT      = [0, 2.5, 3.5, 5.0, 7.0];
+    const DPS_MULT      = [0, 8, 12, 18, 26];
     this.laserRange     = RANGE_BY_TIER[this.laserTier] ?? 220;
     const DPS           = this.damage * this.fireRate * DPS_MULT[this.laserTier];
 
@@ -212,6 +217,10 @@ export class Tower {
         if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
         if (dAngle < 0.15) { // ~8.5° beam half-width
           e.hp -= DPS * dt;
+          // Hit spark at the beam impact point
+          if (game.particles && game.quality !== 'low' && Math.random() < 0.5) {
+            game.particles.emitHit(e.x, e.y, '#ff4081');
+          }
           if (e.hp <= 0) {
             const earned = Math.floor(e.reward * game.currencyMultiplier);
             game.currency   += earned;
