@@ -136,11 +136,12 @@ export class Tower {
     // Tier 2: 1 ring, 45° arc, 110°/s
     // Tier 3: 2 rings (counter-rotating), 45° arc each, 110°/s
     // Tier 4: 2 rings (counter-rotating), 60° arc each, 130°/s
+    // Tier 5: 2 rings (counter-rotating), 75° arc each, 150°/s
     const t           = this.ringTier;
-    const rotSpeed    = (t <= 2 ? 90 : 110) + (t === 4 ? 20 : 0); // degrees/sec
-    const arcDeg      = t === 1 ? 30 : t === 2 ? 45 : t === 3 ? 45 : 60;
+    const rotSpeed    = t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150); // degrees/sec
+    const arcDeg      = t === 1 ? 30 : t === 2 ? 45 : t === 3 ? 45 : t === 4 ? 60 : 75;
     const arcRad      = arcDeg * (Math.PI / 180);
-    const ORBIT_R     = this.radius + 36;
+    const ORBIT_R     = this.radius + 16;
     const DPS         = this.damage * this.fireRate * 8.0; // high — contact time per pass is very short
     const rotRad      = rotSpeed * (Math.PI / 180) * dt;
 
@@ -171,6 +172,7 @@ export class Tower {
             const earned = Math.floor(e.reward * game.currencyMultiplier);
             game.currency   += earned;
             game.waveEarned += earned;
+            game.logEarned(earned);
             _spawnCurrencyPopup(earned, game, e.x, e.y);
             if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
@@ -189,14 +191,14 @@ export class Tower {
   // ── Laser burst ─────────────────────────────────────────────────────────────
 
   _updateLaser(dt, game) {
-    const BURST_DURATION = 1.5 + this.laserTier * 0.3;  // sec: 1.8 / 2.1 / 2.4 / 2.7
-    const BURST_COOLDOWN = 8   - this.laserTier * 1.0;  // sec: 7 / 6 / 5 / 4
+    const BURST_DURATION = 1.5 + this.laserTier * 0.3;  // sec: 1.8 / 2.1 / 2.4 / 2.7 / 3.0
+    const BURST_COOLDOWN = 8   - this.laserTier * 1.0;  // sec: 7 / 6 / 5 / 4 / 3
     const SWEEP_SPEED    = (Math.PI * 2) / BURST_DURATION;
 
     // Range and DPS multiplier scale strongly per tier — high multipliers needed
     // because the beam only contacts each enemy for ~0.08s per sweep pass
-    const RANGE_BY_TIER = [0, 220, 300, 400, 520];
-    const DPS_MULT      = [0, 8, 12, 18, 26];
+    const RANGE_BY_TIER = [0, 220, 300, 400, 520, 660];
+    const DPS_MULT      = [0, 8, 12, 18, 26, 36];
     this.laserRange     = RANGE_BY_TIER[this.laserTier] ?? 220;
     const DPS           = this.damage * this.fireRate * DPS_MULT[this.laserTier];
 
@@ -225,6 +227,7 @@ export class Tower {
             const earned = Math.floor(e.reward * game.currencyMultiplier);
             game.currency   += earned;
             game.waveEarned += earned;
+            game.logEarned(earned);
             _spawnCurrencyPopup(earned, game, e.x, e.y);
             if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
             game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });

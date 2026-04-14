@@ -155,6 +155,7 @@ function _damageEnemy(e, dmg, game) {
     const earned = Math.floor(e.reward * game.currencyMultiplier);
     game.currency   += earned;
     game.waveEarned += earned;
+    game.logEarned(earned);
     _spawnCurrencyPopup(earned, game, e.x, e.y);
     // Death burst particles + expanding ring
     if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
@@ -175,7 +176,7 @@ function _spawnCurrencyPopup(amount, game, x, y) {
 }
 
 function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
-  const CHAIN_RANGE = 120;
+  const CHAIN_RANGE = 220;
   const r2 = CHAIN_RANGE * CHAIN_RANGE;
 
   // Find nearest active enemy not already hit in this chain

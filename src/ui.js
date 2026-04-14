@@ -1,22 +1,6 @@
 // ui.js — shop panel and button wiring
 // Patches DOM in-place to avoid hover flicker from full re-renders.
 
-const UPGRADE_NEXT_EFFECT = {
-  damage:          () => `+15% damage`,
-  fireRate:        () => `+10% fire rate`,
-  projectileSpeed: () => `+12% projectile speed`,
-  range:           () => `+10% range`,
-  maxHp:           () => `+20% max HP`,
-  hpRegen:         t => t === 0 ? `+3% max HP per wave` : `+3% max HP per wave (${(t + 1) * 3}% total)`,
-  currencyMult:    () => `+10% currency earned`,
-  multiShot:       t  => t === 0 ? `Unlock (2 targets)` : `+1 target (${t + 2} total)`,
-  spreadShot:      t  => t === 0 ? `Unlock (3 pellets, 14° cone)` : `+1 pellet, wider cone`,
-  explosive:       t  => t === 0 ? `Unlock splash damage` : `+15px radius`,
-  chainLightning:  t  => t === 0 ? `Unlock (1 chain jump)` : `+1 chain jump`,
-  laserBurst:      t  => t === 0 ? `Unlock laser burst` : `Reduce cooldown / extend duration`,
-  turrets:         t  => t === 0 ? `Unlock 1st turret` : `+1 rotating turret`,
-};
-
 function getApex() { return window.__apex; }
 
 // ── Initial DOM build (runs once) ──────────────────────────────────────────
@@ -69,7 +53,6 @@ function patchShopCards() {
     const maxed  = shop.isMaxed(entry.id);
     const cost   = shop.cost(entry.id);
     const afford = game.currency >= cost;
-    const nextFx = (UPGRADE_NEXT_EFFECT[entry.id] ?? (() => ''))(tier);
 
     // Collapsed state for maxed cards
     if (card.classList.contains('is-maxed') !== maxed) {
@@ -90,7 +73,14 @@ function patchShopCards() {
     if (maxed) {
       setBtn(btn, 'MAXED', true, true);
     } else {
-      const label = `$ ${cost} — ${nextFx}`;
+      let label = `$ ${cost}`;
+      if (!afford && game.recentEarned > 0) {
+        const deficit = cost - game.currency;
+        // recentEarned is per 60s window; convert to per-second rate
+        const rate = game.recentEarned / 60;
+        const secs = Math.min(999, Math.ceil(deficit / rate));
+        label = `$ ${cost}  ~${secs}s`;
+      }
       setBtn(btn, label, !afford, false);
       // Ensure data-id stays (shouldn't change but be safe)
       if (btn.dataset.id !== entry.id) btn.dataset.id = entry.id;

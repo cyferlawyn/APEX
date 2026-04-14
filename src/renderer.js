@@ -112,9 +112,9 @@ export class Renderer {
 
     // Orbital Death Ring (drawn behind tower hex)
     if (t.ringTier > 0) {
-      const arcDeg  = t.ringTier === 1 ? 30 : t.ringTier === 2 ? 45 : t.ringTier === 3 ? 45 : 60;
+      const arcDeg  = t.ringTier === 1 ? 30 : t.ringTier === 2 ? 45 : t.ringTier === 3 ? 45 : t.ringTier === 4 ? 60 : 75;
       const arcRad  = arcDeg * (Math.PI / 180);
-      const orbitR  = r + 36;
+      const orbitR  = r + 16;
       const rings   = t.ringTier >= 3
         ? [{ angle: t.ringAngle, ccw: false }, { angle: t.ringAngle2, ccw: true }]
         : [{ angle: t.ringAngle, ccw: false }];
@@ -684,6 +684,14 @@ export class Renderer {
     ctx.font        = '13px monospace';
     ctx.fillText(`$ ${game.currency}`, canvas.width - 12, 22);
 
+    // Earn rate — show +N/min when there's recent data
+    if (game.recentEarned > 0) {
+      const perMin = Math.round(game.recentEarned);  // window IS 60s, so sum == per-min
+      ctx.fillStyle = 'rgba(255,214,0,0.45)';
+      ctx.font      = '10px monospace';
+      ctx.fillText(`+${perMin}/min`, canvas.width - 12, 35);
+    }
+
     // FPS counter — colour shifts red when below 55
     const fps      = game.fps ?? 60;
     const fpsColor = fps < 45 ? '#ff1744' : fps < 55 ? '#ffea00' : 'rgba(255,255,255,0.28)';
@@ -693,7 +701,7 @@ export class Renderer {
     const fpsLabel = game.autoQuality
       ? `${fps} fps  AUTO:${game.quality.toUpperCase()}`
       : `${fps} fps`;
-    ctx.fillText(fpsLabel, canvas.width - 12, 36);
+    ctx.fillText(fpsLabel, canvas.width - 12, 47);
 
     // Currency popups — +$N floaters above the killed enemy that drift up and fade
     const DT = 1 / 60;

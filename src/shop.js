@@ -10,7 +10,7 @@ const UPGRADES = [
     tooltip: 'Multiplies base damage by ×1.15 per purchase. No tier cap.\nBase: 35. Affects all weapons — main gun, laser, and orbital ring.',
     maxTier: null,
     baseCost: 50,
-    costMult: 1.4,
+    costMult: 1.25,
     apply(tower, game, tier) {
       tower.damage = Math.round(tower.damage * 1.15);
     },
@@ -75,8 +75,8 @@ const UPGRADES = [
   {
     id: 'currencyMult',
     name: 'Bounty',
-    tooltip: 'Multiplies all kill rewards by ×1.10 per tier.\nMax (tier 5): ×1.61 on all currency earned.\nApplies to every weapon and kill source.',
-    maxTier: 5,
+    tooltip: 'Multiplies all kill rewards by ×1.10 per tier.\nMax (tier 15): ×4.18 on all currency earned.\nApplies to every weapon and kill source.',
+    maxTier: 15,
     baseCost: 90,
     costMult: 2.1,
     apply(tower, game, tier) {
@@ -84,22 +84,11 @@ const UPGRADES = [
     },
   },
   {
-    id: 'multiShot',
-    name: 'Multi-Shot',
-    tooltip: 'The main gun targets and fires at multiple enemies per shot.\nTier 1: 2 targets. Each tier adds 1 more.\nMax (tier 5): 6 simultaneous targets.',
-    maxTier: 5,
-    baseCost: 200,
-    costMult: 1.8,
-    apply(tower, game, tier) {
-      tower.multiShotCount = tier + 1;
-    },
-  },
-  {
     id: 'spreadShot',
     name: 'Spread Shot',
-    tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 14° cone.\nEach tier adds 1 pellet and widens the cone by 4°.\nMax (tier 5): 7 pellets, 30° cone.',
+    tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 14° cone.\nEach tier adds 1 pellet and widens the cone by 4°.\nMax (tier 5): 8 pellets, 34° cone.',
     maxTier: 5,
-    baseCost: 500,
+    baseCost: 300,
     costMult: 1.9,
     apply(tower, game, tier) {
       tower.spreadShot    = true;
@@ -108,33 +97,33 @@ const UPGRADES = [
     },
   },
   {
+    id: 'turrets',
+    name: 'Orbital Death Ring',
+    tooltip: 'An energy arc orbits the tower, burning any enemy it sweeps through.\nDPS = damage × fire rate × 8 (high — contact time per pass is brief).\nTier 1: 1 ring, 30° arc, 90°/s.\nTier 2: 1 ring, 45° arc, 110°/s.\nTier 3: second counter-rotating ring added.\nTier 4: both rings at 60° arc, 130°/s.\nTier 5: both rings at 75° arc, 150°/s.',
+    maxTier: 5,
+    baseCost: 1500,
+    costMult: 2.1,
+    apply(tower, game, tier) {
+      tower.ringTier = tier;
+    },
+  },
+  {
     id: 'explosive',
     name: 'Explosive Rounds',
-    tooltip: 'Projectiles detonate on impact, dealing full damage in a blast radius.\nTier 1: 35 px radius. Each tier adds 15 px.\nMax (tier 4): 80 px radius.',
-    maxTier: 4,
-    baseCost: 1500,
+    tooltip: 'Projectiles detonate on impact, dealing full damage in a blast radius.\nTier 1: 35 px radius. Each tier adds 15 px.\nMax (tier 5): 95 px radius.',
+    maxTier: 5,
+    baseCost: 4000,
     costMult: 2.0,
     apply(tower, game, tier) {
       tower.explosiveRadius = 20 + tier * 15;
     },
   },
   {
-    id: 'chainLightning',
-    name: 'Chain Lightning',
-    tooltip: 'On hit, lightning jumps to a nearby enemy dealing full damage.\nEach tier adds one additional jump.\nMax (tier 4): 4 chain jumps per projectile.',
-    maxTier: 4,
-    baseCost: 2000,
-    costMult: 2.0,
-    apply(tower, game, tier) {
-      tower.chainJumps = tier;
-    },
-  },
-  {
     id: 'laserBurst',
     name: 'Laser Burst',
-    tooltip: 'A sweeping laser fires periodically, making a full 360° rotation.\nDPS = damage × fire rate × multiplier (high — contact time per pass is brief).\nTier 1: 1.8 s burst / 7 s cooldown / 220 px / ×8 DPS.\nEach tier: +0.3 s burst, −1 s cooldown, more range, higher DPS.\nMax (tier 4): 2.7 s / 4 s cooldown / 520 px / ×26 DPS.\nOnly activates when at least one enemy is in range.',
-    maxTier: 4,
-    baseCost: 5000,
+    tooltip: 'A sweeping laser fires periodically, making a full 360° rotation.\nDPS = damage × fire rate × multiplier (high — contact time per pass is brief).\nTier 1: 1.8 s burst / 7 s cooldown / 220 px / ×8 DPS.\nEach tier: +0.3 s burst, −1 s cooldown, more range, higher DPS.\nMax (tier 5): 3.0 s / 3 s cooldown / 660 px / ×36 DPS.\nOnly activates when at least one enemy is in range.',
+    maxTier: 5,
+    baseCost: 8000,
     costMult: 2.0,
     apply(tower, game, tier) {
       tower.laserUnlocked = true;
@@ -142,14 +131,25 @@ const UPGRADES = [
     },
   },
   {
-    id: 'turrets',
-    name: 'Orbital Death Ring',
-    tooltip: 'An energy arc orbits the tower, burning any enemy it sweeps through.\nDPS = damage × fire rate × 8 (high — contact time per pass is brief).\nTier 1: 1 ring, 30° arc, 90°/s.\nTier 2: 1 ring, 45° arc, 110°/s.\nTier 3: second counter-rotating ring added.\nTier 4: both rings at 60° arc, 130°/s.',
-    maxTier: 4,
-    baseCost: 15000,
-    costMult: 2.1,
+    id: 'chainLightning',
+    name: 'Chain Lightning',
+    tooltip: 'On hit, lightning jumps to a nearby enemy dealing full damage.\nEach tier adds one additional jump.\nMax (tier 5): 5 chain jumps per projectile.',
+    maxTier: 5,
+    baseCost: 12000,
+    costMult: 2.0,
     apply(tower, game, tier) {
-      tower.ringTier = tier;
+      tower.chainJumps = tier;
+    },
+  },
+  {
+    id: 'multiShot',
+    name: 'Multi-Shot',
+    tooltip: 'The main gun targets and fires at multiple enemies per shot.\nTier 1: 2 targets. Each tier adds 1 more.\nMax (tier 5): 6 simultaneous targets.',
+    maxTier: 5,
+    baseCost: 18000,
+    costMult: 1.8,
+    apply(tower, game, tier) {
+      tower.multiShotCount = tier + 1;
     },
   },
 ];

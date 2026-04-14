@@ -112,8 +112,8 @@ export class EnemyPool {
 }
 
 const BASE_STATS = {
-  [EnemyType.DRONE]: { hp: 60,   speed: 90,  radius: 8,  color: '#00e5ff', shape: 'circle',   reward: 12,  damage: 15  },
-  [EnemyType.SWARM]: { hp: 20,   speed: 70,  radius: 5,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
+  [EnemyType.DRONE]: { hp: 60,   speed: 90,  radius: 11, color: '#00e5ff', shape: 'circle',   reward: 12,  damage: 15  },
+  [EnemyType.SWARM]: { hp: 20,   speed: 70,  radius: 8,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
   [EnemyType.BRUTE]: { hp: 300,  speed: 45,  radius: 16, color: '#ff9100', shape: 'square',   reward: 50,  damage: 50  },
   [EnemyType.ELITE]: { hp: 150,  speed: 75,  radius: 11, color: '#ea00ff', shape: 'triangle', reward: 30,  damage: 30  },
   [EnemyType.BOSS]:  { hp: 2000, speed: 35,  radius: 28, color: '#ff1744', shape: 'hexagon',  reward: 300, damage: 150 },

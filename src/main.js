@@ -133,6 +133,7 @@ function update(dt) {
       game.tower.update(dt, game);
       if (game.particles) game.particles.update(dt);
       if (game.resultsTimer > 0) game.resultsTimer -= dt;
+      game.tickEarnLog(dt);
 
       if (game.tower.hp <= 0) {
         game.tower.hp = 0;
@@ -200,7 +201,7 @@ export function newGame(confirmed) {
   if (!confirmed && hasSave()) return;
   clear();
   game.wave               = 1;
-  game.currency           = 100;
+  game.currency           = 0;
   game.upgrades           = {};
   game.currencyMultiplier = 1.0;
   game.bestWave           = 1;

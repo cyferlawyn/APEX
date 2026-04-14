@@ -7,7 +7,7 @@ export class Game {
   constructor() {
     this.state              = State.COMBAT;
     this.wave               = 1;
-    this.currency           = 100;
+    this.currency           = 0;
     this.currencyMultiplier = 1.0;
     this.waveEarned         = 0;  // display accumulator only — not banked at end
     this.lastWave           = 0;
@@ -40,6 +40,11 @@ export class Game {
 
     // FPS tracking — maintained by main.js loop, read by renderer
     this.fps         = 60;     // smoothed display value
+
+    // Rolling 60-second earned tally — used by shop UI to estimate time-to-afford.
+    // _earnLog entries: { amount, age } where age counts up; purged when age > 60s.
+    this._earnLog    = [];
+    this.recentEarned = 0;     // sum of _earnLog amounts (kept in sync)
   }
 
   transition(newState) {
@@ -50,5 +55,22 @@ export class Game {
   tickOverlay(dt) {
     this.overlayTimer += dt;
     return this.overlayTimer >= this.DEFEATED_DURATION;
+  }
+
+  // Call once per frame from main.js to age out old entries.
+  tickEarnLog(dt) {
+    const WINDOW = 60; // seconds
+    for (const e of this._earnLog) e.age += dt;
+    const before = this._earnLog.length;
+    this._earnLog = this._earnLog.filter(e => e.age < WINDOW);
+    if (this._earnLog.length !== before) {
+      this.recentEarned = this._earnLog.reduce((s, e) => s + e.amount, 0);
+    }
+  }
+
+  // Record a kill reward in the rolling window.
+  logEarned(amount) {
+    this._earnLog.push({ amount, age: 0 });
+    this.recentEarned += amount;
   }
 }

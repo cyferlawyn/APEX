@@ -67,8 +67,8 @@ function buildWave(wave) {
 
   let t = 0; // running delay cursor
   for (let i = 0; i < count; i++) {
-    // 15% chance per slot (wave 3+) to replace with a swarm cluster
-    if (wave >= 3 && Math.random() < 0.15) {
+    // 15% chance per slot (wave 11+) to replace with a swarm cluster
+    if (wave >= 11 && Math.random() < 0.15) {
       const clusterSize = 10 + Math.floor(Math.random() * 11); // 10–20
       const edge        = Math.floor(Math.random() * 4);        // shared edge
       for (let s = 0; s < clusterSize; s++) {
