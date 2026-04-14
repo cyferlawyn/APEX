@@ -215,6 +215,39 @@ export class Renderer {
     ctx.arc(cx, cy, pulse, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+
+    // Shield / invuln visuals
+    if (t.invulnTimer > 0) {
+      // Pulsing gold invulnerability ring — drawn outside the hex
+      const invR   = r + 10;
+      const alpha  = 0.5 + Math.sin(Date.now() / 80) * 0.35;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+      ctx.strokeStyle = '#ffd600';
+      ctx.shadowBlur  = 18;
+      ctx.shadowColor = '#ffd600';
+      ctx.lineWidth   = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, invR, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    } else if ((t.shieldCharges ?? 0) > 0) {
+      // Shield charge pips — small gold dots arranged around the tower
+      const pipR = r + 8;
+      ctx.save();
+      for (let i = 0; i < t.shieldCharges; i++) {
+        const angle = (Math.PI * 2 / t.shieldChargesMax) * i - Math.PI / 2;
+        const px = cx + pipR * Math.cos(angle);
+        const py = cy + pipR * Math.sin(angle);
+        ctx.beginPath();
+        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.fillStyle   = '#ffd600';
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#ffd600';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
   }
 
   _hexPath(cx, cy, r) {
@@ -692,6 +725,18 @@ export class Renderer {
       ctx.fillText(`+${perMin}/min`, canvas.width - 12, 35);
     }
 
+    // Pending shard counter — shown only on wave 30+ (teaser), bright amber if >0
+    if (game.wave >= 30 || game.pendingShards > 0) {
+      const hasPending = game.pendingShards > 0;
+      ctx.fillStyle = hasPending ? '#ffab00' : 'rgba(255,171,0,0.3)';
+      ctx.font      = '11px monospace';
+      ctx.textAlign = 'right';
+      const shardLabel = hasPending
+        ? `◆ ${game.pendingShards} pending`
+        : '◆ 0 pending';
+      ctx.fillText(shardLabel, canvas.width - 12, 47);
+    }
+
     // FPS counter — colour shifts red when below 55
     const fps      = game.fps ?? 60;
     const fpsColor = fps < 45 ? '#ff1744' : fps < 55 ? '#ffea00' : 'rgba(255,255,255,0.28)';
@@ -701,7 +746,7 @@ export class Renderer {
     const fpsLabel = game.autoQuality
       ? `${fps} fps  AUTO:${game.quality.toUpperCase()}`
       : `${fps} fps`;
-    ctx.fillText(fpsLabel, canvas.width - 12, 47);
+    ctx.fillText(fpsLabel, canvas.width - 12, 59);
 
     // Currency popups — +$N floaters above the killed enemy that drift up and fade
     const DT = 1 / 60;

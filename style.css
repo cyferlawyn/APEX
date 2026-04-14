@@ -437,3 +437,219 @@ html, body {
 }
 
 #confirm-no:hover { background: rgba(255,255,255,0.06); }
+
+/* ── Ascend button ────────────────────────────────────── */
+
+#ascend-btn {
+  width: 100%;
+  padding: 7px 0;
+  background: transparent;
+  border: 1px solid rgba(255, 214, 0, 0.5);
+  color: rgba(255, 214, 0, 0.85);
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+#ascend-btn:hover:not(:disabled) {
+  background: rgba(255, 214, 0, 0.12);
+  border-color: #ffd600;
+  color: #ffd600;
+}
+
+#ascend-btn:disabled {
+  border-color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.2);
+  cursor: default;
+}
+
+/* ── Prestige section ─────────────────────────────────── */
+
+#prestige-section {
+  border-top: 1px solid rgba(255, 214, 0, 0.2);
+  flex-shrink: 0;
+}
+
+#prestige-section.hidden {
+  display: none;
+}
+
+#prestige-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 16px 6px;
+}
+
+#prestige-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 214, 0, 0.6);
+}
+
+#prestige-shard-display {
+  font-size: 15px;
+  font-weight: bold;
+  color: #ffd600;
+}
+
+#prestige-passive-line {
+  font-size: 10px;
+  color: rgba(255, 214, 0, 0.5);
+  padding: 0 16px 8px;
+}
+
+#prestige-upgrade-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0 10px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,214,0,0.2) transparent;
+}
+
+/* Prestige cards share upgrade-card base styles but with gold accent */
+.prestige-card {
+  background: rgba(255,214,0,0.03);
+  border: 1px solid rgba(255,214,0,0.12);
+  border-radius: 4px;
+  padding: 9px 10px;
+  margin-bottom: 7px;
+  transition: border-color 0.15s;
+}
+
+.prestige-card:hover {
+  border-color: rgba(255,214,0,0.35);
+}
+
+.prestige-card .upgrade-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.prestige-card .upgrade-name {
+  font-size: 13px;
+  color: #e0e0e0;
+  flex: 1 1 auto;
+}
+
+.prestige-card .upgrade-tier {
+  font-size: 11px;
+  color: rgba(255,214,0,0.4);
+  flex-shrink: 0;
+}
+
+.prestige-card .upgrade-tier.maxed {
+  color: #ffd600;
+}
+
+.prestige-card.is-maxed {
+  padding: 5px 10px;
+  border-color: rgba(255,214,0,0.08);
+}
+
+.prestige-card.is-maxed .upgrade-card-top {
+  margin-bottom: 0;
+}
+
+.prestige-card.is-maxed .prestige-buy-btn {
+  display: none;
+}
+
+.prestige-buy-btn {
+  width: 100%;
+  padding: 5px 0;
+  background: transparent;
+  border: 1px solid rgba(255,214,0,0.4);
+  color: #ffd600;
+  font-family: monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.prestige-buy-btn:hover:not(:disabled) {
+  background: rgba(255,214,0,0.1);
+}
+
+.prestige-buy-btn:disabled {
+  border-color: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.2);
+  cursor: default;
+}
+
+.prestige-buy-btn.maxed {
+  border-color: rgba(255,214,0,0.25);
+  color: rgba(255,214,0,0.45);
+  cursor: default;
+}
+
+/* ── Ascend confirmation dialogue ────────────────────── */
+
+#ascend-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+#ascend-overlay.hidden {
+  display: none;
+}
+
+#ascend-box {
+  background: #0d0d1a;
+  border: 1px solid rgba(255,214,0,0.5);
+  padding: 28px 32px;
+  max-width: 340px;
+  text-align: center;
+}
+
+#ascend-box p {
+  font-size: 14px;
+  color: #e0e0e0;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+#ascend-confirm-sub {
+  font-size: 11px;
+  color: rgba(255,214,0,0.7);
+  margin-bottom: 20px !important;
+}
+
+#ascend-box .btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+#ascend-box button {
+  padding: 7px 24px;
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+  background: transparent;
+}
+
+#ascend-yes {
+  border: 1px solid #ffd600;
+  color: #ffd600;
+}
+
+#ascend-yes:hover { background: rgba(255,214,0,0.15); }
+
+#ascend-no {
+  border: 1px solid rgba(255,255,255,0.3);
+  color: rgba(255,255,255,0.6);
+}
+
+#ascend-no:hover { background: rgba(255,255,255,0.06); }

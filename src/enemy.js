@@ -32,25 +32,31 @@ export class Enemy {
       : Math.pow(1.12, wave - 1);
     const speedScale = Math.pow(1.02, wave - 1);
 
-    this.active     = true;
-    this.atTower    = false;
-    this.damageTick = 0;
-    this.damage     = def.damage;
-    this.type       = type;
-    this.x          = x;
-    this.y          = y;
-    this.maxHp      = Math.floor(def.hp * hpScale);
-    this.hp         = this.maxHp;
-    this.speed      = def.speed * speedScale;
-    this.radius     = def.radius;
-    this.color      = def.color;
-    this.shape      = def.shape;
-    this.reward     = def.reward;
+    this.active      = true;
+    this.atTower     = false;
+    this.damageTick  = 0;
+    this.damage      = def.damage;
+    this.type        = type;
+    this.x           = x;
+    this.y           = y;
+    this.maxHp       = Math.floor(def.hp * hpScale);
+    this.hp          = this.maxHp;
+    this.speed       = def.speed * speedScale;
+    this.baseSpeed   = def.speed * speedScale;
+    this.radius      = def.radius;
+    this.color       = def.color;
+    this.shape       = def.shape;
+    this.reward      = def.reward;
+    // Status effects (set by tower weapons, cleared on init)
+    this.slowUntil   = 0;   // game-time timestamp; movement reduced while active
+    this.slowFactor  = 1.0; // fraction of base speed while slowed (e.g. 0.45)
+    this.stunUntil   = 0;   // game-time timestamp; fully stops while active
   }
 
   update(dt, game) {
     if (!this.active) return;
 
+    const now  = game.elapsed ?? 0;
     const tx   = game.tower.x;
     const ty   = game.tower.y;
     const dx   = tx - this.x;
@@ -74,10 +80,16 @@ export class Enemy {
 
     // Not yet at tower — move straight toward it
     this.atTower = false;
+
+    // Stunned: no movement
+    if (now < this.stunUntil) return;
+
+    // Slowed: reduced speed
+    const spd = now < this.slowUntil ? this.baseSpeed * this.slowFactor : this.baseSpeed;
     const nx = dx / dist;
     const ny = dy / dist;
-    this.x += nx * this.speed * dt;
-    this.y += ny * this.speed * dt;
+    this.x += nx * spd * dt;
+    this.y += ny * spd * dt;
   }
 }
 

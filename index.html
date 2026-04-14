@@ -20,6 +20,18 @@
         <!-- populated by ui.js -->
       </div>
 
+      <!-- Prestige section — hidden until first ascension unlock teaser (wave 30+) -->
+      <div id="prestige-section" class="hidden">
+        <div id="prestige-header">
+          <span id="prestige-title">Ascension</span>
+          <span id="prestige-shard-display">&#9670; <span id="prestige-shard-value">0</span></span>
+        </div>
+        <div id="prestige-passive-line"></div>
+        <div id="prestige-upgrade-list">
+          <!-- populated by ui.js -->
+        </div>
+      </div>
+
       <div id="shop-footer">
         <div id="volume-control">
           <label for="volume-slider">VOL</label>
@@ -37,19 +49,32 @@
           <button id="auto-quality-btn">AUTO</button>
           <span id="auto-quality-label">automatically reduce FX if fps drops</span>
         </div>
+        <button id="ascend-btn" class="hidden">ASCEND</button>
         <button id="self-destruct-btn">SELF DESTRUCT</button>
         <button id="new-game-btn">NEW GAME</button>
       </div>
     </aside>
   </div>
 
-  <!-- Confirmation dialogue -->
+  <!-- New Game confirmation -->
   <div id="confirm-overlay" class="hidden">
     <div id="confirm-box">
       <p>Erase all progress and start over?</p>
       <div class="btn-row">
         <button id="confirm-yes">ERASE</button>
         <button id="confirm-no">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ascend confirmation -->
+  <div id="ascend-overlay" class="hidden">
+    <div id="ascend-box">
+      <p id="ascend-confirm-text">Ascend and reset this run?</p>
+      <p id="ascend-confirm-sub"></p>
+      <div class="btn-row">
+        <button id="ascend-yes">ASCEND</button>
+        <button id="ascend-no">CANCEL</button>
       </div>
     </div>
   </div>

@@ -5,6 +5,33 @@ function getApex() { return window.__apex; }
 
 // ── Initial DOM build (runs once) ──────────────────────────────────────────
 
+function buildPrestigeCards() {
+  const apex = getApex();
+  if (!apex) return;
+
+  const list = document.getElementById('prestige-upgrade-list');
+  list.innerHTML = '';
+
+  for (const entry of apex.prestigeShop.catalogue) {
+    const card = document.createElement('div');
+    card.className   = 'prestige-card';
+    card.dataset.upg = entry.id;
+
+    card.innerHTML = `
+      <div class="upgrade-card-top">
+        <span class="upgrade-name">${entry.name}</span>
+        <span class="upgrade-tier" data-tier></span>
+        <span class="upgrade-tooltip-icon" aria-label="${entry.tooltip}">?
+          <span class="upgrade-tooltip-box">${(entry.tooltip ?? '').replace(/\n/g, '<br>')}</span>
+        </span>
+      </div>
+      <button class="prestige-buy-btn" data-pid="${entry.id}"></button>
+    `;
+
+    list.appendChild(card);
+  }
+}
+
 function buildShopCards() {
   const apex = getApex();
   if (!apex) return;
@@ -35,6 +62,75 @@ function buildShopCards() {
 // ── Patch update (runs every 250ms) ────────────────────────────────────────
 // Only touches text/attributes that actually changed — never recreates nodes,
 // so hover state and focus are preserved.
+
+function patchPrestigeCards() {
+  const apex = getApex();
+  if (!apex) return;
+
+  const { prestigeShop, game } = apex;
+
+  // Show/hide prestige section
+  const showPrestige = game.ascensionCount > 0 || game.wave >= 30;
+  const prestigeSection = document.getElementById('prestige-section');
+  if (prestigeSection.classList.contains('hidden') === showPrestige) {
+    prestigeSection.classList.toggle('hidden', !showPrestige);
+  }
+
+  if (!showPrestige) return;
+
+  // Shard balance
+  const shardEl = document.getElementById('prestige-shard-value');
+  if (shardEl.textContent !== String(game.shards)) shardEl.textContent = game.shards;
+
+  // Passive line
+  const passiveLine = document.getElementById('prestige-passive-line');
+  const totalShards = game.shards + game.pendingShards;
+  const mult = (1 + totalShards * 0.10).toFixed(2);
+  const passiveText = `Shard bonus: ×${mult} dmg (${totalShards} total)`;
+  if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
+
+  // Ascend button
+  const ascendBtn = document.getElementById('ascend-btn');
+  const showAscend = game.wave >= 30;
+  if (ascendBtn.classList.contains('hidden') === showAscend) {
+    ascendBtn.classList.toggle('hidden', !showAscend);
+  }
+  if (showAscend) {
+    const active = game.pendingShards > 0;
+    ascendBtn.disabled = !active;
+    const label = active ? `ASCEND (+${game.pendingShards} ◆)` : 'ASCEND (no ◆ yet)';
+    if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
+  }
+
+  // Prestige upgrade cards
+  for (const entry of prestigeShop.catalogue) {
+    const card = document.querySelector(`.prestige-card[data-upg="${entry.id}"]`);
+    if (!card) continue;
+
+    const tier   = prestigeShop.tier(entry.id);
+    const maxed  = prestigeShop.isMaxed(entry.id);
+    const cost   = prestigeShop.cost(entry.id);
+    const afford = game.shards >= cost;
+
+    if (card.classList.contains('is-maxed') !== maxed) {
+      card.classList.toggle('is-maxed', maxed);
+    }
+
+    const tierEl   = card.querySelector('[data-tier]');
+    const tierText = maxed ? 'MAX' : `[${tier}/${entry.maxTier}]`;
+    if (tierEl.textContent !== tierText) tierEl.textContent = tierText;
+    if (tierEl.classList.contains('maxed') !== maxed) tierEl.classList.toggle('maxed', maxed);
+
+    const btn = card.querySelector('.prestige-buy-btn');
+    if (maxed) {
+      setBtn(btn, 'MAXED', true, true);
+    } else {
+      const label = `◆ ${cost}`;
+      setBtn(btn, label, !afford, false);
+      if (btn.dataset.pid !== entry.id) btn.dataset.pid = entry.id;
+    }
+  }
+}
 
 function patchShopCards() {
   const apex = getApex();
@@ -107,6 +203,39 @@ function wireButtons() {
     patchShopCards();
   });
 
+  // Prestige upgrade purchases (delegated)
+  document.getElementById('prestige-upgrade-list').addEventListener('click', e => {
+    const btn = e.target.closest('[data-pid]');
+    if (!btn || btn.disabled) return;
+    const apex = getApex();
+    if (!apex) return;
+    apex.prestigeShop.purchase(btn.dataset.pid);
+    patchPrestigeCards();
+  });
+
+  // Ascend button — open confirmation overlay
+  document.getElementById('ascend-btn').addEventListener('click', () => {
+    const apex = getApex();
+    if (!apex) return;
+    const { game } = apex;
+    const totalAfter = game.shards + game.pendingShards;
+    const multAfter  = (1 + totalAfter * 0.10).toFixed(2);
+    document.getElementById('ascend-confirm-sub').textContent =
+      `+${game.pendingShards} ◆  →  ${totalAfter} total ◆  →  ×${multAfter} shard damage`;
+    document.getElementById('ascend-overlay').classList.remove('hidden');
+  });
+
+  document.getElementById('ascend-yes').addEventListener('click', () => {
+    document.getElementById('ascend-overlay').classList.add('hidden');
+    getApex()?.ascend();
+    patchShopCards();
+    patchPrestigeCards();
+  });
+
+  document.getElementById('ascend-no').addEventListener('click', () => {
+    document.getElementById('ascend-overlay').classList.add('hidden');
+  });
+
   // Self-destruct — voluntary defeat, no confirmation needed
   document.getElementById('self-destruct-btn').addEventListener('click', () => {
     getApex()?.selfDestruct();
@@ -173,10 +302,13 @@ window.addEventListener('load', () => {
   // Give main.js one tick to set window.__apex
   requestAnimationFrame(() => {
     buildShopCards();
+    buildPrestigeCards();
     wireButtons();
     patchShopCards();
+    patchPrestigeCards();
     syncPrefsUI();
     setInterval(patchShopCards, 250);
+    setInterval(patchPrestigeCards, 250);
   });
 });
 

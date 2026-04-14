@@ -48,27 +48,29 @@ const _grid = new SpatialGrid(64);
 
 export class Projectile {
   constructor() {
-    this.active          = false;
-    this.x               = 0;
-    this.y               = 0;
-    this.vx              = 0;
-    this.vy              = 0;
-    this.damage          = 0;
-    this.explosiveRadius = 0;   // 0 = no splash
-    this.chainJumps      = 0;   // 0 = no chain
-    this.chainDamage     = 0;   // damage for chain (set on fire)
+    this.active           = false;
+    this.x                = 0;
+    this.y                = 0;
+    this.vx               = 0;
+    this.vy               = 0;
+    this.damage           = 0;
+    this.explosiveRadius  = 0;   // 0 = no splash
+    this.chainJumps       = 0;   // 0 = no chain
+    this.chainDamage      = 0;   // damage for chain (set on fire)
+    this.executeThreshold = 0;   // 0 = no execute
   }
 
-  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0) {
-    this.active          = true;
-    this.x               = x;
-    this.y               = y;
-    this.vx              = vx;
-    this.vy              = vy;
-    this.damage          = damage;
-    this.explosiveRadius = explosiveRadius;
-    this.chainJumps      = chainJumps;
-    this.chainDamage     = damage * 0.6;
+  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0) {
+    this.active           = true;
+    this.x                = x;
+    this.y                = y;
+    this.vx               = vx;
+    this.vy               = vy;
+    this.damage           = damage;
+    this.explosiveRadius  = explosiveRadius;
+    this.chainJumps       = chainJumps;
+    this.chainDamage      = damage * 0.6;
+    this.executeThreshold = executeThreshold;
   }
 
   update(dt, game, bounds) {
@@ -106,7 +108,7 @@ export class Projectile {
     }
 
     // Direct hit
-    _damageEnemy(target, this.damage, game);
+    _damageEnemy(target, this.damage, game, this.executeThreshold);
 
     // Explosive splash
     if (this.explosiveRadius > 0) {
@@ -149,9 +151,10 @@ export class Projectile {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function _damageEnemy(e, dmg, game) {
+function _damageEnemy(e, dmg, game, executeThreshold = 0) {
   e.hp -= dmg;
-  if (e.hp <= 0) {
+  if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)) {
+    e.hp = 0;
     const earned = Math.floor(e.reward * game.currencyMultiplier);
     game.currency   += earned;
     game.waveEarned += earned;
@@ -165,8 +168,11 @@ function _damageEnemy(e, dmg, game) {
     else if (e.type === 'BRUTE')             audio.deathLarge();
     else if (e.type === 'ELITE')             audio.deathMedium();
     else                                     audio.deathSmall();
-    // Boss arrival / death edge flash
-    if (e.type === 'BOSS') game.edgeFlash = 0.5;
+    // Boss arrival / death edge flash + shard award
+    if (e.type === 'BOSS') {
+      game.edgeFlash = 0.5;
+      game.awardShards(game.wave);
+    }
     e.active = false;
   }
 }
@@ -216,9 +222,9 @@ export class ProjectilePool {
     return this.pool.find(p => !p.active) ?? null;
   }
 
-  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0) {
+  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0) {
     const p = this.acquire();
-    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps);
+    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold);
     return p;
   }
 
