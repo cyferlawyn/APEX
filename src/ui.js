@@ -69,15 +69,15 @@ function patchPrestigeCards() {
 
   const { prestigeShop, game } = apex;
 
-  // Show/hide prestige section — hidden until the player's first Ascension, then always visible
+  // Show/hide Ascension tab — hidden until the player's first Ascension, then always visible
+  const tabPrestige = document.getElementById('tab-prestige');
   const showPrestige = game.ascensionCount > 0;
-  const prestigeSection = document.getElementById('prestige-section');
-  if (prestigeSection.classList.contains('hidden') === showPrestige) {
-    prestigeSection.classList.toggle('hidden', !showPrestige);
+  if (tabPrestige.classList.contains('hidden') === showPrestige) {
+    tabPrestige.classList.toggle('hidden', !showPrestige);
   }
 
-  // Ascend button — teaser at wave 30, active once pendingShards > 0;
-  // after first ascension stays visible permanently regardless of wave
+  // Ascend button — teaser from wave 30 (greyed), active once pendingShards > 0;
+  // permanently visible once ascensionCount > 0
   const ascendBtn = document.getElementById('ascend-btn');
   const showAscend = game.wave >= 30 || game.ascensionCount > 0;
   if (ascendBtn.classList.contains('hidden') === showAscend) {
@@ -139,9 +139,6 @@ function patchShopCards() {
 
   const { shop, game } = apex;
 
-  // Currency
-  document.getElementById('currency-value').textContent = game.currency;
-
   for (const entry of shop.catalogue) {
     const card = document.querySelector(`.upgrade-card[data-upg="${entry.id}"]`);
     if (!card) continue;
@@ -173,13 +170,11 @@ function patchShopCards() {
       let label = `$ ${cost}`;
       if (!afford && game.recentEarned > 0) {
         const deficit = cost - game.currency;
-        // recentEarned is per 60s window; convert to per-second rate
         const rate = game.recentEarned / 60;
         const secs = Math.min(999, Math.ceil(deficit / rate));
         label = `$ ${cost}  ~${secs}s`;
       }
       setBtn(btn, label, !afford, false);
-      // Ensure data-id stays (shouldn't change but be safe)
       if (btn.dataset.id !== entry.id) btn.dataset.id = entry.id;
     }
   }
@@ -191,10 +186,25 @@ function setBtn(btn, text, disabled, maxed) {
   if (btn.classList.contains('maxed') !== maxed) btn.classList.toggle('maxed', maxed);
 }
 
+// ── Tab collapse / expand ──────────────────────────────────────────────────
+
+function wireTabHeaders() {
+  document.querySelectorAll('.tab-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const body = header.nextElementSibling;
+      const collapsed = body.classList.toggle('tab-body--collapsed');
+      header.classList.toggle('is-collapsed', collapsed);
+    });
+  });
+}
+
 // ── Button wiring ──────────────────────────────────────────────────────────
 
 function wireButtons() {
-  // Upgrade purchases (delegated — single listener on the list)
+  // Tab collapse
+  wireTabHeaders();
+
+  // Upgrade purchases (delegated)
   document.getElementById('upgrade-list').addEventListener('click', e => {
     const btn = e.target.closest('[data-id]');
     if (!btn || btn.disabled) return;
@@ -220,9 +230,9 @@ function wireButtons() {
     if (!apex) return;
     const { game } = apex;
     const totalAfter = game.shards + game.pendingShards;
-    const multAfter  = (1 + totalAfter * 0.10).toFixed(2);
+    const multAfter  = (1 + (game.totalShardsEarned + game.pendingShards) * 0.10).toFixed(2);
     document.getElementById('ascend-confirm-sub').textContent =
-      `+${game.pendingShards} ◆  →  ${totalAfter} total ◆  →  ×${multAfter} shard damage`;
+      `+${game.pendingShards} ◆  →  ${totalAfter} ◆ spendable  →  ×${multAfter} shard damage`;
     document.getElementById('ascend-overlay').classList.remove('hidden');
   });
 
@@ -237,12 +247,7 @@ function wireButtons() {
     document.getElementById('ascend-overlay').classList.add('hidden');
   });
 
-  // Self-destruct — voluntary defeat, no confirmation needed
-  document.getElementById('self-destruct-btn').addEventListener('click', () => {
-    getApex()?.selfDestruct();
-  });
-
-  // New Game
+  // Hard Reset
   document.getElementById('new-game-btn').addEventListener('click', () => {
     const apex = getApex();
     if (!apex) return;
@@ -273,13 +278,13 @@ function wireButtons() {
     apex.savePrefs({ quality: apex.game.quality, volume: vol, autoQuality: apex.game.autoQuality });
   });
 
-  // FX level buttons (HIGH / MED / LOW) — clicking one disables AUTO
+  // FX level buttons (HIGH / MED / LOW)
   document.getElementById('quality-buttons').addEventListener('click', e => {
     const btn = e.target.closest('.quality-btn');
     if (!btn) return;
     const apex = getApex();
     if (!apex) return;
-    apex.setQuality(btn.dataset.q); // sets autoQuality = false
+    apex.setQuality(btn.dataset.q);
     syncQualityUI(apex.game);
   });
 
@@ -288,7 +293,6 @@ function wireButtons() {
     const apex = getApex();
     if (!apex) return;
     if (apex.game.autoQuality) {
-      // Turn AUTO off — revert to the quality AUTO currently holds
       apex.setQuality(apex.game.quality);
     } else {
       apex.setQuality('auto');
@@ -300,7 +304,6 @@ function wireButtons() {
 // ── Init ───────────────────────────────────────────────────────────────────
 
 window.addEventListener('load', () => {
-  // Give main.js one tick to set window.__apex
   requestAnimationFrame(() => {
     buildShopCards();
     buildPrestigeCards();
@@ -319,29 +322,22 @@ window.__syncQualityUI = () => {
   if (apex) syncQualityUI(apex.game);
 };
 
-// Reflect saved prefs back onto the controls
 function syncPrefsUI() {
   const apex = getApex();
   if (!apex) return;
   syncQualityUI(apex.game);
-
-  // Volume slider
   const vol = apex.audio?.volume ?? 0.4;
   document.getElementById('volume-slider').value = Math.round(vol * 100);
 }
 
-// Sync quality buttons to current game state.
-// Called on load, on manual quality change, and after AUTO steps down.
 function syncQualityUI(game) {
   const isAuto = game.autoQuality;
   const q      = game.quality ?? 'high';
 
-  // Level buttons: cyan .active when manually chosen, yellow .auto-active when AUTO picked it
   document.querySelectorAll('.quality-btn').forEach(b => {
     b.classList.toggle('active',      !isAuto && b.dataset.q === q);
     b.classList.toggle('auto-active',  isAuto && b.dataset.q === q);
   });
 
-  // AUTO toggle button
   document.getElementById('auto-quality-btn').classList.toggle('active', isAuto);
 }
