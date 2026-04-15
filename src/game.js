@@ -48,13 +48,15 @@ export class Game {
 
     // ── Prestige (Ascension) ────────────────────────────────────────────────
     // pendingShards: earned this run from wave-50+ boss kills; locked until Ascension
-    // shards: total ever earned (all runs); drives passive damage + prestige shop pool
+    // shards: spendable balance (spent shards are deducted from this)
+    // totalShardsEarned: monotonically increasing — never decremented; drives passive dmg bonus
     // prestigeUpgrades: purchased prestige tiers, persist across Ascensions
     // ascensionCount: number of times player has ascended (cosmetic / future use)
-    this.pendingShards     = 0;
-    this.shards            = 0;
-    this.prestigeUpgrades  = {};
-    this.ascensionCount    = 0;
+    this.pendingShards      = 0;
+    this.shards             = 0;
+    this.totalShardsEarned  = 0;
+    this.prestigeUpgrades   = {};
+    this.ascensionCount     = 0;
   }
 
   transition(newState) {
@@ -90,17 +92,16 @@ export class Game {
   awardShards(wave) {
     if (wave < 50) return;
     const base = Math.floor(1 + (wave - 50) / 10);
-    const lastThree = wave % 1000;
     const mult = wave % 1000 === 0 ? 10
                : wave % 100  === 0 ? 3
                : 1;
     const amount = base * mult;
-    this.pendingShards += amount;
+    this.pendingShards     += amount;
+    this.totalShardsEarned += amount;
   }
 
-  // Passive damage multiplier from total shards ever earned.
-  // Applied multiplicatively on top of all other damage.
+  // Passive damage multiplier from total shards ever earned (spent shards still count).
   shardDmgMult() {
-    return 1 + this.shards * 0.10;
+    return 1 + this.totalShardsEarned * 0.10;
   }
 }

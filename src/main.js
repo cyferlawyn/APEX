@@ -38,10 +38,11 @@ function bootstrap() {
 
   // Restore prestige state — persists across runs and New Game
   if (prestige) {
-    game.shards           = prestige.shards           ?? 0;
-    game.pendingShards    = prestige.pendingShards     ?? 0;
-    game.prestigeUpgrades = prestige.prestigeUpgrades ?? {};
-    game.ascensionCount   = prestige.ascensionCount   ?? 0;
+    game.shards             = prestige.shards            ?? 0;
+    game.pendingShards      = prestige.pendingShards     ?? 0;
+    game.totalShardsEarned  = prestige.totalShardsEarned ?? prestige.shards ?? 0;
+    game.prestigeUpgrades   = prestige.prestigeUpgrades  ?? {};
+    game.ascensionCount     = prestige.ascensionCount    ?? 0;
   }
 
   // Apply prestige upgrades on top of fresh tower (before run save overwrites tiers)
@@ -223,10 +224,11 @@ function saveGame() {
 
 function _savePrestigeState() {
   savePrestige({
-    shards:           game.shards,
-    pendingShards:    game.pendingShards,
-    prestigeUpgrades: game.prestigeUpgrades,
-    ascensionCount:   game.ascensionCount,
+    shards:             game.shards,
+    pendingShards:      game.pendingShards,
+    totalShardsEarned:  game.totalShardsEarned,
+    prestigeUpgrades:   game.prestigeUpgrades,
+    ascensionCount:     game.ascensionCount,
   });
 }
 

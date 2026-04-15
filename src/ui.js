@@ -96,11 +96,11 @@ function patchPrestigeCards() {
   const shardEl = document.getElementById('prestige-shard-value');
   if (shardEl.textContent !== String(game.shards)) shardEl.textContent = game.shards;
 
-  // Passive line
+  // Passive line — based on totalShardsEarned (spending shards never reduces the bonus)
   const passiveLine = document.getElementById('prestige-passive-line');
-  const totalShards = game.shards + game.pendingShards;
+  const totalShards = game.totalShardsEarned;
   const mult = (1 + totalShards * 0.10).toFixed(2);
-  const passiveText = `Shard bonus: ×${mult} dmg (${totalShards} total)`;
+  const passiveText = `Shard bonus: ×${mult} dmg (${totalShards} total ◆)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
 
   // Prestige upgrade cards
