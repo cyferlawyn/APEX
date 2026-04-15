@@ -188,7 +188,7 @@ function _awardKill(e, game) {
   if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
   if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); }
-  else if (e.type === EnemyType.COLOSSUS) { audio.deathBoss();   game.edgeFlash = 0.3; _releaseColossusSpawn(e, game); }
+  else if (e.type === EnemyType.COLOSSUS) { audio.deathBoss(); _releaseColossusSpawn(e, game); }
   else if (e.type === EnemyType.BRUTE || e.type === EnemyType.SPAWNER) audio.deathLarge();
   else if (e.type === EnemyType.ELITE || e.type === EnemyType.PHANTOM) audio.deathMedium();
   else                                                                   audio.deathSmall();

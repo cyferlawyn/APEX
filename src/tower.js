@@ -310,7 +310,7 @@ function _towerKillEnemy(e, game) {
   if (e.type === EnemyType.BOSS) {
     audio.deathBoss(); game.edgeFlash = 0.5; game.awardShards(game.wave);
   } else if (e.type === EnemyType.COLOSSUS) {
-    audio.deathBoss(); game.edgeFlash = 0.3;
+    audio.deathBoss();
     // Release 3 drones on death
     for (let i = 0; i < 3; i++) {
       const angle = (Math.PI * 2 / 3) * i;
