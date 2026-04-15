@@ -77,8 +77,8 @@ const UPGRADES = [
     name: 'Bounty',
     tooltip: 'Multiplies all kill rewards by ×1.10 per tier.\nMax (tier 15): ×4.18 on all currency earned.\nApplies to every weapon and kill source.',
     maxTier: 15,
-    baseCost: 90,
-    costMult: 2.1,
+    baseCost: 100,
+    costMult: 1.638,
     apply(tower, game, tier) {
       game.currencyMultiplier *= 1.10;
     },
