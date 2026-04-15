@@ -69,11 +69,25 @@ function patchPrestigeCards() {
 
   const { prestigeShop, game } = apex;
 
-  // Show/hide prestige section
-  const showPrestige = game.ascensionCount > 0 || game.wave >= 30;
+  // Show/hide prestige section — hidden until the player's first Ascension, then always visible
+  const showPrestige = game.ascensionCount > 0;
   const prestigeSection = document.getElementById('prestige-section');
   if (prestigeSection.classList.contains('hidden') === showPrestige) {
     prestigeSection.classList.toggle('hidden', !showPrestige);
+  }
+
+  // Ascend button — teaser at wave 30, active once pendingShards > 0;
+  // after first ascension stays visible permanently regardless of wave
+  const ascendBtn = document.getElementById('ascend-btn');
+  const showAscend = game.wave >= 30 || game.ascensionCount > 0;
+  if (ascendBtn.classList.contains('hidden') === showAscend) {
+    ascendBtn.classList.toggle('hidden', !showAscend);
+  }
+  if (showAscend) {
+    const active = game.pendingShards > 0;
+    ascendBtn.disabled = !active;
+    const label = active ? `ASCEND (+${game.pendingShards} ◆)` : 'ASCEND (no ◆ yet)';
+    if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
   }
 
   if (!showPrestige) return;
@@ -88,19 +102,6 @@ function patchPrestigeCards() {
   const mult = (1 + totalShards * 0.10).toFixed(2);
   const passiveText = `Shard bonus: ×${mult} dmg (${totalShards} total)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
-
-  // Ascend button
-  const ascendBtn = document.getElementById('ascend-btn');
-  const showAscend = game.wave >= 30;
-  if (ascendBtn.classList.contains('hidden') === showAscend) {
-    ascendBtn.classList.toggle('hidden', !showAscend);
-  }
-  if (showAscend) {
-    const active = game.pendingShards > 0;
-    ascendBtn.disabled = !active;
-    const label = active ? `ASCEND (+${game.pendingShards} ◆)` : 'ASCEND (no ◆ yet)';
-    if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
-  }
 
   // Prestige upgrade cards
   for (const entry of prestigeShop.catalogue) {
