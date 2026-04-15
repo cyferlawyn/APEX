@@ -100,9 +100,9 @@ export class Enemy {
         this.atTower    = true;
         this.damageTick = 0;
 
-        // Bomber: detonate on arrival
+        // Bomber: detonate on arrival — damages the tower
         if (this.type === EnemyType.BOMBER) {
-          _bomberDetonate(this, game);
+          _bomberDetonate(this, game, true);
           return;
         }
       }
@@ -179,12 +179,12 @@ export class Enemy {
 
 // Called when a bomber reaches the tower or is killed (death detonation handled
 // in _damageEnemy in projectile.js / tower.js kill paths).
-export function _bomberDetonate(bomber, game) {
-  const BLAST_R  = 80;
+export function _bomberDetonate(bomber, game, damagesTower = false) {
+  const BLAST_R   = 80;
   const BLAST_DMG = bomber.damage * 3;
-  // Tower damage
-  game.tower.takeDamage(BLAST_DMG, game);
-  // Splash onto nearby enemies (friendly fire — clears clustered units)
+  // Tower damage only when the bomber physically reaches the tower
+  if (damagesTower) game.tower.takeDamage(BLAST_DMG, game);
+  // Splash onto nearby enemies
   const r2 = BLAST_R * BLAST_R;
   for (const e of game.enemyPool.pool) {
     if (!e.active || e === bomber) continue;
