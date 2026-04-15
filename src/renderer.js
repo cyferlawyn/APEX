@@ -711,32 +711,6 @@ export class Renderer {
       ctx.fillText('LASER', canvas.width / 2, indY + indH + 8);
     }
 
-    // Currency
-    ctx.textAlign   = 'right';
-    ctx.fillStyle   = COLORS.currency;
-    ctx.font        = '13px monospace';
-    ctx.fillText(`$ ${game.currency}`, canvas.width - 12, 22);
-
-    // Earn rate — show +N/min when there's recent data
-    if (game.recentEarned > 0) {
-      const perMin = Math.round(game.recentEarned);  // window IS 60s, so sum == per-min
-      ctx.fillStyle = 'rgba(255,214,0,0.45)';
-      ctx.font      = '10px monospace';
-      ctx.fillText(`+${perMin}/min`, canvas.width - 12, 35);
-    }
-
-    // Pending shard counter — shown only on wave 30+ (teaser), bright amber if >0
-    if (game.wave >= 30 || game.pendingShards > 0) {
-      const hasPending = game.pendingShards > 0;
-      ctx.fillStyle = hasPending ? '#ffab00' : 'rgba(255,171,0,0.3)';
-      ctx.font      = '11px monospace';
-      ctx.textAlign = 'right';
-      const shardLabel = hasPending
-        ? `◆ ${game.pendingShards} pending`
-        : '◆ 0 pending';
-      ctx.fillText(shardLabel, canvas.width - 12, 47);
-    }
-
     // FPS counter — colour shifts red when below 55
     const fps      = game.fps ?? 60;
     const fpsColor = fps < 45 ? '#ff1744' : fps < 55 ? '#ffea00' : 'rgba(255,255,255,0.28)';
@@ -746,7 +720,7 @@ export class Renderer {
     const fpsLabel = game.autoQuality
       ? `${fps} fps  AUTO:${game.quality.toUpperCase()}`
       : `${fps} fps`;
-    ctx.fillText(fpsLabel, canvas.width - 12, 59);
+    ctx.fillText(fpsLabel, canvas.width - 12, 22);
 
     // Currency popups — +$N floaters above the killed enemy that drift up and fade
     const DT = 1 / 60;

@@ -260,6 +260,13 @@ html, body {
   flex-shrink: 0;
 }
 
+#currency-display {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffd600;
+  flex-shrink: 0;
+}
+
 #prestige-passive-line {
   font-size: 10px;
   color: rgba(255, 214, 0, 0.5);

@@ -139,6 +139,9 @@ function patchShopCards() {
 
   const { shop, game } = apex;
 
+  // Currency in tab header
+  document.getElementById('currency-value').textContent = game.currency;
+
   for (const entry of shop.catalogue) {
     const card = document.querySelector(`.upgrade-card[data-upg="${entry.id}"]`);
     if (!card) continue;
