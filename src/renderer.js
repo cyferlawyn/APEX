@@ -383,8 +383,8 @@ export class Renderer {
       ex.t -= 1 / 60;
       if (ex.t <= 0) return false;
 
-      const life     = ex.t / 0.45;          // 1→0 over lifetime
-      const progress = 1 - life;             // 0→1
+      const life     = Math.min(1, ex.t / ex.life);  // 1→0 over lifetime
+      const progress = Math.max(0, 1 - life);         // 0→1, clamped
 
       // ── center flash — bright filled circle that fades fast
       const flashR = ex.r * 0.55 * Math.pow(1 - Math.min(progress / 0.25, 1), 0.5);

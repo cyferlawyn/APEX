@@ -125,7 +125,7 @@ export class Projectile {
         }
       }
       // Register explosion flash for renderer — extended lifetime + shrapnel
-      game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.45 });
+      game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.45, life: 0.45 });
       audio.fireExplosive();
       // Shrapnel burst: full on high, skip on medium/low
       if (game.particles && game.quality === 'high') {

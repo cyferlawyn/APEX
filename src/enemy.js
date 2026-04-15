@@ -192,7 +192,7 @@ export function _bomberDetonate(bomber, game) {
     const ddy = e.y - bomber.y;
     if (ddx * ddx + ddy * ddy <= r2) e.hp -= BLAST_DMG * 0.5;
   }
-  game.explosions.push({ x: bomber.x, y: bomber.y, r: BLAST_R, t: 0.55 });
+  game.explosions.push({ x: bomber.x, y: bomber.y, r: BLAST_R, t: 0.55, life: 0.55 });
   bomber.active = false;
 }
 
