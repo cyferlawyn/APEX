@@ -204,9 +204,11 @@ function onDefeated() {
 }
 
 function resetToWaveOne() {
-  game.wave = 1;
+  // Fall back to the last x1 wave (e.g. die on 38 → restart at 31, die on 93 → restart at 91)
+  game.wave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
   // Upgrades and currency are kept — tower is rebuilt from upgrades
   shop.reapplyAll(game.upgrades);
+  prestigeShop.reapplyAll(game.prestigeUpgrades);
   beginWave();
 }
 

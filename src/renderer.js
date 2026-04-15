@@ -802,6 +802,7 @@ export class Renderer {
 
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '12px monospace';
-    ctx.fillText('upgrades kept — restarting from wave 1...', canvas.width / 2, canvas.height / 2 + 68);
+    const restartWave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
+    ctx.fillText(`upgrades kept — restarting from wave ${restartWave}...`, canvas.width / 2, canvas.height / 2 + 68);
   }
 }
