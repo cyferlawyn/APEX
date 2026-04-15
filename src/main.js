@@ -253,10 +253,11 @@ export function newGame(confirmed) {
 
 // --- ascend: convert pending shards, wipe run, keep prestige ---
 export function ascend() {
-  // Bank pending shards
-  game.shards        += game.pendingShards;
-  game.pendingShards  = 0;
-  game.ascensionCount += 1;
+  // Bank pending shards — now they count toward the passive damage bonus
+  game.totalShardsEarned += game.pendingShards;
+  game.shards            += game.pendingShards;
+  game.pendingShards      = 0;
+  game.ascensionCount    += 1;
 
   // Wipe run state
   clear();

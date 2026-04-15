@@ -95,9 +95,8 @@ export class Game {
     const mult = wave % 1000 === 0 ? 10
                : wave % 100  === 0 ? 3
                : 1;
-    const amount = base * mult;
-    this.pendingShards     += amount;
-    this.totalShardsEarned += amount;
+    this.pendingShards += base * mult;
+    // totalShardsEarned is incremented in ascend() when pending shards are claimed
   }
 
   // Passive damage multiplier from total shards ever earned (spent shards still count).
