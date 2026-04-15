@@ -88,6 +88,7 @@ function beginWave() {
     game.tower.shieldCharges = game.tower.shieldChargesMax;
   }
   game.tower.invulnTimer = 0;
+  game.tower.overchargeCounter = 0;
   game.waveSpawner.begin(game.wave);
   game.waveEarned = 0;
   game.transition(State.COMBAT);

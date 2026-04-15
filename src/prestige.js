@@ -167,6 +167,13 @@ export class PrestigeShop {
     this.game.tower.shieldChargesMax    = 0;
     this.game.tower.shieldCharges       = 0;
     this.game.tower.invulnTimer         = 0;
+    // Shop late-game upgrade fields reset to defaults
+    this.game.tower.overchargeN         = 0;
+    this.game.tower.overchargeCounter   = 0;
+    this.game.tower.splashMult          = 0.6;
+    this.game.tower.leechHp             = 0;
+    this.game.tower.ringDpsMult         = 1.0;
+    this.game.tower.laserDpsMult        = 1.0;
     this.game.prestigeStartCurrency     = 0;
     this.game.prestigeStartWave         = 1;
 

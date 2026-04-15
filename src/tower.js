@@ -55,6 +55,14 @@ export class Tower {
     this.shieldCharges     = 0;
     this.invulnTimer       = 0;   // seconds of invulnerability remaining
 
+    // Shop late-game upgrades
+    this.overchargeN       = 0;     // 0 = not unlocked; otherwise every Nth shot deals ×4 dmg
+    this.overchargeCounter = 0;     // counts shots since last overcharge proc
+    this.splashMult        = 0.6;   // explosive splash damage fraction (base 0.6)
+    this.leechHp           = 0;     // HP restored per kill
+    this.ringDpsMult       = 1.0;   // Ring of Annihilation DPS multiplier
+    this.laserDpsMult      = 1.0;   // Apocalypse Laser DPS multiplier
+
     // Visual
     this.x               = 0;
     this.y               = 0;
@@ -105,8 +113,18 @@ export class Tower {
     const targets = _nearestEnemies(game.enemyPool.pool, this, this.multiShotCount, r2);
     if (targets.length === 0) return;
 
+    // Overcharge: every Nth shot deals ×4 damage
+    let overchargeMult = 1;
+    if (this.overchargeN > 0) {
+      this.overchargeCounter += 1;
+      if (this.overchargeCounter >= this.overchargeN) {
+        this.overchargeCounter = 0;
+        overchargeMult = 4;
+      }
+    }
+
     for (const target of targets) {
-      this._fireAt(target, game, this.x, this.y);
+      this._fireAt(target, game, this.x, this.y, overchargeMult);
     }
 
     // Fire sound — pick variant based on active modes
@@ -117,7 +135,7 @@ export class Tower {
     this.fireCooldown = 1 / this.fireRate;
   }
 
-  _fireAt(target, game, ox, oy) {
+  _fireAt(target, game, ox, oy, overchargeMult = 1) {
     const dx  = target.x - ox;
     const dy  = target.y - oy;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -126,7 +144,7 @@ export class Tower {
 
     // Crit roll — applied to the damage passed into the projectile
     const isCrit = this.critChance > 0 && Math.random() < this.critChance;
-    const dmg    = Math.round(this.damage * this._dmgMult * (isCrit ? this.critMult : 1));
+    const dmg    = Math.round(this.damage * this._dmgMult * (isCrit ? this.critMult : 1) * overchargeMult);
 
     if (this.spreadShot) {
       const baseA = Math.atan2(ny, nx);
@@ -163,7 +181,7 @@ export class Tower {
     const arcDeg      = t === 1 ? 30 : t === 2 ? 45 : t === 3 ? 45 : t === 4 ? 60 : 75;
     const arcRad      = arcDeg * (Math.PI / 180);
     const ORBIT_R     = this.radius + 16;
-    const DPS         = this.damage * this.fireRate * 8.0 * this._dmgMult;
+    const DPS         = this.damage * this.fireRate * 8.0 * this._dmgMult * this.ringDpsMult;
     const rotRad      = rotSpeed * (Math.PI / 180) * dt;
 
     this.ringAngle  = (this.ringAngle  + rotRad)          % (Math.PI * 2);
@@ -217,7 +235,7 @@ export class Tower {
     const RANGE_BY_TIER = [0, 220, 300, 400, 520, 660];
     const DPS_MULT      = [0, 8, 12, 18, 26, 36];
     this.laserRange     = RANGE_BY_TIER[this.laserTier] ?? 220;
-    const DPS           = this.damage * this.fireRate * DPS_MULT[this.laserTier] * this._dmgMult;
+    const DPS           = this.damage * this.fireRate * DPS_MULT[this.laserTier] * this._dmgMult * this.laserDpsMult;
 
     if (this.laserActive) {
       this.laserTimer -= dt;
@@ -305,6 +323,10 @@ function _towerKillEnemy(e, game) {
   game.waveEarned += earned;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
+  // Leech: restore HP on kill
+  if (game.tower.leechHp > 0) {
+    game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);
+  }
   if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
   if (e.type === EnemyType.BOSS) {

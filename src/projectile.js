@@ -121,7 +121,7 @@ export class Projectile {
         const dx = this.x - e.x;
         const dy = this.y - e.y;
         if (dx * dx + dy * dy <= r2) {
-          _damageEnemy(e, this.damage * 0.6, game, 0, 'projectile');
+          _damageEnemy(e, this.damage * game.tower.splashMult, game, 0, 'projectile');
         }
       }
       // Register explosion flash for renderer — extended lifetime + shrapnel
@@ -185,6 +185,10 @@ function _awardKill(e, game) {
   game.waveEarned += earned;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
+  // Leech: restore HP on kill
+  if (game.tower.leechHp > 0) {
+    game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);
+  }
   if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
   if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); }
