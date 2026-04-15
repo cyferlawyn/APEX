@@ -548,6 +548,14 @@ export class Renderer {
     for (const e of game.enemyPool.pool) {
       if (e.active) this._drawHpBar(e);
     }
+
+    // Special overlays — phantom ghost, bomber warning, colossus armor pips
+    for (const e of game.enemyPool.pool) {
+      if (!e.active) continue;
+      if (e.intangible) this._drawPhantomGhost(e);
+      if (e.type === 'BOMBER') this._drawBomberWarning(e);
+      if (e.type === 'COLOSSUS') this._drawColossusArmor(e);
+    }
   }
 
   // Append a single enemy's shape sub-path to the current path (no fill/stroke)
@@ -586,6 +594,67 @@ export class Renderer {
         break;
       }
     }
+  }
+
+  _drawPhantomGhost(e) {
+    // Pulsing translucent ring to show intangibility
+    const ctx   = this.ctx;
+    const pulse = 0.35 + Math.sin(Date.now() / 80) * 0.2;
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.strokeStyle = '#b388ff';
+    ctx.shadowBlur  = 12;
+    ctx.shadowColor = '#b388ff';
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius + 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  _drawBomberWarning(e) {
+    // Pulsing orange ring — grows brighter as the bomber closes in on the tower
+    const ctx  = this.ctx;
+    const tx   = this.game.tower.x;
+    const ty   = this.game.tower.y;
+    const dx   = tx - e.x, dy = ty - e.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const proximity = Math.max(0, 1 - dist / 300); // 0 far away → 1 at 0px
+    const pulse = 0.4 + Math.sin(Date.now() / (120 - proximity * 80)) * 0.35;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, pulse * (0.4 + proximity * 0.6)));
+    ctx.strokeStyle = '#ff6d00';
+    ctx.shadowBlur  = 8 + proximity * 14;
+    ctx.shadowColor = '#ff6d00';
+    ctx.lineWidth   = 1.5;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius + 4 + Math.sin(Date.now() / 100) * 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  _drawColossusArmor(e) {
+    // Three small shield pips — grey out once the armor for that source is consumed
+    const ctx  = this.ctx;
+    const sources = [
+      { flag: e.armorProjectile, color: '#00e5ff' },  // projectile
+      { flag: e.armorRing,       color: '#ff6d00' },  // ring
+      { flag: e.armorLaser,      color: '#ff4081' },  // laser
+    ];
+    ctx.save();
+    const total = sources.length;
+    for (let i = 0; i < total; i++) {
+      const angle = (Math.PI * 2 / total) * i - Math.PI / 2;
+      const px = e.x + Math.cos(angle) * (e.radius + 7);
+      const py = e.y + Math.sin(angle) * (e.radius + 7);
+      ctx.beginPath();
+      ctx.arc(px, py, 3, 0, Math.PI * 2);
+      ctx.fillStyle   = sources[i].flag ? 'rgba(255,255,255,0.1)' : sources[i].color;
+      ctx.shadowBlur  = sources[i].flag ? 0 : 6;
+      ctx.shadowColor = sources[i].color;
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   _drawHpBar(e) {

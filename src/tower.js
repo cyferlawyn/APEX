@@ -1,4 +1,5 @@
 import { audio } from './audio.js';
+import { EnemyType, _bomberDetonate } from './enemy.js';
 
 export class Tower {
   constructor() {
@@ -183,6 +184,11 @@ export class Tower {
         let dAngle = Math.abs(eAngle - rAngle) % (Math.PI * 2);
         if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
         if (dAngle < arcRad / 2) {
+          // Colossus armor: absorb first ring tick per wave
+          if (e.type === EnemyType.COLOSSUS && !e.armorRing) {
+            e.armorRing = true;
+            break;
+          }
           e.hp -= DPS * dt;
           if (game.particles && game.quality !== 'low' && Math.random() < 0.3) {
             game.particles.emitHit(e.x, e.y, '#ff6d00');
@@ -193,19 +199,7 @@ export class Tower {
           }
           if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)) {
             e.hp = 0;
-            const earned = Math.floor(e.reward * game.currencyMultiplier);
-            game.currency   += earned;
-            game.waveEarned += earned;
-            game.logEarned(earned);
-            _spawnCurrencyPopup(earned, game, e.x, e.y);
-            if (e.type === 'BOSS') game.awardShards(game.wave);
-            if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
-            game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-            if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
-            else if (e.type === 'BRUTE')   audio.deathLarge();
-            else if (e.type === 'ELITE')   audio.deathMedium();
-            else                           audio.deathSmall();
-            e.active = false;
+            _towerKillEnemy(e, game);
           }
           break;
         }
@@ -240,6 +234,11 @@ export class Tower {
         let dAngle   = Math.abs(eAngle - (this.laserAngle % (Math.PI * 2)));
         if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
         if (dAngle < 0.15) {
+          // Colossus armor: absorb first laser tick per wave
+          if (e.type === EnemyType.COLOSSUS && !e.armorLaser) {
+            e.armorLaser = true;
+            continue;
+          }
           e.hp -= DPS * dt;
           if (game.particles && game.quality !== 'low' && Math.random() < 0.5) {
             game.particles.emitHit(e.x, e.y, '#ff4081');
@@ -251,19 +250,7 @@ export class Tower {
           }
           if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)) {
             e.hp = 0;
-            const earned = Math.floor(e.reward * game.currencyMultiplier);
-            game.currency   += earned;
-            game.waveEarned += earned;
-            game.logEarned(earned);
-            _spawnCurrencyPopup(earned, game, e.x, e.y);
-            if (e.type === 'BOSS') game.awardShards(game.wave);
-            if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
-            game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-            if      (e.type === 'BOSS')  { audio.deathBoss(); game.edgeFlash = 0.5; }
-            else if (e.type === 'BRUTE')   audio.deathLarge();
-            else if (e.type === 'ELITE')   audio.deathMedium();
-            else                           audio.deathSmall();
-            e.active = false;
+            _towerKillEnemy(e, game);
           }
         }
       }
@@ -310,4 +297,35 @@ function _dist2(a, b) {
 
 function _spawnCurrencyPopup(amount, game, x, y) {
   game.currencyPopups.push({ amount, x, y, t: 0.9 });
+}
+
+function _towerKillEnemy(e, game) {
+  const earned = Math.floor(e.reward * game.currencyMultiplier);
+  game.currency   += earned;
+  game.waveEarned += earned;
+  game.logEarned(earned);
+  _spawnCurrencyPopup(earned, game, e.x, e.y);
+  if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
+  game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
+  if (e.type === EnemyType.BOSS) {
+    audio.deathBoss(); game.edgeFlash = 0.5; game.awardShards(game.wave);
+  } else if (e.type === EnemyType.COLOSSUS) {
+    audio.deathBoss(); game.edgeFlash = 0.3;
+    // Release 3 drones on death
+    for (let i = 0; i < 3; i++) {
+      const angle = (Math.PI * 2 / 3) * i;
+      game.enemyPool.spawn(EnemyType.DRONE, Math.max(1, game.wave - 1),
+        e.x + Math.cos(angle) * 20, e.y + Math.sin(angle) * 20);
+    }
+  } else if (e.type === EnemyType.BOMBER) {
+    _bomberDetonate(e, game);
+    return; // _bomberDetonate sets active = false
+  } else if (e.type === EnemyType.BRUTE || e.type === EnemyType.SPAWNER) {
+    audio.deathLarge();
+  } else if (e.type === EnemyType.ELITE || e.type === EnemyType.PHANTOM) {
+    audio.deathMedium();
+  } else {
+    audio.deathSmall();
+  }
+  e.active = false;
 }

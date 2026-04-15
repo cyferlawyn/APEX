@@ -1,4 +1,5 @@
 import { audio } from './audio.js';
+import { EnemyType, _bomberDetonate } from './enemy.js';
 
 // ── Spatial grid ─────────────────────────────────────────────────────────────
 // Divides the canvas into fixed-size cells. Enemies register themselves each
@@ -87,9 +88,11 @@ export class Projectile {
     }
 
     // Collision vs enemies — query grid instead of full pool scan
-    const QUERY_R = 32; // slightly larger than max enemy radius (28)
+    const QUERY_R = 32;
     for (const e of _grid.query(this.x, this.y, QUERY_R)) {
       if (!e.active) continue;
+      // Phantom: projectiles pass through while intangible
+      if (e.intangible) continue;
       const dx = this.x - e.x;
       const dy = this.y - e.y;
       if (dx * dx + dy * dy <= e.radius * e.radius) {
@@ -108,7 +111,7 @@ export class Projectile {
     }
 
     // Direct hit
-    _damageEnemy(target, this.damage, game, this.executeThreshold);
+    _damageEnemy(target, this.damage, game, this.executeThreshold, 'projectile');
 
     // Explosive splash
     if (this.explosiveRadius > 0) {
@@ -118,7 +121,7 @@ export class Projectile {
         const dx = this.x - e.x;
         const dy = this.y - e.y;
         if (dx * dx + dy * dy <= r2) {
-          _damageEnemy(e, this.damage * 0.6, game);
+          _damageEnemy(e, this.damage * 0.6, game, 0, 'projectile');
         }
       }
       // Register explosion flash for renderer — extended lifetime + shrapnel
@@ -151,29 +154,53 @@ export class Projectile {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-function _damageEnemy(e, dmg, game, executeThreshold = 0) {
+function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile') {
+  // Colossus armor: absorb the first hit from each weapon source per wave
+  if (e.type === EnemyType.COLOSSUS) {
+    if (source === 'projectile' && !e.armorProjectile) { e.armorProjectile = true; return; }
+    if (source === 'ring'       && !e.armorRing)       { e.armorRing       = true; return; }
+    if (source === 'laser'      && !e.armorLaser)      { e.armorLaser      = true; return; }
+  }
+
   e.hp -= dmg;
   if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)) {
     e.hp = 0;
-    const earned = Math.floor(e.reward * game.currencyMultiplier);
-    game.currency   += earned;
-    game.waveEarned += earned;
-    game.logEarned(earned);
-    _spawnCurrencyPopup(earned, game, e.x, e.y);
-    // Death burst particles + expanding ring
-    if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
-    game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-    // Death sound — sized by enemy type
-    if      (e.type === 'BOSS')              audio.deathBoss();
-    else if (e.type === 'BRUTE')             audio.deathLarge();
-    else if (e.type === 'ELITE')             audio.deathMedium();
-    else                                     audio.deathSmall();
-    // Boss arrival / death edge flash + shard award
-    if (e.type === 'BOSS') {
-      game.edgeFlash = 0.5;
-      game.awardShards(game.wave);
+
+    // Bomber detonates on death
+    if (e.type === EnemyType.BOMBER) {
+      _bomberDetonate(e, game);
+      // _bomberDetonate sets e.active = false and pushes explosion — skip normal death
+      _awardKill(e, game);
+      return;
     }
+
+    _awardKill(e, game);
     e.active = false;
+  }
+}
+
+function _awardKill(e, game) {
+  const earned = Math.floor(e.reward * game.currencyMultiplier);
+  game.currency   += earned;
+  game.waveEarned += earned;
+  game.logEarned(earned);
+  _spawnCurrencyPopup(earned, game, e.x, e.y);
+  if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
+  game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
+  if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); }
+  else if (e.type === EnemyType.COLOSSUS) { audio.deathBoss();   game.edgeFlash = 0.3; _releaseColossusSpawn(e, game); }
+  else if (e.type === EnemyType.BRUTE || e.type === EnemyType.SPAWNER) audio.deathLarge();
+  else if (e.type === EnemyType.ELITE || e.type === EnemyType.PHANTOM) audio.deathMedium();
+  else                                                                   audio.deathSmall();
+}
+
+function _releaseColossusSpawn(colossus, game) {
+  // Spawn 3 drones at the colossus position
+  for (let i = 0; i < 3; i++) {
+    const angle = (Math.PI * 2 / 3) * i;
+    const ox = colossus.x + Math.cos(angle) * 20;
+    const oy = colossus.y + Math.sin(angle) * 20;
+    game.enemyPool.spawn(EnemyType.DRONE, Math.max(1, game.wave - 1), ox, oy);
   }
 }
 
@@ -203,7 +230,7 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   // Spark burst at the chain impact point (skip on low quality)
   if (game.particles && game.quality !== 'low') game.particles.emitHit(best.x, best.y, '#e040fb');
 
-  _damageEnemy(best, damage, game);
+  _damageEnemy(best, damage, game, 0, 'projectile');
 
   if (jumpsLeft > 1) {
     _chainFrom(best.x, best.y, best, damage * 0.6, jumpsLeft - 1, game);
