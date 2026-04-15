@@ -613,15 +613,37 @@ export class Renderer {
   }
 
   _drawBomberWarning(e) {
-    // Pulsing orange ring — grows brighter as the bomber closes in on the tower
     const ctx  = this.ctx;
+    const BLAST_R = 80;
     const tx   = this.game.tower.x;
     const ty   = this.game.tower.y;
     const dx   = tx - e.x, dy = ty - e.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const proximity = Math.max(0, 1 - dist / 300); // 0 far away → 1 at 0px
-    const pulse = 0.4 + Math.sin(Date.now() / (120 - proximity * 80)) * 0.35;
+    const proximity = Math.max(0, 1 - dist / 300);
+    const pulse = 0.5 + Math.sin(Date.now() / (120 - proximity * 80)) * 0.35;
+
     ctx.save();
+
+    // Blast radius aura — soft filled circle showing the danger zone
+    const auraAlpha = Math.max(0, Math.min(1, 0.04 + proximity * 0.08 + Math.sin(Date.now() / 200) * 0.02));
+    ctx.globalAlpha = auraAlpha;
+    ctx.fillStyle   = '#ff6d00';
+    ctx.shadowBlur  = 0;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, BLAST_R, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Aura edge ring
+    ctx.globalAlpha = 0.18 + proximity * 0.22;
+    ctx.strokeStyle = '#ff6d00';
+    ctx.shadowBlur  = 10 + proximity * 10;
+    ctx.shadowColor = '#ff6d00';
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, BLAST_R, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Tight pulsing ring around the bomber itself
     ctx.globalAlpha = Math.max(0, Math.min(1, pulse * (0.4 + proximity * 0.6)));
     ctx.strokeStyle = '#ff6d00';
     ctx.shadowBlur  = 8 + proximity * 14;
@@ -630,6 +652,7 @@ export class Renderer {
     ctx.beginPath();
     ctx.arc(e.x, e.y, e.radius + 4 + Math.sin(Date.now() / 100) * 3, 0, Math.PI * 2);
     ctx.stroke();
+
     ctx.restore();
   }
 
