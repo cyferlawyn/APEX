@@ -226,15 +226,15 @@ export class EnemyPool {
 }
 
 const BASE_STATS = {
-  [EnemyType.DRONE]:    { hp: 60,   speed: 104, radius: 11, color: '#00e5ff', shape: 'circle',   reward: 12,  damage: 15  },
-  [EnemyType.SWARM]:    { hp: 20,   speed: 80,  radius: 8,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
-  [EnemyType.BRUTE]:    { hp: 300,  speed: 52,  radius: 16, color: '#ff9100', shape: 'square',   reward: 50,  damage: 50  },
-  [EnemyType.ELITE]:    { hp: 150,  speed: 86,  radius: 11, color: '#ea00ff', shape: 'triangle', reward: 30,  damage: 30  },
-  [EnemyType.BOSS]:     { hp: 2000, speed: 40,  radius: 28, color: '#ff1744', shape: 'hexagon',  reward: 300, damage: 150 },
+  [EnemyType.DRONE]:    { hp: 60,   speed: 156, radius: 11, color: '#00e5ff', shape: 'circle',   reward: 12,  damage: 15  },
+  [EnemyType.SWARM]:    { hp: 20,   speed: 120, radius: 8,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
+  [EnemyType.BRUTE]:    { hp: 300,  speed: 78,  radius: 16, color: '#ff9100', shape: 'square',   reward: 50,  damage: 50  },
+  [EnemyType.ELITE]:    { hp: 150,  speed: 129, radius: 11, color: '#ea00ff', shape: 'triangle', reward: 30,  damage: 30  },
+  [EnemyType.BOSS]:     { hp: 2000, speed: 60,  radius: 28, color: '#ff1744', shape: 'hexagon',  reward: 300, damage: 150 },
   // New types
-  [EnemyType.DASHER]:   { hp: 45,   speed: 109, radius: 9,  color: '#00e676', shape: 'circle',   reward: 18,  damage: 20  },
-  [EnemyType.BOMBER]:   { hp: 120,  speed: 75,  radius: 13, color: '#ff6d00', shape: 'circle',   reward: 35,  damage: 60  },
-  [EnemyType.SPAWNER]:  { hp: 500,  speed: 25,  radius: 18, color: '#ffd600', shape: 'square',   reward: 80,  damage: 20  },
-  [EnemyType.PHANTOM]:  { hp: 130,  speed: 92,  radius: 11, color: '#b388ff', shape: 'triangle', reward: 28,  damage: 25  },
-  [EnemyType.COLOSSUS]: { hp: 1200, speed: 32,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 100 },
+  [EnemyType.DASHER]:   { hp: 45,   speed: 164, radius: 9,  color: '#00e676', shape: 'circle',   reward: 18,  damage: 20  },
+  [EnemyType.BOMBER]:   { hp: 120,  speed: 112, radius: 13, color: '#ff6d00', shape: 'circle',   reward: 35,  damage: 60  },
+  [EnemyType.SPAWNER]:  { hp: 500,  speed: 38,  radius: 18, color: '#ffd600', shape: 'square',   reward: 80,  damage: 20  },
+  [EnemyType.PHANTOM]:  { hp: 130,  speed: 138, radius: 11, color: '#b388ff', shape: 'triangle', reward: 28,  damage: 25  },
+  [EnemyType.COLOSSUS]: { hp: 1200, speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 100 },
 };
