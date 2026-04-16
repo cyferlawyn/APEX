@@ -57,6 +57,9 @@ export class Game {
     this.totalShardsEarned  = 0;
     this.prestigeUpgrades   = {};
     this.ascensionCount     = 0;
+
+    // ── Traitor (pet) system ────────────────────────────────────────────────
+    this.traitorSystem = null; // set in main.js bootstrap
   }
 
   transition(newState) {
@@ -102,5 +105,10 @@ export class Game {
   // Passive damage multiplier from total shards ever earned (spent shards still count).
   shardDmgMult() {
     return 1 + this.totalShardsEarned * 0.10;
+  }
+
+  // Multiplicative damage bonus from active traitor pets (additive per-pet, then ×1+sum).
+  traitorDmgMult() {
+    return 1 + (this.traitorSystem?.damageBonus() ?? 0);
   }
 }

@@ -95,8 +95,8 @@ export class Tower {
     if (this.hitFlash  > 0) this.hitFlash  -= dt;
     if (this.invulnTimer > 0) this.invulnTimer -= dt;
 
-    // Shard passive multiplier × base damage for all weapons this frame
-    this._dmgMult = game.shardDmgMult();
+    // Shard passive × traitor pet bonus × base damage for all weapons this frame
+    this._dmgMult = game.shardDmgMult() * game.traitorDmgMult();
 
     this._updateMainGun(dt, game);
     if (this.ringTier > 0)  this._updateRings(dt, game);
@@ -323,6 +323,8 @@ function _towerKillEnemy(e, game) {
   game.waveEarned += earned;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
+  // Traitor capture roll
+  game.traitorSystem?.tryCapture(e, game.wave);
   // Leech: restore HP on kill
   if (game.tower.leechHp > 0) {
     game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);

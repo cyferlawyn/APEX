@@ -6,10 +6,12 @@ import { WaveSpawner }     from './wave.js';
 import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
 import { PrestigeShop }    from './prestige.js';
+import { TraitorSystem }   from './traitor.js';
 import { ParticleSystem }  from './particles.js';
 import { audio }           from './audio.js';
 import { save, load, clear, hasSave, savePrefs, loadPrefs,
-         savePrestige, loadPrestige, clearPrestige } from './storage.js';
+         savePrestige, loadPrestige, clearPrestige,
+         saveTraitors, loadTraitors, clearTraitors } from './storage.js';
 
 const canvas        = document.getElementById('gameCanvas');
 const game          = new Game();
@@ -28,6 +30,7 @@ function bootstrap() {
   game.projectilePool = new ProjectilePool(2048);
   game.waveSpawner    = new WaveSpawner(game);
   game.particles      = new ParticleSystem(512);
+  game.traitorSystem  = new TraitorSystem();
 
   // Restore preferences (quality, volume) — independent of save data
   if (prefs) {
@@ -44,6 +47,9 @@ function bootstrap() {
     game.prestigeUpgrades   = prestige.prestigeUpgrades  ?? {};
     game.ascensionCount     = prestige.ascensionCount    ?? 0;
   }
+
+  // Restore traitor system — persists across runs and ascensions, wiped only on hard reset
+  game.traitorSystem.deserialize(loadTraitors());
 
   // Apply prestige upgrades on top of fresh tower (before run save overwrites tiers)
   prestigeShop.reapplyAll(game.prestigeUpgrades);
@@ -223,6 +229,7 @@ function saveGame() {
     currencyMultiplier: game.currencyMultiplier,
   });
   _savePrestigeState();
+  saveTraitors(game.traitorSystem.serialize());
 }
 
 function _savePrestigeState() {
@@ -239,6 +246,7 @@ function _savePrestigeState() {
 export function newGame(confirmed) {
   if (!confirmed && hasSave()) return;
   clear();
+  clearTraitors();
   game.wave               = 1;
   game.currency           = 0;
   game.upgrades           = {};
@@ -303,7 +311,7 @@ export function setQuality(q) {
 }
 
 // Expose to UI
-window.__apex = { newGame, ascend, selfDestruct, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs };
+window.__apex = { newGame, ascend, selfDestruct, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
 
 // Init AudioContext on first user gesture (browser autoplay policy)
 document.addEventListener('click',    () => audio.init(), { once: true });

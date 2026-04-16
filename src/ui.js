@@ -1,6 +1,8 @@
 // ui.js — shop panel and button wiring
 // Patches DOM in-place to avoid hover flicker from full re-renders.
 
+import { RARITIES, RARITY_COLOR, RARITY_BONUS } from './traitor.js';
+
 function getApex() { return window.__apex; }
 
 // ── Initial DOM build (runs once) ──────────────────────────────────────────
@@ -189,6 +191,158 @@ function setBtn(btn, text, disabled, maxed) {
   if (btn.classList.contains('maxed') !== maxed) btn.classList.toggle('maxed', maxed);
 }
 
+// ── Traitor panel ──────────────────────────────────────────────────────────
+
+const TYPE_LABEL = {
+  DRONE: 'Drone', SWARM: 'Swarm', BRUTE: 'Brute', ELITE: 'Elite',
+  BOSS: 'Boss', DASHER: 'Dasher', BOMBER: 'Bomber',
+  SPAWNER: 'Spawner', PHANTOM: 'Phantom', COLOSSUS: 'Colossus',
+};
+
+function patchTraitorPanel() {
+  const apex = getApex();
+  if (!apex) return;
+  const ts = apex.game.traitorSystem;
+  if (!ts) return;
+
+  // Show/hide tab — visible once the first pet has been captured
+  const tabTraitors = document.getElementById('tab-traitors');
+  const show = ts.roster.length > 0;
+  if (tabTraitors.classList.contains('hidden') === show) {
+    tabTraitors.classList.toggle('hidden', !show);
+  }
+  if (!show) return;
+
+  // Header bonus display
+  const bonus      = ts.damageBonus();
+  const bonusPct   = Math.round(bonus * 100);
+  const bonusEl    = document.getElementById('traitor-bonus-value');
+  const bonusText  = `+${bonusPct}%`;
+  if (bonusEl.textContent !== bonusText) bonusEl.textContent = bonusText;
+
+  // Passive line
+  const passiveLine = document.getElementById('traitor-passive-line');
+  const mult         = (1 + bonus).toFixed(2);
+  const activeCount  = ts.activePets().length;
+  const passiveText  = `Pet bonus: ×${mult} dmg  (${activeCount}/3 active)`;
+  if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
+
+  // Active slots — full rebuild (3 slots, always shown when tab visible)
+  const slotsEl = document.getElementById('traitor-slots');
+  slotsEl.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const petId = ts.slots[i];
+    const pet   = petId != null ? ts.roster.find(p => p.id === petId) : null;
+    const div   = document.createElement('div');
+    div.className = 'traitor-slot' + (pet ? ' filled' : '');
+    div.dataset.slotIdx = i;
+    if (pet) {
+      const color = RARITY_COLOR[pet.rarity] ?? '#9e9e9e';
+      div.style.borderColor = color + '80';
+      div.innerHTML = `
+        <span class="rarity-badge" style="color:${color}">${pet.rarity[0].toUpperCase()}</span>
+        <span class="traitor-slot-type">${TYPE_LABEL[pet.type] ?? pet.type}</span>
+        <span class="traitor-slot-unassign">click to remove</span>
+      `;
+    } else {
+      div.textContent = 'empty';
+    }
+    slotsEl.appendChild(div);
+  }
+
+  // Roster — grouped by type+rarity, sorted legendary→common
+  const rosterEl = document.getElementById('traitor-roster');
+  rosterEl.innerHTML = '';
+
+  const counts = ts.groupCounts();
+  if (Object.keys(counts).length === 0) {
+    const empty = document.createElement('div');
+    empty.id          = 'traitor-roster-empty';
+    empty.textContent = 'No traitors yet.';
+    rosterEl.appendChild(empty);
+    return;
+  }
+
+  // Sort groups: rarity desc, then type asc
+  const sortedKeys = Object.keys(counts).sort((a, b) => {
+    const [, ra] = a.split('|');
+    const [, rb] = b.split('|');
+    return RARITIES.indexOf(rb) - RARITIES.indexOf(ra);
+  });
+
+  const noEmptySlot = ts.slots.indexOf(null) === -1;
+
+  for (const key of sortedKeys) {
+    const [type, rarity] = key.split('|');
+    const count  = counts[key];
+    const color  = RARITY_COLOR[rarity] ?? '#9e9e9e';
+    const bonus  = RARITY_BONUS[rarity] ?? 0;
+    const canMrg = ts.canMerge(type, rarity);
+
+    // Is at least one of this group already in a slot?
+    const assignedIds = new Set(ts.slots.filter(Boolean));
+    const unassignedInGroup = ts.roster.filter(
+      p => p.type === type && p.rarity === rarity && !assignedIds.has(p.id)
+    );
+
+    const row = document.createElement('div');
+    row.className = 'traitor-group';
+    row.innerHTML = `
+      <span class="rarity-badge" style="color:${color}">${rarity}</span>
+      <span class="traitor-group-type">${TYPE_LABEL[type] ?? type}</span>
+      <span class="traitor-group-count" style="color:rgba(255,255,255,0.35)">+${Math.round(bonus*100)}% ×${count}</span>
+      <button class="traitor-btn traitor-btn-assign"
+        data-assign-type="${type}" data-assign-rarity="${rarity}"
+        ${(noEmptySlot || unassignedInGroup.length === 0) ? 'disabled' : ''}>SLOT</button>
+      ${canMrg
+        ? `<button class="traitor-btn traitor-btn-merge" data-merge-type="${type}" data-merge-rarity="${rarity}">MERGE×5</button>`
+        : ''}
+    `;
+    rosterEl.appendChild(row);
+  }
+}
+
+function wireTraitorButtons() {
+  // Slot click — unassign
+  document.getElementById('traitor-slots').addEventListener('click', e => {
+    const slot = e.target.closest('[data-slot-idx]');
+    if (!slot) return;
+    const apex = getApex();
+    if (!apex) return;
+    const idx = parseInt(slot.dataset.slotIdx, 10);
+    apex.game.traitorSystem.unassign(idx);
+    apex.saveTraitors(apex.game.traitorSystem.serialize());
+    patchTraitorPanel();
+  });
+
+  // Roster — assign or merge
+  document.getElementById('traitor-roster').addEventListener('click', e => {
+    const apex = getApex();
+    if (!apex) return;
+    const ts = apex.game.traitorSystem;
+
+    const assignBtn = e.target.closest('[data-assign-type]');
+    if (assignBtn && !assignBtn.disabled) {
+      const type   = assignBtn.dataset.assignType;
+      const rarity = assignBtn.dataset.assignRarity;
+      // Find first unassigned pet of this type+rarity
+      const assigned = new Set(ts.slots.filter(Boolean));
+      const pet = ts.roster.find(p => p.type === type && p.rarity === rarity && !assigned.has(p.id));
+      if (pet) ts.assignToFirstEmpty(pet.id);
+      apex.saveTraitors(ts.serialize());
+      patchTraitorPanel();
+      return;
+    }
+
+    const mergeBtn = e.target.closest('[data-merge-type]');
+    if (mergeBtn) {
+      ts.merge(mergeBtn.dataset.mergeType, mergeBtn.dataset.mergeRarity);
+      apex.saveTraitors(ts.serialize());
+      patchTraitorPanel();
+    }
+  });
+}
+
 // ── Tab collapse / expand ──────────────────────────────────────────────────
 
 function wireTabHeaders() {
@@ -206,6 +360,9 @@ function wireTabHeaders() {
 function wireButtons() {
   // Tab collapse
   wireTabHeaders();
+
+  // Traitor slots + roster
+  wireTraitorButtons();
 
   // Upgrade purchases (delegated)
   document.getElementById('upgrade-list').addEventListener('click', e => {
@@ -313,9 +470,11 @@ window.addEventListener('load', () => {
     wireButtons();
     patchShopCards();
     patchPrestigeCards();
+    patchTraitorPanel();
     syncPrefsUI();
     setInterval(patchShopCards, 250);
     setInterval(patchPrestigeCards, 250);
+    setInterval(patchTraitorPanel, 250);
   });
 });
 
