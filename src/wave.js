@@ -66,7 +66,7 @@ function buildWave(wave) {
   }
 
   const count    = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
-  const interval = 0.4;
+  const interval = 0.2;
 
   let t = 0;
   for (let i = 0; i < count; i++) {
@@ -75,7 +75,7 @@ function buildWave(wave) {
       const clusterSize = 10 + Math.floor(Math.random() * 11);
       const edge        = Math.floor(Math.random() * 4);
       for (let s = 0; s < clusterSize; s++) {
-        entries.push({ type: EnemyType.SWARM, delay: t + s * 0.06, edge });
+        entries.push({ type: EnemyType.SWARM, delay: t + s * 0.03, edge });
       }
       t += interval;
     } else {
