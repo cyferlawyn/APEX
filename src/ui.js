@@ -229,6 +229,13 @@ function _showNextToast() {
   }, 3000);
 }
 
+// Fingerprint of last rendered traitor state — used to skip unnecessary DOM rebuilds.
+let _traitorFingerprint = '';
+
+function _traitorStateKey(ts) {
+  return ts.slots.join(',') + '|' + ts.roster.map(p => `${p.id}:${p.type}:${p.rarity}`).join(',');
+}
+
 function patchTraitorPanel() {
   const apex = getApex();
   if (!apex) return;
@@ -265,7 +272,12 @@ function patchTraitorPanel() {
   const passiveText  = `Pet bonus: ×${mult} dmg  (${activeCount}/3 active)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
 
-  // Active slots — full rebuild (3 slots, always shown when tab visible)
+  // Only rebuild slots + roster DOM when state actually changed
+  const fp = _traitorStateKey(ts);
+  if (fp === _traitorFingerprint) return;
+  _traitorFingerprint = fp;
+
+  // Active slots
   const slotsEl = document.getElementById('traitor-slots');
   slotsEl.innerHTML = '';
   for (let i = 0; i < 3; i++) {
@@ -350,6 +362,7 @@ function wireTraitorButtons() {
     const idx = parseInt(slot.dataset.slotIdx, 10);
     apex.game.traitorSystem.unassign(idx);
     apex.saveTraitors(apex.game.traitorSystem.serialize());
+    _traitorFingerprint = '';
     patchTraitorPanel();
   });
 
@@ -368,6 +381,7 @@ function wireTraitorButtons() {
       const pet = ts.roster.find(p => p.type === type && p.rarity === rarity && !assigned.has(p.id));
       if (pet) ts.assignToFirstEmpty(pet.id);
       apex.saveTraitors(ts.serialize());
+      _traitorFingerprint = '';
       patchTraitorPanel();
       return;
     }
@@ -376,6 +390,7 @@ function wireTraitorButtons() {
     if (mergeBtn) {
       ts.merge(mergeBtn.dataset.mergeType, mergeBtn.dataset.mergeRarity);
       apex.saveTraitors(ts.serialize());
+      _traitorFingerprint = '';
       patchTraitorPanel();
     }
   });
