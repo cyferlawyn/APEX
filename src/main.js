@@ -182,14 +182,14 @@ function onWaveComplete() {
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
 
-  if (game.wave > game.bestWave) game.bestWave = game.wave;
+  game.wave += 1;
+  if (game.wave - 1 > game.bestWave) game.bestWave = game.wave - 1;
 
   saveGame();
   audio.waveComplete();
 
   // Show results overlay but start next wave immediately
   game.resultsTimer = game.RESULTS_DURATION;
-  game.wave += 1;
   beginWave();
 }
 
