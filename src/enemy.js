@@ -67,7 +67,7 @@ export class Enemy {
     this.radius      = def.radius;
     this.color       = def.color;
     this.shape       = def.shape;
-    this.reward      = def.reward;
+    this.reward      = Math.floor(def.reward * (1 + 0.02 * wave));
 
     // Status effects
     this.slowUntil   = 0;
