@@ -57,11 +57,19 @@ function buildWave(wave) {
   // Boss wave
   if (wave % 10 === 0) {
     entries.push({ type: EnemyType.BOSS, delay: 0, edge: null });
-    // Colossus escort from wave 30+
-    if (wave >= 30) {
-      entries.push({ type: EnemyType.COLOSSUS, delay: 1.5, edge: null });
-      entries.push({ type: EnemyType.COLOSSUS, delay: 3.0, edge: null });
+
+    // Colossus escort — ramps up every 20 waves from wave 20
+    const colossusCount = wave >= 20 ? Math.min(Math.floor((wave - 10) / 20) + 1, 5) : 0;
+    for (let i = 0; i < colossusCount; i++) {
+      entries.push({ type: EnemyType.COLOSSUS, delay: 1.5 + i * 1.5, edge: null });
     }
+
+    // Brute wave-crashers — added from wave 50, grow every 25 waves
+    const bruteCount = wave >= 50 ? Math.min(Math.floor((wave - 50) / 25) * 2 + 4, 12) : 0;
+    for (let i = 0; i < bruteCount; i++) {
+      entries.push({ type: EnemyType.BRUTE, delay: 0.5 + i * 0.4, edge: null });
+    }
+
     return entries;
   }
 
