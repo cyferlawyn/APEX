@@ -59,7 +59,7 @@ export class Enemy {
     this.atTower     = false;
     this.damageTick  = 0;
     this.damage      = type === EnemyType.BOSS
-      ? Math.floor(def.damage * Math.pow(1.03, wave - 1))
+      ? Math.floor(def.damage * Math.pow(1.02, wave - 1))
       : def.damage;
     this.type        = type;
     this.x           = x;
@@ -242,7 +242,7 @@ const BASE_STATS = {
   [EnemyType.SWARM]:    { hp: 20,   speed: 120, radius: 8,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
   [EnemyType.BRUTE]:    { hp: 300,  speed: 78,  radius: 16, color: '#ff9100', shape: 'square',   reward: 50,  damage: 50  },
   [EnemyType.ELITE]:    { hp: 150,  speed: 129, radius: 11, color: '#ea00ff', shape: 'triangle', reward: 30,  damage: 30  },
-  [EnemyType.BOSS]:     { hp: 5000, speed: 80,  radius: 28, color: '#ff1744', shape: 'hexagon',  reward: 300, damage: 200 },
+  [EnemyType.BOSS]:     { hp: 5000, speed: 80,  radius: 28, color: '#ff1744', shape: 'hexagon',  reward: 300, damage: 80  },
   // New types
   [EnemyType.DASHER]:   { hp: 45,   speed: 164, radius: 9,  color: '#00e676', shape: 'circle',   reward: 18,  damage: 20  },
   [EnemyType.BOMBER]:   { hp: 120,  speed: 112, radius: 13, color: '#ff6d00', shape: 'circle',   reward: 35,  damage: 60  },
