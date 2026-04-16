@@ -12,13 +12,28 @@ export const RARITY_COLOR = {
   legendary: '#ff9800',
 };
 
-// Additive bonus to damage when this pet is in an active slot
+// Additive bonus to damage when this pet is in an active slot (base, before type multiplier)
 export const RARITY_BONUS = {
   common:    0.05,
   uncommon:  0.12,
   rare:      0.25,
   epic:      0.50,
   legendary: 1.00,
+};
+
+// Per-type multiplier applied on top of rarity bonus.
+// Harder/rarer enemy types grant a higher bonus when captured.
+export const TYPE_BONUS_MULT = {
+  SWARM:    0.4,
+  DRONE:    0.6,
+  DASHER:   0.75,
+  BOMBER:   0.9,
+  ELITE:    1.0,
+  BRUTE:    1.1,
+  PHANTOM:  1.3,
+  SPAWNER:  1.4,
+  COLOSSUS: 1.8,
+  BOSS:     2.5,
 };
 
 // Weighted rarity roll — weights sum to 100 (index matches RARITIES order)
@@ -38,6 +53,11 @@ function rollRarity() {
     if (roll <= 0) return RARITIES[i];
   }
   return RARITIES[0];
+}
+
+// Helper — actual bonus value for a given type+rarity combination.
+export function petBonus(type, rarity) {
+  return (RARITY_BONUS[rarity] ?? 0) * (TYPE_BONUS_MULT[type] ?? 1.0);
 }
 
 export class TraitorSystem {
@@ -130,9 +150,13 @@ export class TraitorSystem {
       .filter(Boolean);
   }
 
-  // Sum of RARITY_BONUS for all active pets — additive between pets.
+  // Sum of (RARITY_BONUS × TYPE_BONUS_MULT) for all active pets — additive between pets.
   damageBonus() {
-    return this.activePets().reduce((sum, p) => sum + (RARITY_BONUS[p.rarity] ?? 0), 0);
+    return this.activePets().reduce((sum, p) => {
+      const base = RARITY_BONUS[p.rarity] ?? 0;
+      const mult = TYPE_BONUS_MULT[p.type]  ?? 1.0;
+      return sum + base * mult;
+    }, 0);
   }
 
   serialize() {

@@ -1,7 +1,7 @@
 // ui.js — shop panel and button wiring
 // Patches DOM in-place to avoid hover flicker from full re-renders.
 
-import { RARITIES, RARITY_COLOR, RARITY_BONUS } from './traitor.js';
+import { RARITIES, RARITY_COLOR, RARITY_BONUS, TYPE_BONUS_MULT, petBonus } from './traitor.js';
 
 function getApex() { return window.__apex; }
 
@@ -199,11 +199,49 @@ const TYPE_LABEL = {
   SPAWNER: 'Spawner', PHANTOM: 'Phantom', COLOSSUS: 'Colossus',
 };
 
+// Toast queue — drains one at a time, each shown for 3 s via CSS animation
+const _toastQueue   = [];
+let   _toastTimeout = null;
+
+function _showNextToast() {
+  if (_toastTimeout !== null || _toastQueue.length === 0) return;
+  const pet   = _toastQueue.shift();
+  const toast = document.getElementById('traitor-toast');
+  const color = RARITY_COLOR[pet.rarity] ?? '#9e9e9e';
+  const bonus = petBonus(pet.type, pet.rarity);
+
+  toast.innerHTML = `
+    <div id="traitor-toast-label">traitor deserted!</div>
+    <div id="traitor-toast-rarity" style="color:${color}">${pet.rarity}</div>
+    <div id="traitor-toast-type">${TYPE_LABEL[pet.type] ?? pet.type}</div>
+    <div id="traitor-toast-bonus">+${Math.round(bonus * 100)}% dmg when active</div>
+  `;
+  toast.classList.remove('hidden', 'toast-show');
+  // Force reflow so animation restarts cleanly
+  void toast.offsetWidth;
+  toast.classList.add('toast-show');
+
+  _toastTimeout = setTimeout(() => {
+    toast.classList.add('hidden');
+    toast.classList.remove('toast-show');
+    _toastTimeout = null;
+    _showNextToast(); // show next if queued
+  }, 3000);
+}
+
 function patchTraitorPanel() {
   const apex = getApex();
   if (!apex) return;
-  const ts = apex.game.traitorSystem;
+  const ts   = apex.game.traitorSystem;
+  const game = apex.game;
   if (!ts) return;
+
+  // Drain pending announcements → toast queue
+  if (game.pendingTraitorAnnouncements?.length > 0) {
+    for (const pet of game.pendingTraitorAnnouncements) _toastQueue.push(pet);
+    game.pendingTraitorAnnouncements.length = 0;
+    _showNextToast();
+  }
 
   // Show/hide tab — visible once the first pet has been captured
   const tabTraitors = document.getElementById('tab-traitors');
@@ -276,7 +314,7 @@ function patchTraitorPanel() {
     const [type, rarity] = key.split('|');
     const count  = counts[key];
     const color  = RARITY_COLOR[rarity] ?? '#9e9e9e';
-    const bonus  = RARITY_BONUS[rarity] ?? 0;
+    const bonus  = petBonus(type, rarity);
     const canMrg = ts.canMerge(type, rarity);
 
     // Is at least one of this group already in a slot?

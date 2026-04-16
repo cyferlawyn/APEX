@@ -702,6 +702,65 @@ html, body {
   font-style: italic;
 }
 
+/* ── Traitor capture toast ───────────────────────────── */
+
+#traitor-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 20, 0.92);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 10px 20px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 200;
+  min-width: 200px;
+}
+
+#traitor-toast.hidden {
+  display: none;
+}
+
+#traitor-toast.toast-show {
+  animation: toast-in-out 3s ease forwards;
+}
+
+#traitor-toast-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 4px;
+}
+
+#traitor-toast-rarity {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#traitor-toast-type {
+  font-size: 15px;
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+#traitor-toast-bonus {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+@keyframes toast-in-out {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  12%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  75%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+}
+
 #confirm-overlay {
   position: fixed;
   inset: 0;

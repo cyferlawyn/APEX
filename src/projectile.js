@@ -190,7 +190,8 @@ function _awardKill(e, game) {
     game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);
   }
   // Traitor capture roll
-  game.traitorSystem?.tryCapture(e, game.wave);
+  const pet = game.traitorSystem?.tryCapture(e, game.wave);
+  if (pet) game.pendingTraitorAnnouncements.push(pet);
   if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
   if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); }

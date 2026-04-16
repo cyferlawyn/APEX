@@ -324,7 +324,8 @@ function _towerKillEnemy(e, game) {
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
   // Traitor capture roll
-  game.traitorSystem?.tryCapture(e, game.wave);
+  const pet = game.traitorSystem?.tryCapture(e, game.wave);
+  if (pet) game.pendingTraitorAnnouncements.push(pet);
   // Leech: restore HP on kill
   if (game.tower.leechHp > 0) {
     game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);

@@ -59,7 +59,8 @@ export class Game {
     this.ascensionCount     = 0;
 
     // ── Traitor (pet) system ────────────────────────────────────────────────
-    this.traitorSystem = null; // set in main.js bootstrap
+    this.traitorSystem              = null; // set in main.js bootstrap
+    this.pendingTraitorAnnouncements = [];  // [{ type, rarity }] drained by ui.js
   }
 
   transition(newState) {
