@@ -383,3 +383,12 @@ function _towerKillEnemy(e, game) {
   }
   e.active = false;
 }
+
+// Returns the expected (normalized) damage of a single regular shot, factoring in:
+// base damage (incl. Damage upgrade), shard multiplier, traitor bonus,
+// and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
+export function normalizedShotDamage(tower, game) {
+  const dmgMult   = game.shardDmgMult() * game.traitorDmgMult();
+  const critFactor = 1 + tower.critChance * (tower.critMult - 1);
+  return tower.damage * dmgMult * critFactor;
+}

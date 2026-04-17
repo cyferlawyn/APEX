@@ -1,5 +1,6 @@
 import { audio } from './audio.js';
 import { EnemyType, _bomberDetonate, droneHp } from './enemy.js';
+import { normalizedShotDamage } from './tower.js';
 
 // ── Spatial grid ─────────────────────────────────────────────────────────────
 // Divides the canvas into fixed-size cells. Enemies register themselves each
@@ -177,10 +178,10 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
   // Obliterate — 10× overkill from a direct projectile hit arms the countdown
   if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
       game.obliterateTimer < 0 && dmg >= e.maxHp * 10) {
-    const baseline = droneHp(game.wave);
+    const baseline  = droneHp(game.wave);
+    const normShot  = normalizedShotDamage(game.tower, game);
     game.obliterateTimer    = game.tower.obliterateDelay;
-    game.obliterateOverkill = Math.floor(dmg / baseline);
-    // Emit a rapid blastwave ring from the tower
+    game.obliterateOverkill = Math.floor(normShot / baseline);
     const tx = game.tower.x, ty = game.tower.y;
     const maxR = Math.sqrt(tx * tx + ty * ty) * 2.2;
     game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4, maxR, t: 1.0, life: 1.0 });
