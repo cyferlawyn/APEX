@@ -822,6 +822,7 @@ export class Renderer {
 
   _drawPoisonIndicators() {
     const { ctx, canvas, game } = this;
+    if (game.quality === 'low') return;
     if (!game.tower || game.tower.poisonFraction <= 0) return;
     if (!game.enemyPool) return;
 
@@ -954,7 +955,7 @@ export class Renderer {
     });
 
     // Skull popups — execute kills float a skull upward and fade
-    game.skullPopups = game.skullPopups.filter(p => {
+    if (game.quality === 'low') { game.skullPopups = []; } else game.skullPopups = game.skullPopups.filter(p => {
       p.t -= DT;
       if (p.t <= 0) return false;
       p.y -= 32 * DT;  // float upward
