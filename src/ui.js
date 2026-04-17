@@ -2,6 +2,7 @@
 // Patches DOM in-place to avoid hover flicker from full re-renders.
 
 import { RARITIES, RARITY_COLOR, RARITY_BONUS, TYPE_BONUS_MULT, petBonus } from './traitor.js';
+import { fmt, fmtPct } from './util.js';
 
 function getApex() { return window.__apex; }
 
@@ -96,12 +97,12 @@ function patchPrestigeCards() {
 
   // Shard balance
   const shardEl = document.getElementById('prestige-shard-value');
-  if (shardEl.textContent !== String(game.shards)) shardEl.textContent = game.shards;
+  if (shardEl.textContent !== String(game.shards)) shardEl.textContent = fmt(game.shards);
 
   // Passive line — based on totalShardsEarned (spending shards never reduces the bonus)
   const passiveLine = document.getElementById('prestige-passive-line');
   const totalShards = game.totalShardsEarned;
-  const mult = (1 + totalShards * 0.10).toFixed(2);
+  const mult = (1 + totalShards * 0.10).toFixed(1);
   const passiveText = `Shard bonus: ×${mult} dmg (${totalShards} total ◆)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
 
@@ -128,7 +129,7 @@ function patchPrestigeCards() {
     if (maxed) {
       setBtn(btn, 'MAXED', true, true);
     } else {
-      const label = `◆ ${cost}`;
+      const label = `◆ ${fmt(cost)}`;
       setBtn(btn, label, !afford, false);
       if (btn.dataset.pid !== entry.id) btn.dataset.pid = entry.id;
     }
@@ -142,7 +143,7 @@ function patchShopCards() {
   const { shop, game } = apex;
 
   // Currency in tab header
-  document.getElementById('currency-value').textContent = game.currency;
+  document.getElementById('currency-value').textContent = fmt(game.currency);
 
   for (const entry of shop.catalogue) {
     const card = document.querySelector(`.upgrade-card[data-upg="${entry.id}"]`);
@@ -172,12 +173,12 @@ function patchShopCards() {
     if (maxed) {
       setBtn(btn, 'MAXED', true, true);
     } else {
-      let label = `$ ${cost}`;
+      let label = `$ ${fmt(cost)}`;
       if (!afford && game.recentEarned > 0) {
         const deficit = cost - game.currency;
         const rate = game.recentEarned / 60;
         const secs = Math.min(999, Math.ceil(deficit / rate));
-        label = `$ ${cost}  ~${secs}s`;
+        label = `$ ${fmt(cost)}  ~${secs}s`;
       }
       setBtn(btn, label, !afford, false);
       if (btn.dataset.id !== entry.id) btn.dataset.id = entry.id;
@@ -214,7 +215,7 @@ function _showNextToast() {
     <div id="traitor-toast-label">traitor deserted!</div>
     <div id="traitor-toast-rarity" style="color:${color}">${pet.rarity}</div>
     <div id="traitor-toast-type">${TYPE_LABEL[pet.type] ?? pet.type}</div>
-    <div id="traitor-toast-bonus">+${Math.round(bonus * 100)}% dmg when active</div>
+    <div id="traitor-toast-bonus">${fmtPct(bonus)} dmg when active</div>
   `;
   toast.classList.remove('hidden', 'toast-show');
   // Force reflow so animation restarts cleanly
@@ -260,14 +261,13 @@ function patchTraitorPanel() {
 
   // Header bonus display
   const bonus      = ts.damageBonus();
-  const bonusPct   = Math.round(bonus * 100);
   const bonusEl    = document.getElementById('traitor-bonus-value');
-  const bonusText  = `+${bonusPct}%`;
+  const bonusText  = fmtPct(bonus);
   if (bonusEl.textContent !== bonusText) bonusEl.textContent = bonusText;
 
   // Passive line
   const passiveLine = document.getElementById('traitor-passive-line');
-  const mult         = (1 + bonus).toFixed(2);
+  const mult         = (1 + bonus).toFixed(1);
   const activeCount  = ts.activePets().length;
   const passiveText  = `Pet bonus: ×${mult} dmg  (${activeCount}/3 active)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
@@ -340,7 +340,7 @@ function patchTraitorPanel() {
     row.innerHTML = `
       <span class="rarity-badge" style="color:${color}">${rarity}</span>
       <span class="traitor-group-type">${TYPE_LABEL[type] ?? type}</span>
-      <span class="traitor-group-count" style="color:rgba(255,255,255,0.35)">+${Math.round(bonus*100)}% ×${count}</span>
+      <span class="traitor-group-count" style="color:rgba(255,255,255,0.35)">${fmtPct(bonus)} ×${count}</span>
       <button class="traitor-btn traitor-btn-assign"
         data-assign-type="${type}" data-assign-rarity="${rarity}"
         ${(noEmptySlot || unassignedInGroup.length === 0) ? 'disabled' : ''}>SLOT</button>
@@ -443,7 +443,7 @@ function wireButtons() {
     if (!apex) return;
     const { game } = apex;
     const totalAfter = game.shards + game.pendingShards;
-    const multAfter  = (1 + (game.totalShardsEarned + game.pendingShards) * 0.10).toFixed(2);
+    const multAfter  = (1 + (game.totalShardsEarned + game.pendingShards) * 0.10).toFixed(1);
     document.getElementById('ascend-confirm-sub').textContent =
       `+${game.pendingShards} ◆  →  ${totalAfter} ◆ spendable  →  ×${multAfter} shard damage`;
     document.getElementById('ascend-overlay').classList.remove('hidden');

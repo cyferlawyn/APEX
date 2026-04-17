@@ -1,4 +1,5 @@
 import { State } from './game.js';
+import { fmt, fmtPct } from './util.js';
 
 const COLORS = {
   bg:        '#0a0a12',
@@ -855,7 +856,7 @@ export class Renderer {
       const g    = Math.round(150 + 105 * fade);  // 150 → 255
       ctx.fillStyle = `rgb(0,${g},80)`;
 
-      ctx.fillText(`\u{1F9EA}${totalRemaining}`, labelX, labelY);
+      ctx.fillText(`\u{1F9EA}${fmt(totalRemaining)}`, labelX, labelY);
 
       ctx.restore();
     }
@@ -903,7 +904,7 @@ export class Renderer {
     ctx.fillStyle   = COLORS.text;
     ctx.textAlign   = 'center';
     ctx.font        = '11px monospace';
-    ctx.fillText(`${Math.ceil(t.hp)} / ${t.maxHp}`, canvas.width / 2, barY - 3);
+    ctx.fillText(`${fmt(Math.ceil(t.hp))} / ${fmt(t.maxHp)}`, canvas.width / 2, barY - 3);
 
     // Laser cooldown indicator
     if (t.laserUnlocked && !t.laserActive) {
@@ -947,7 +948,7 @@ export class Renderer {
       ctx.shadowColor = COLORS.currency;
       ctx.font        = '11px monospace';
       ctx.textAlign   = 'center';
-      ctx.fillText(`+$${p.amount}`, p.x, p.y);
+      ctx.fillText(`+$${fmt(p.amount)}`, p.x, p.y);
       ctx.restore();
       return true;
     });
@@ -998,7 +999,7 @@ export class Renderer {
 
     ctx.fillStyle = COLORS.currency;
     ctx.font      = '18px monospace';
-    ctx.fillText(`+$ ${game.lastWaveEarned} earned`, canvas.width / 2, canvas.height / 2 + 14);
+    ctx.fillText(`+$ ${fmt(game.lastWaveEarned)} earned`, canvas.width / 2, canvas.height / 2 + 14);
 
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '12px monospace';
@@ -1028,7 +1029,7 @@ export class Renderer {
 
     ctx.fillStyle = COLORS.currency;
     ctx.font      = '13px monospace';
-    ctx.fillText(`Total currency: $ ${game.currency}`, canvas.width / 2, canvas.height / 2 + 48);
+    ctx.fillText(`Total currency: $ ${fmt(game.currency)}`, canvas.width / 2, canvas.height / 2 + 48);
 
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '12px monospace';
