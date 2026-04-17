@@ -3,16 +3,18 @@ import { audio }     from './audio.js';
 
 export class WaveSpawner {
   constructor(game) {
-    this.game      = game;
-    this.queue     = [];
-    this.elapsed   = 0;
-    this.done      = true;
+    this.game         = game;
+    this.queue        = [];
+    this.elapsed      = 0;
+    this.done         = true;
+    this.totalSpawned = 0;  // total enemies spawned this wave (set at begin)
   }
 
   begin(waveNumber) {
-    this.queue   = buildWave(waveNumber);
-    this.elapsed = 0;
-    this.done    = false;
+    this.queue        = buildWave(waveNumber);
+    this.elapsed      = 0;
+    this.done         = false;
+    this.totalSpawned = this.queue.length;
   }
 
   update(dt) {

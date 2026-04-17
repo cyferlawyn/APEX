@@ -73,6 +73,9 @@ export class Tower {
     this.resurgenceHp      = 0;     // fraction of maxHp to revive at (0 = disabled)
     this.resurgenceUsed    = false; // one-time per run
 
+    // Prestige: wave rush
+    this.waveSkipThreshold = 0;     // 0 = disabled; >0 = fraction of wave that must die to skip
+
     // Visual
     this.x               = 0;
     this.y               = 0;

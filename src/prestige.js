@@ -30,15 +30,15 @@ const PRESTIGE_UPGRADES = [
     },
   },
   {
-    id: 'skipWaves',
-    name: 'Head Start',
-    tooltip: 'Run begins at a later wave, skipping the early grind.\nTier 1: wave 6  Tier 2: wave 11  Tier 3: wave 16\nTier 4: wave 21  Tier 5: wave 26',
+    id: 'waveRush',
+    name: 'Wave Rush',
+    tooltip: 'Once enough of a wave is cleared, the next wave triggers immediately.\nTier 1: 90% killed  Tier 2: 80%  Tier 3: 70%\nTier 4: 60%  Tier 5: 50% killed to advance.\nRemaining enemies are swept away — no waiting on stragglers.',
     maxTier: 5,
     baseCost: 2,
     costMult: 2.0,
     apply(tower, game, tier) {
-      const starts = [1, 6, 11, 16, 21, 26];
-      game.prestigeStartWave = starts[tier] ?? 26;
+      const thresholds = [0, 0.90, 0.80, 0.70, 0.60, 0.50];
+      tower.waveSkipThreshold = thresholds[tier];
     },
   },
   {
@@ -242,6 +242,7 @@ export class PrestigeShop {
     this.game.tower.poisonFraction      = 0;
     this.game.tower.resurgenceHp        = 0;
     this.game.tower.resurgenceUsed      = false;
+    this.game.tower.waveSkipThreshold   = 0;
     this.game.prestigeStartCurrency     = 0;
     this.game.prestigeStartWave         = 1;
     this.game.autoBuyInterval           = 0;

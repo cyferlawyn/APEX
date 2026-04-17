@@ -198,6 +198,14 @@ function update(dt) {
         onDefeated();
       } else if (game.waveSpawner.done && game.enemyPool.activeCount() === 0) {
         onWaveComplete();
+      } else if (game.waveSpawner.done && game.tower.waveSkipThreshold > 0) {
+        const total   = game.waveSpawner.totalSpawned;
+        const active  = game.enemyPool.activeCount();
+        if (total > 0 && active / total <= 1 - game.tower.waveSkipThreshold) {
+          game.enemyPool.reset();         // sweep remaining stragglers silently
+          game.projectilePool.reset();    // clean up in-flight projectiles
+          onWaveComplete();
+        }
       }
       break;
 
