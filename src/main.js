@@ -73,17 +73,11 @@ function bootstrap() {
 function beginWave(keepEnemies = false) {
   if (!keepEnemies) game.enemyPool.reset();
   game.projectilePool.reset();
-  if (game.particles) game.particles.reset();
-  game.explosions     = [];
-  game.lightningArcs  = [];
-  game.ricochetLines  = [];
-  game.deathRings     = [];
-  game.edgeFlash      = 0;
-  game.currencyPopups = [];
-  game.skullPopups       = [];
-  game.obliterateTimer   = -1;
+  // Do NOT clear particle/FX arrays — let active animations finish naturally.
+  // Mark any in-flight blastwaves as done so they don't kill new-wave enemies.
+  for (const w of game.blastwaves) w.done = true;
+  game.obliterateTimer    = -1;
   game.obliterateOverkill = 0;
-  game.blastwaves        = [];
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
   // Apply regen between waves; full heal only on wave 1 (fresh start)
   if (game.wave === 1) {
