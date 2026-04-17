@@ -32,7 +32,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'waveRush',
     name: 'Wave Rush',
-    tooltip: 'Once enough of a wave is cleared, the next wave triggers immediately.\nTier 1: 90% killed  Tier 2: 80%  Tier 3: 70%\nTier 4: 60%  Tier 5: 50% killed to advance.\nRemaining enemies are swept away — no waiting on stragglers.',
+    tooltip: 'Once enough of a wave is cleared, the next wave triggers immediately.\nTier 1: 90% killed  Tier 2: 80%  Tier 3: 70%\nTier 4: 60%  Tier 5: 50% killed to advance.\nStragglers roll over into the next wave.',
     maxTier: 5,
     baseCost: 2,
     costMult: 2.0,
