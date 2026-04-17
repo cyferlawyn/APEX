@@ -175,13 +175,15 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
 
   e.hp -= dmg;
 
-  // Obliterate — 10× overkill from a direct projectile hit arms the countdown
+  // Obliterate — trigger when normalized shot damage is 10× a drone's HP at this wave
   if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
-      game.obliterateTimer < 0 && dmg >= e.maxHp * 10) {
+      game.obliterateTimer < 0) {
     const baseline = droneHp(game.wave);
     const normShot = normalizedShotDamage(game.tower, game);
-    game.obliterateTimer    = game.tower.obliterateDelay;
-    game.obliterateOverkill = Math.floor(normShot / baseline);
+    if (normShot >= baseline * 10) {
+      game.obliterateTimer    = game.tower.obliterateDelay;
+      game.obliterateOverkill = Math.floor(normShot / baseline);
+    }
   }
 
   // Poison DoT — stacks additively per hit, duration refreshes each time
