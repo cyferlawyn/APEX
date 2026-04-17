@@ -203,7 +203,14 @@ function update(dt) {
         game.obliterateTimer -= dt;
         if (game.obliterateTimer <= 0) {
           game.obliterateTimer = -1;
-          // Emit the blastwave from the tower — it will kill enemies on contact
+          // Kill off-screen enemies instantly — the blastwave won't reach them
+          for (const e of game.enemyPool.pool) {
+            if (!e.active) continue;
+            if (e.x < 0 || e.x > canvas.width || e.y < 0 || e.y > canvas.height) {
+              killEnemy(e, game);
+            }
+          }
+          // Emit the blastwave from the tower — it will kill on-screen enemies on contact
           const tx = game.tower.x, ty = game.tower.y;
           // maxR: distance from tower to the farthest canvas corner
           const maxR = Math.sqrt(
