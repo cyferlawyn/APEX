@@ -187,7 +187,7 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
     e.hp = 0;
 
     if (wasExecuted) {
-      game.skullPopups.push({ x: e.x, y: e.y, t: 1.0 });
+      game.skullPopups.push({ x: e.x, y: e.y - e.radius - 8, t: 1.0 });
     }
 
     // Bomber detonates on death

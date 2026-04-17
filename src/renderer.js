@@ -953,21 +953,27 @@ export class Renderer {
       return true;
     });
 
-    // Skull popups — execute kills float a skull emoji upward and fade
+    // Skull popups — execute kills float a skull upward and fade
     game.skullPopups = game.skullPopups.filter(p => {
       p.t -= DT;
       if (p.t <= 0) return false;
-      p.y -= 28 * DT;  // float upward, slower than currency
-      const alpha = p.t > 0.3 ? 1 : p.t / 0.3;  // fade out over last 0.3s
+      p.y -= 32 * DT;  // float upward
+      const alpha = p.t > 0.5 ? 1 : p.t / 0.5;  // full opacity for 0.5s, then fade over 0.5s
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.font        = '16px monospace';
-      ctx.textAlign   = 'center';
+      ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
+      // Draw a bold "X" marker in red as the base so it always renders
+      ctx.font      = 'bold 20px monospace';
+      ctx.fillStyle = '#ff1744';
       if (game.quality === 'high') {
-        ctx.shadowBlur  = 8;
+        ctx.shadowBlur  = 12;
         ctx.shadowColor = '#ff1744';
       }
+      ctx.fillText('✕', p.x, p.y + 1);
+      // Overlay the skull emoji at a larger size
+      ctx.shadowBlur = 0;
+      ctx.font = '22px sans-serif';
       ctx.fillText('💀', p.x, p.y);
       ctx.restore();
       return true;
