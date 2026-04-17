@@ -1076,24 +1076,26 @@ export class Renderer {
     // Fade out during the last 0.5s of the timer
     const alpha = Math.min(1, game.resultsTimer / 0.5);
 
+    // Anchor just below the HP bar, well above the tower
+    const anchorY = 42;
+
     ctx.save();
     ctx.globalAlpha = alpha;
+    ctx.textAlign   = 'center';
 
-    ctx.fillStyle = COLORS.dim;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.textAlign = 'center';
     ctx.fillStyle = '#00e676';
-    ctx.font      = 'bold 28px monospace';
-    ctx.fillText(`Wave ${game.lastWave} complete!`, canvas.width / 2, canvas.height / 2 - 20);
+    ctx.font      = 'bold 20px monospace';
+    if (game.quality === 'high') { ctx.shadowBlur = 10; ctx.shadowColor = '#00e676'; }
+    ctx.fillText(`Wave ${game.lastWave} complete!`, canvas.width / 2, anchorY);
 
-    ctx.fillStyle = COLORS.currency;
-    ctx.font      = '18px monospace';
-    ctx.fillText(`+$ ${fmt(game.lastWaveEarned)} earned`, canvas.width / 2, canvas.height / 2 + 14);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle  = COLORS.currency;
+    ctx.font       = '15px monospace';
+    ctx.fillText(`+$ ${fmt(game.lastWaveEarned)} earned`, canvas.width / 2, anchorY + 22);
 
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font      = '12px monospace';
-    ctx.fillText('next wave incoming...', canvas.width / 2, canvas.height / 2 + 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font      = '11px monospace';
+    ctx.fillText('next wave incoming...', canvas.width / 2, anchorY + 40);
 
     ctx.restore();
   }
