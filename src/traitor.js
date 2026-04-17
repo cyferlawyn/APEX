@@ -2,23 +2,39 @@
 // Defeated enemies have a small chance to desert and join the player.
 // Active pets provide a stacking additive damage bonus multiplied into total DPS.
 
-export const RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+// First 5 are obtainable by capture roll; last 5 are merge-only.
+export const RARITIES = [
+  'common', 'uncommon', 'rare', 'epic', 'legendary',
+  'mythic', 'divine', 'celestial', 'transcendent', 'apex',
+];
+
+export const MERGE_ONLY_RARITIES = new Set(['mythic', 'divine', 'celestial', 'transcendent', 'apex']);
 
 export const RARITY_COLOR = {
-  common:    '#9e9e9e',
-  uncommon:  '#4caf50',
-  rare:      '#2196f3',
-  epic:      '#ab47bc',
-  legendary: '#ff9800',
+  common:       '#9e9e9e',
+  uncommon:     '#4caf50',
+  rare:         '#2196f3',
+  epic:         '#ab47bc',
+  legendary:    '#ff9800',
+  mythic:       '#ff1744',   // merge-only
+  divine:       '#00e5ff',   // merge-only
+  celestial:    '#d4e157',   // merge-only
+  transcendent: '#ea80fc',   // merge-only
+  apex:         '#ffffff',   // merge-only — ultimate
 };
 
 // Additive bonus to damage when this pet is in an active slot (base, before type multiplier)
 export const RARITY_BONUS = {
-  common:    0.05,
-  uncommon:  0.12,
-  rare:      0.25,
-  epic:      0.50,
-  legendary: 1.00,
+  common:       0.05,   //   5%
+  uncommon:     0.12,   //  12%
+  rare:         0.25,   //  25%
+  epic:         0.50,   //  50%
+  legendary:    1.00,   // 100%
+  mythic:       2.00,   // 200% — merge-only
+  divine:       4.50,   // 450% — merge-only
+  celestial:   10.00,   // 1000% — merge-only
+  transcendent: 22.00,  // 2200% — merge-only
+  apex:         50.00,  // 5000% — merge-only
 };
 
 // Per-type multiplier applied on top of rarity bonus.
@@ -36,7 +52,7 @@ export const TYPE_BONUS_MULT = {
   BOSS:     2.5,
 };
 
-// Weighted rarity roll — weights sum to 100 (index matches RARITIES order)
+// Weighted rarity roll — weights sum to 100 (natural rarities only; merge-only tiers excluded)
 const RARITY_WEIGHTS = [60, 25, 10, 4, 1];
 
 // Capture chance scales from 0.01% at wave 1 to 0.1% at wave 100+
@@ -89,7 +105,7 @@ export class TraitorSystem {
 
   canMerge(type, rarity) {
     const ridx = RARITIES.indexOf(rarity);
-    if (ridx < 0 || ridx >= RARITIES.length - 1) return false; // legendary can't merge up
+    if (ridx < 0 || ridx >= RARITIES.length - 1) return false; // apex can't merge further
     return (this.groupCounts()[`${type}|${rarity}`] ?? 0) >= MERGE_COUNT;
   }
 
