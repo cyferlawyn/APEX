@@ -177,7 +177,12 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
   // Obliterate — 10× overkill from a direct projectile hit arms the countdown
   if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
       game.obliterateTimer < 0 && dmg >= e.maxHp * 10) {
-    game.obliterateTimer = game.tower.obliterateDelay;
+    game.obliterateTimer   = game.tower.obliterateDelay;
+    game.obliterateOverkill = Math.floor(dmg / e.maxHp);
+    // Emit a rapid blastwave ring from the tower
+    const tx = game.tower.x, ty = game.tower.y;
+    const maxR = Math.sqrt(tx * tx + ty * ty) * 2.2; // big enough to cross screen
+    game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4, maxR, t: 1.0, life: 1.0 });
   }
 
   // Poison DoT — stacks additively per hit, duration refreshes each time

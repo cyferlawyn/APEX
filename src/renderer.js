@@ -64,6 +64,7 @@ export class Renderer {
     this._drawRicochetLines();
     this._drawLaser();
     this._drawTower();
+    this._drawBlastwaves();
     this._drawPoisonIndicators();
     if (game.particles) game.particles.draw(ctx, game.quality);
     this._drawEdgeFlash();
@@ -818,6 +819,63 @@ export class Renderer {
     }
   }
 
+  // ── Obliterate blastwaves ─────────────────────────────────────────────────────
+
+  _drawBlastwaves() {
+    const { ctx, game } = this;
+    if (!game.blastwaves?.length) return;
+    const noGlow = game.quality === 'low';
+
+    game.blastwaves = game.blastwaves.filter(w => {
+      w.t -= 1 / 60;
+      if (w.t <= 0) return false;
+
+      // Speed: expand fast — reaches maxR in ~0.35s
+      const progress = 1 - w.t / w.life;           // 0→1 over lifetime
+      const ease     = 1 - Math.pow(1 - progress, 2); // ease-out quad
+      w.r = w.r + (w.maxR - w.r) * (1 / 60) / 0.35;  // raw expansion
+
+      const alpha = w.t / w.life;  // fade from 1 → 0
+
+      ctx.save();
+
+      // Outer diffuse halo
+      if (!noGlow) {
+        ctx.globalAlpha = alpha * 0.25;
+        ctx.strokeStyle = '#ff6d00';
+        ctx.lineWidth   = 18;
+        ctx.shadowBlur  = 30;
+        ctx.shadowColor = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Mid ring
+      ctx.globalAlpha = alpha * 0.65;
+      ctx.strokeStyle = '#ff3d00';
+      ctx.lineWidth   = noGlow ? 4 : 6;
+      ctx.shadowBlur  = noGlow ? 0 : 20;
+      ctx.shadowColor = '#ff1744';
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Bright inner core ring
+      ctx.globalAlpha = alpha * 0.9;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth   = noGlow ? 1.5 : 2;
+      ctx.shadowBlur  = noGlow ? 0 : 10;
+      ctx.shadowColor = '#ff6d00';
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+      return w.r < w.maxR;
+    });
+  }
+
   // ── Poison indicators ─────────────────────────────────────────────────────────
 
   _drawPoisonIndicators() {
@@ -890,15 +948,30 @@ export class Renderer {
     // Obliterate countdown
     if (game.obliterateTimer > 0) {
       const secs  = Math.ceil(game.obliterateTimer);
-      const pulse = 0.75 + 0.25 * Math.abs(Math.sin(game.obliterateTimer * Math.PI));
+      const beat  = Math.abs(Math.sin(game.obliterateTimer * Math.PI * 2));
+      const scale = 1 + 0.08 * beat;
+      const overkillLabel = game.obliterateOverkill > 0
+        ? `${fmt(game.obliterateOverkill)}× OVERKILL!`
+        : 'OVERKILL!';
+
       ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2 - 52);
+      ctx.scale(scale, scale);
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
-      ctx.globalAlpha  = pulse;
-      ctx.font         = 'bold 22px monospace';
-      ctx.fillStyle    = '#ff1744';
-      if (game.quality === 'high') { ctx.shadowBlur = 18; ctx.shadowColor = '#ff1744'; }
-      ctx.fillText(`OBLITERATE IN ${secs}...`, canvas.width / 2, canvas.height / 2 - 60);
+
+      // Overkill label — white with red glow
+      ctx.font      = 'bold 18px monospace';
+      ctx.fillStyle = '#ffffff';
+      if (game.quality !== 'low') { ctx.shadowBlur = 22; ctx.shadowColor = '#ff1744'; }
+      ctx.fillText(overkillLabel, 0, -22);
+
+      // Countdown line — large red
+      ctx.font      = 'bold 28px monospace';
+      ctx.fillStyle = '#ff1744';
+      ctx.shadowBlur = game.quality !== 'low' ? 28 : 0;
+      ctx.fillText(`OBLITERATE IN ${secs}`, 0, 10);
+
       ctx.restore();
     }
 

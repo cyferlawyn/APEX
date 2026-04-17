@@ -80,8 +80,10 @@ function beginWave(keepEnemies = false) {
   game.deathRings     = [];
   game.edgeFlash      = 0;
   game.currencyPopups = [];
-  game.skullPopups    = [];
-  game.obliterateTimer = -1;
+  game.skullPopups       = [];
+  game.obliterateTimer   = -1;
+  game.obliterateOverkill = 0;
+  game.blastwaves        = [];
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
   // Apply regen between waves; full heal only on wave 1 (fresh start)
   if (game.wave === 1) {
