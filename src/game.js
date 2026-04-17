@@ -32,6 +32,7 @@ export class Game {
     this.edgeFlash     = 0;  // seconds remaining for boss screen-edge flash
     this.currencyPopups = []; // { amount, x, y, t } — +$N floaters above killed enemies
     this.skullPopups    = []; // { x, y, t } — skull floaters on execute kills
+    this.obliterateTimer = -1; // countdown in seconds; -1 = inactive
 
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;

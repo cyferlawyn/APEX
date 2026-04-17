@@ -887,6 +887,21 @@ export class Renderer {
     ctx.fillStyle = cleared >= 1 ? '#00e676' : '#00bcd4';
     ctx.fillRect(pbX, pbY, pbW * cleared, pbH);
 
+    // Obliterate countdown
+    if (game.obliterateTimer > 0) {
+      const secs  = Math.ceil(game.obliterateTimer);
+      const pulse = 0.75 + 0.25 * Math.abs(Math.sin(game.obliterateTimer * Math.PI));
+      ctx.save();
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha  = pulse;
+      ctx.font         = 'bold 22px monospace';
+      ctx.fillStyle    = '#ff1744';
+      if (game.quality === 'high') { ctx.shadowBlur = 18; ctx.shadowColor = '#ff1744'; }
+      ctx.fillText(`OBLITERATE IN ${secs}...`, canvas.width / 2, canvas.height / 2 - 60);
+      ctx.restore();
+    }
+
     // HP bar
     const barW  = 200;
     const barH  = 12;

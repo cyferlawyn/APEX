@@ -174,6 +174,12 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
 
   e.hp -= dmg;
 
+  // Obliterate — 10× overkill from a direct projectile hit arms the countdown
+  if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
+      game.obliterateTimer < 0 && dmg >= e.maxHp * 10) {
+    game.obliterateTimer = game.tower.obliterateDelay;
+  }
+
   // Poison DoT — stacks additively per hit, duration refreshes each time
   if (source === 'projectile' && game.tower.poisonFraction > 0) {
     const dotDmg  = dmg * game.tower.poisonFraction;
@@ -362,5 +368,18 @@ export class ProjectilePool {
 
   reset() {
     for (const p of this.pool) p.active = false;
+  }
+}
+
+// Kill every active enemy in the pool and award full kill rewards.
+// Called from main.js when the obliterate countdown expires.
+export function obliterateWave(game) {
+  for (const e of game.enemyPool.pool) {
+    if (!e.active) continue;
+    e.hp = 0;
+    e.active = false;
+    e.poisonDps   = 0;
+    e.poisonTimer = 0;
+    _awardKill(e, game);
   }
 }

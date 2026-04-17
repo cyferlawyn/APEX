@@ -1,7 +1,7 @@
 import { Game, State }    from './game.js';
 import { Tower }           from './tower.js';
 import { EnemyPool }       from './enemy.js';
-import { ProjectilePool }  from './projectile.js';
+import { ProjectilePool, obliterateWave }  from './projectile.js';
 import { WaveSpawner }     from './wave.js';
 import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
@@ -80,6 +80,8 @@ function beginWave(keepEnemies = false) {
   game.deathRings     = [];
   game.edgeFlash      = 0;
   game.currencyPopups = [];
+  game.skullPopups    = [];
+  game.obliterateTimer = -1;
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
   // Apply regen between waves; full heal only on wave 1 (fresh start)
   if (game.wave === 1) {
@@ -194,8 +196,16 @@ function update(dt) {
       game.tickEarnLog(dt);
       tickAutoBuy(dt);
 
-      if (game.tower.hp <= 0) {
-        game.tower.hp = 0;
+      // Obliterate countdown
+      if (game.obliterateTimer > 0) {
+        game.obliterateTimer -= dt;
+        if (game.obliterateTimer <= 0) {
+          game.obliterateTimer = -1;
+          obliterateWave(game);
+        }
+      }
+
+      if (game.tower.hp <= 0) {        game.tower.hp = 0;
         onDefeated();
       } else if (game.enemyPool.activeCount() === 0) {
         onWaveComplete();

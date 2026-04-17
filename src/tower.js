@@ -76,6 +76,9 @@ export class Tower {
     // Prestige: wave rush
     this.waveSkipThreshold = 0;     // 0 = disabled; >0 = fraction of wave that must die to skip
 
+    // Prestige: obliterate
+    this.obliterateDelay   = 0;     // seconds countdown after 10× overkill (0 = disabled)
+
     // Visual
     this.x               = 0;
     this.y               = 0;

@@ -3,6 +3,18 @@
 // The PrestigeShop interface mirrors Shop so ui.js can drive both identically.
 
 const PRESTIGE_UPGRADES = [
+  {
+    id: 'obliterate',
+    name: 'Obliterate',
+    tooltip: 'When a direct shot overkills an enemy by 10× its max HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s  Tier 4: 2 s  Tier 5: 1 s countdown.',
+    maxTier: 5,
+    baseCost: 40,
+    costMult: 3.0,
+    apply(tower, game, tier) {
+      tower.obliterateDelay = [0, 5, 4, 3, 2, 1][tier];
+    },
+  },
+
   // ── Quality of Life ──────────────────────────────────────────────────────
   {
     id: 'autoBuy',
@@ -243,6 +255,7 @@ export class PrestigeShop {
     this.game.tower.resurgenceHp        = 0;
     this.game.tower.resurgenceUsed      = false;
     this.game.tower.waveSkipThreshold   = 0;
+    this.game.tower.obliterateDelay     = 0;
     this.game.prestigeStartCurrency     = 0;
     this.game.prestigeStartWave         = 1;
     this.game.autoBuyInterval           = 0;
