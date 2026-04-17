@@ -107,8 +107,58 @@ export class ParticleSystem {
     }
   }
 
-  emitTowerHit(x, y) {
-    const count = 10;
+  // Obliterate kill — fiery burst at the kill site + long-lived afterglow embers
+  emitObliterateKill(x, y, enemyColor) {
+    const BURST_COLORS  = ['#ff6d00', '#ff1744', '#ffffff', '#ffd600', '#ff3d00'];
+    const EMBER_COLORS  = ['#ff6d00', '#ff3d00', '#ff1744', '#ff9100', '#ffab40'];
+
+    // Fast burst: ring of fire sparks
+    const burstCount = 18;
+    for (let i = 0; i < burstCount; i++) {
+      const angle = (Math.PI * 2 / burstCount) * i + (Math.random() - 0.5) * 0.5;
+      const speed = 90 + Math.random() * 160;
+      const color = Math.random() < 0.25 ? '#ffffff'
+                  : BURST_COLORS[Math.floor(Math.random() * BURST_COLORS.length)];
+      this._emit(x, y,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed,
+        0.3 + Math.random() * 0.3,
+        1.5 + Math.random() * 2,
+        color
+      );
+    }
+
+    // Afterglow embers: slow, hot, linger a long time
+    const emberCount = 12;
+    for (let i = 0; i < emberCount; i++) {
+      const angle  = Math.random() * Math.PI * 2;
+      const speed  = 8 + Math.random() * 35;
+      const rise   = -(20 + Math.random() * 50);  // drift upward
+      const color  = EMBER_COLORS[Math.floor(Math.random() * EMBER_COLORS.length)];
+      this._emit(x + (Math.random() - 0.5) * 20,
+                 y + (Math.random() - 0.5) * 20,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed + rise,
+        1.2 + Math.random() * 1.2,
+        2.5 + Math.random() * 3.5,
+        color
+      );
+    }
+
+    // One or two large hot cores at the kill point
+    for (let i = 0; i < 2; i++) {
+      this._emit(x + (Math.random() - 0.5) * 8,
+                 y + (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 20,
+        -(15 + Math.random() * 30),
+        0.8 + Math.random() * 0.6,
+        5 + Math.random() * 4,
+        i === 0 ? '#ffffff' : '#ffab40'
+      );
+    }
+  }
+
+  emitTowerHit(x, y) {    const count = 10;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 50 + Math.random() * 100;

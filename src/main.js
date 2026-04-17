@@ -224,7 +224,13 @@ function update(dt) {
         for (const e of game.enemyPool.pool) {
           if (!e.active) continue;
           const dx = e.x - w.x, dy = e.y - w.y;
-          if (dx * dx + dy * dy <= r2) killEnemy(e, game);
+          if (dx * dx + dy * dy <= r2) {
+            const ex = e.x, ey = e.y, ec = e.color; // snapshot before deactivate
+            killEnemy(e, game);
+            if (game.particles && game.quality !== 'low') {
+              game.particles.emitObliterateKill(ex, ey, ec);
+            }
+          }
         }
         if (w.r >= w.maxR) {
           w.done = true;
