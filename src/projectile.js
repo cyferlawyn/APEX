@@ -152,9 +152,10 @@ export class Projectile {
       _chainFrom(this.x, this.y, target, this.chainDamage, this.chainJumps, game);
     }
 
-    // Ricochet
+    // Ricochet — instant hit like chain lightning, gold tracer visual
     if (this.ricochetCount > 0) {
-      _ricochetFrom(this.x, this.y, target, this.damage * 0.75, this, game);
+      _ricochetFrom(this.x, this.y, target, this.damage * 0.75, this.ricochetCount,
+        this.explosiveRadius, this.chainJumps, this.executeThreshold, game);
     }
   }
 }
@@ -260,7 +261,7 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   }
 }
 
-function _ricochetFrom(x, y, lastHit, damage, srcProj, game) {
+function _ricochetFrom(x, y, lastHit, damage, bouncesLeft, explosiveRadius, chainJumps, executeThreshold, game) {
   const RICOCHET_RANGE = 300;
   const r2 = RICOCHET_RANGE * RICOCHET_RANGE;
 
@@ -273,14 +274,34 @@ function _ricochetFrom(x, y, lastHit, damage, srcProj, game) {
   }
   if (!best) return;
 
-  const dx   = best.x - x;
-  const dy   = best.y - y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  const spd  = game.tower.projectileSpeed;
-  const p    = game.projectilePool.acquire();
-  if (p) p.init(x, y, (dx / dist) * spd, (dy / dist) * spd,
-    damage, srcProj.explosiveRadius, srcProj.chainJumps, srcProj.executeThreshold,
-    srcProj.ricochetCount - 1);
+  // Tracer line — gold to distinguish from chain lightning (purple)
+  game.lightningArcs.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.25, color: '#ffd740' });
+  if (game.particles && game.quality !== 'low') game.particles.emitHit(best.x, best.y, '#ffd740');
+
+  _damageEnemy(best, damage, game, executeThreshold, 'projectile');
+
+  // Explosive splash on ricochet hit
+  if (explosiveRadius > 0) {
+    const er2 = explosiveRadius * explosiveRadius;
+    for (const e of game.enemyPool.pool) {
+      if (!e.active || e === best) continue;
+      const dx = best.x - e.x, dy = best.y - e.y;
+      if (dx * dx + dy * dy <= er2) {
+        _damageEnemy(e, damage * game.tower.splashMult, game, 0, 'projectile');
+      }
+    }
+    game.explosions.push({ x: best.x, y: best.y, r: explosiveRadius, t: 0.35, life: 0.35 });
+  }
+
+  // Chain lightning on ricochet hit
+  if (chainJumps > 0) {
+    _chainFrom(best.x, best.y, best, damage * 0.6, chainJumps, game);
+  }
+
+  // Further bounces
+  if (bouncesLeft > 1) {
+    _ricochetFrom(best.x, best.y, best, damage * 0.75, bouncesLeft - 1, explosiveRadius, chainJumps, executeThreshold, game);
+  }
 }
 
 // ── pool ─────────────────────────────────────────────────────────────────────

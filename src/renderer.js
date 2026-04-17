@@ -466,12 +466,13 @@ export class Renderer {
       pts.push({ x: arc.x2, y: arc.y2 });
 
       // Pass 1 — wide outer glow (skipped on medium)
+      const arcColor = arc.color ?? COLORS.chain;
       if (!noGlow) {
         ctx.save();
         ctx.globalAlpha = alpha * 0.4;
-        ctx.strokeStyle = COLORS.chain;
+        ctx.strokeStyle = arcColor;
         ctx.shadowBlur  = 20;
-        ctx.shadowColor = COLORS.chain;
+        ctx.shadowColor = arcColor;
         ctx.lineWidth   = 6;
         ctx.lineJoin    = 'round';
         ctx.beginPath();
@@ -484,7 +485,7 @@ export class Renderer {
       ctx.save();
       // Pass 2 — colored mid stroke
       ctx.globalAlpha = alpha * 0.9;
-      ctx.strokeStyle = COLORS.chain;
+      ctx.strokeStyle = arcColor;
       ctx.shadowBlur  = noGlow ? 0 : 10;
       ctx.lineWidth   = 2.5;
       ctx.lineJoin    = 'round';
