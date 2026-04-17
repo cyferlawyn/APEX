@@ -10,6 +10,7 @@ export class Game {
     this.currency           = 0;
     this.currencyMultiplier = 1.0;
     this.waveEarned         = 0;  // display accumulator only — not banked at end
+    this.waveKills          = 0;  // enemies killed this wave (cleared % and wave rush)
     this.lastWave           = 0;
     this.lastWaveEarned     = 0;
     this.bestWave           = 1;

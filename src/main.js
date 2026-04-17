@@ -97,6 +97,7 @@ function beginWave() {
   game.tower.overchargeCounter = 0;
   game.waveSpawner.begin(game.wave);
   game.waveEarned = 0;
+  game.waveKills  = 0;
   game.transition(State.COMBAT);
 }
 
@@ -198,10 +199,9 @@ function update(dt) {
         onDefeated();
       } else if (game.waveSpawner.done && game.enemyPool.activeCount() === 0) {
         onWaveComplete();
-      } else if (game.waveSpawner.done && game.tower.waveSkipThreshold > 0) {
-        const total   = game.waveSpawner.totalSpawned;
-        const active  = game.enemyPool.activeCount();
-        if (total > 0 && active / total <= 1 - game.tower.waveSkipThreshold) {
+      } else if (game.tower.waveSkipThreshold > 0) {
+        const total = game.waveSpawner.totalSpawned;
+        if (total > 0 && game.waveKills / total >= game.tower.waveSkipThreshold) {
           onWaveComplete();
         }
       }

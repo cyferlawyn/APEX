@@ -198,6 +198,7 @@ function _awardKill(e, game) {
   const earned = Math.floor(e.reward * game.currencyMultiplier);
   game.currency   += earned;
   game.waveEarned += earned;
+  game.waveKills  += 1;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
   // Leech: restore HP on kill

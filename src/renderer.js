@@ -763,8 +763,7 @@ export class Renderer {
     // Enemy count remaining
     const remaining = game.enemyPool ? game.enemyPool.activeCount() : 0;
     const total     = game.waveSpawner ? game.waveSpawner.totalSpawned : 0;
-    const killed    = total > 0 ? Math.min(total - remaining, total) : 0;
-    const pct       = total > 0 ? Math.round((killed / total) * 100) : 0;
+    const pct       = total > 0 ? Math.min(100, Math.round((game.waveKills / total) * 100)) : 0;
     const enemyLine = total > 0 ? `enemies: ${remaining}  (${pct}% cleared)` : `enemies: ${remaining}`;
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     ctx.font      = '11px monospace';
