@@ -388,7 +388,11 @@ function _towerKillEnemy(e, game) {
 // base damage (incl. Damage upgrade), shard multiplier, traitor bonus,
 // and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
 export function normalizedShotDamage(tower, game) {
-  const dmgMult   = game.shardDmgMult() * game.traitorDmgMult();
-  const critFactor = 1 + tower.critChance * (tower.critMult - 1);
-  return tower.damage * dmgMult * critFactor;
+  const dmgMult        = game.shardDmgMult() * game.traitorDmgMult();
+  const critFactor     = 1 + tower.critChance * (tower.critMult - 1);
+  // Overcharge: every N-th shot is ×4; expected factor = (N−1 + 4) / N = 1 + 3/N
+  const overchargeFactor = tower.overchargeN > 0 ? 1 + 3 / tower.overchargeN : 1;
+  // Execute: skips the last `threshold` fraction of every enemy's HP
+  const executeFactor  = tower.executeThreshold > 0 ? 1 / (1 - tower.executeThreshold) : 1;
+  return tower.damage * dmgMult * critFactor * overchargeFactor * executeFactor;
 }
