@@ -162,10 +162,11 @@ function tickAutoBuy(dt) {
   if (interval > 0) {
     game.autoBuyTimer = (game.autoBuyTimer ?? 0) + dt;
     if (game.autoBuyTimer < interval) return;
-    game.autoBuyTimer -= interval;
+    // Do NOT reset the timer yet — only reset on a successful purchase so that
+    // if nothing is affordable we keep retrying each frame until currency allows it.
   }
 
-  // Find cheapest non-maxed, affordable shop upgrade
+  // Find cheapest non-maxed shop upgrade
   let bestId   = null;
   let bestCost = Infinity;
   for (const entry of shop.catalogue) {
@@ -175,6 +176,7 @@ function tickAutoBuy(dt) {
   }
   if (bestId !== null && shop.canAfford(bestId)) {
     shop.purchase(bestId);
+    game.autoBuyTimer = 0;  // restart interval only after a successful purchase
   }
 }
 
