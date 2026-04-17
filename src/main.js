@@ -70,8 +70,8 @@ function bootstrap() {
   beginWave();
 }
 
-function beginWave() {
-  game.enemyPool.reset();
+function beginWave(keepEnemies = false) {
+  if (!keepEnemies) game.enemyPool.reset();
   game.projectilePool.reset();
   if (game.particles) game.particles.reset();
   game.explosions     = [];
@@ -201,7 +201,7 @@ function update(dt) {
       } else if (game.tower.waveSkipThreshold > 0 && game.wave % 10 !== 0) {
         const total = game.waveSpawner.totalSpawned;
         if (total > 0 && game.waveKills / total >= game.tower.waveSkipThreshold) {
-          onWaveComplete();
+          onWaveComplete(true);  // keepEnemies — rollovers carry into next wave
         }
       }
       break;
@@ -214,7 +214,7 @@ function update(dt) {
   }
 }
 
-function onWaveComplete() {
+function onWaveComplete(keepEnemies = false) {
   game.lastWaveEarned = game.waveEarned; // display value only — already credited live
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
@@ -227,7 +227,7 @@ function onWaveComplete() {
 
   // Show results overlay but start next wave immediately
   game.resultsTimer = game.RESULTS_DURATION;
-  beginWave();
+  beginWave(keepEnemies);
 }
 
 function onDefeated() {
