@@ -202,8 +202,6 @@ function update(dt) {
         const total   = game.waveSpawner.totalSpawned;
         const active  = game.enemyPool.activeCount();
         if (total > 0 && active / total <= 1 - game.tower.waveSkipThreshold) {
-          game.enemyPool.reset();         // sweep remaining stragglers silently
-          game.projectilePool.reset();    // clean up in-flight projectiles
           onWaveComplete();
         }
       }
