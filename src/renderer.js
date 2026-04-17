@@ -1077,7 +1077,7 @@ export class Renderer {
     const alpha = Math.min(1, game.resultsTimer / 0.5);
 
     // Anchor just below the HP bar, well above the tower
-    const anchorY = 42;
+    const anchorY = 72;
 
     ctx.save();
     ctx.globalAlpha = alpha;
