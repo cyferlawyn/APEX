@@ -155,6 +155,29 @@ function loop(timestamp) {
   requestAnimationFrame(loop);
 }
 
+function tickAutoBuy(dt) {
+  const interval = game.autoBuyInterval ?? 0;
+  if (interval === 0 && (game.prestigeUpgrades?.autoBuy ?? 0) === 0) return;
+
+  if (interval > 0) {
+    game.autoBuyTimer = (game.autoBuyTimer ?? 0) + dt;
+    if (game.autoBuyTimer < interval) return;
+    game.autoBuyTimer -= interval;
+  }
+
+  // Find cheapest non-maxed, affordable shop upgrade
+  let bestId   = null;
+  let bestCost = Infinity;
+  for (const entry of shop.catalogue) {
+    if (shop.isMaxed(entry.id)) continue;
+    const c = shop.cost(entry.id);
+    if (c < bestCost) { bestCost = c; bestId = entry.id; }
+  }
+  if (bestId !== null && shop.canAfford(bestId)) {
+    shop.purchase(bestId);
+  }
+}
+
 function update(dt) {
   switch (game.state) {
     case State.COMBAT:
@@ -166,6 +189,7 @@ function update(dt) {
       if (game.particles) game.particles.update(dt);
       if (game.resultsTimer > 0) game.resultsTimer -= dt;
       game.tickEarnLog(dt);
+      tickAutoBuy(dt);
 
       if (game.tower.hp <= 0) {
         game.tower.hp = 0;

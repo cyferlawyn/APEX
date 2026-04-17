@@ -58,6 +58,10 @@ export class Game {
     this.prestigeUpgrades   = {};
     this.ascensionCount     = 0;
 
+    // ── Auto-Buyer (prestige upgrade) ───────────────────────────────────────
+    this.autoBuyInterval    = 0;  // seconds between auto-purchases; 0 = disabled
+    this.autoBuyTimer       = 0;
+
     // ── Traitor (pet) system ────────────────────────────────────────────────
     this.traitorSystem              = null; // set in main.js bootstrap
     this.pendingTraitorAnnouncements = [];  // [{ type, rarity }] drained by ui.js

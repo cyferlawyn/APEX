@@ -5,6 +5,18 @@
 const PRESTIGE_UPGRADES = [
   // ── Quality of Life ──────────────────────────────────────────────────────
   {
+    id: 'autoBuy',
+    name: 'Auto-Buyer',
+    tooltip: 'Automatically purchases the cheapest available upgrade every N seconds.\nTier 1: 30 s  Tier 2: 24 s  Tier 3: 18 s\nTier 4: 12 s  Tier 5: 6 s  Tier 6: instant (every tick)',
+    maxTier: 6,
+    baseCost: 1,
+    costMult: 3.0,
+    apply(tower, game, tier) {
+      const intervals = [0, 30, 24, 18, 12, 6, 0];
+      game.autoBuyInterval = intervals[tier] ?? 0;
+    },
+  },
+  {
     id: 'startCurrency',
     name: 'War Chest',
     tooltip: 'Start each run with bonus currency.\nTier 1: +500  Tier 2: +1 000  Tier 3: +2 000\nTier 4: +4 000  Tier 5: +8 000',
@@ -169,6 +181,8 @@ export class PrestigeShop {
     this.game.tower.invulnTimer         = 0;
     this.game.prestigeStartCurrency     = 0;
     this.game.prestigeStartWave         = 1;
+    this.game.autoBuyInterval           = 0;
+    this.game.autoBuyTimer              = 0;
 
     for (const entry of this.catalogue) {
       const tiers = prestigeUpgrades[entry.id] ?? 0;
