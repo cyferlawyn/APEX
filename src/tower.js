@@ -63,6 +63,16 @@ export class Tower {
     this.ringDpsMult       = 1.0;   // Ring of Annihilation DPS multiplier
     this.laserDpsMult      = 1.0;   // Apocalypse Laser DPS multiplier
 
+    // Prestige: ricochet
+    this.ricochetCount     = 0;     // extra bounce targets per shot
+
+    // Prestige: poison
+    this.poisonFraction    = 0;     // DoT = fraction of hit damage over 3 s (0 = disabled)
+
+    // Prestige: resurgence
+    this.resurgenceHp      = 0;     // fraction of maxHp to revive at (0 = disabled)
+    this.resurgenceUsed    = false; // one-time per run
+
     // Visual
     this.x               = 0;
     this.y               = 0;
@@ -86,6 +96,17 @@ export class Tower {
     }
 
     this.hp       -= amount;
+
+    // Resurgence: one-time death prevention
+    if (this.hp <= 0 && this.resurgenceHp > 0 && !this.resurgenceUsed) {
+      this.resurgenceUsed = true;
+      this.hp             = Math.ceil(this.maxHp * this.resurgenceHp);
+      this.invulnTimer    = 2.0;  // brief invulnerability after revival
+      this.hitFlash       = 0.5;
+      audio.towerHit();
+      if (game && game.particles && game.quality !== 'low') game.particles.emitTowerHit(this.x, this.y);
+      return;
+    }
     this.hitFlash  = 0.12;
     audio.towerHit();
     if (game && game.particles && game.quality !== 'low') game.particles.emitTowerHit(this.x, this.y);
@@ -152,7 +173,7 @@ export class Tower {
       const extra = this.spreadPellets - 1;
 
       game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
-        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold);
+        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount);
 
       const step = extra > 0 ? half / Math.ceil(extra / 2) : 0;
       for (let i = 1; i <= extra; i++) {
@@ -160,11 +181,11 @@ export class Tower {
         const offset = Math.ceil(i / 2) * step * side;
         const a      = baseA + offset;
         game.projectilePool.fire(ox, oy, Math.cos(a) * this.projectileSpeed, Math.sin(a) * this.projectileSpeed,
-          dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold);
+          dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount);
       }
     } else {
       game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
-        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold);
+        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount);
     }
   }
 

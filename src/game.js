@@ -62,6 +62,10 @@ export class Game {
     this.autoBuyInterval    = 0;  // seconds between auto-purchases; 0 = disabled
     this.autoBuyTimer       = 0;
 
+    // ── Shard meta upgrades ─────────────────────────────────────────────────
+    this.shardBonusMult      = 1.0; // multiplier on shards awarded (Shard Tithe)
+    this.veteranBonusDivisor = 0;   // if > 0: floor(wave / divisor) bonus shards on ascend
+
     // ── Traitor (pet) system ────────────────────────────────────────────────
     this.traitorSystem              = null; // set in main.js bootstrap
     this.pendingTraitorAnnouncements = [];  // [{ type, rarity }] drained by ui.js
@@ -103,7 +107,7 @@ export class Game {
     const mult = wave % 1000 === 0 ? 10
                : wave % 100  === 0 ? 3
                : 1;
-    this.pendingShards += base * mult;
+    this.pendingShards += Math.floor(base * mult * this.shardBonusMult);
     // totalShardsEarned is incremented in ascend() when pending shards are claimed
   }
 

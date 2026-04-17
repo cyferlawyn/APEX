@@ -290,6 +290,11 @@ export function newGame(confirmed) {
 
 // --- ascend: convert pending shards, wipe run, keep prestige ---
 export function ascend() {
+  // Veteran's Bounty: award bonus shards based on wave reached this run
+  if (game.veteranBonusDivisor > 0) {
+    game.pendingShards += Math.floor(game.wave / game.veteranBonusDivisor);
+  }
+
   // Bank pending shards — now they count toward the passive damage bonus
   game.totalShardsEarned += game.pendingShards;
   game.shards            += game.pendingShards;

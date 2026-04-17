@@ -88,6 +88,30 @@ const PRESTIGE_UPGRADES = [
     },
   },
 
+  // ── Shot Modifiers ───────────────────────────────────────────────────────
+  {
+    id: 'ricochet',
+    name: 'Ricochet',
+    tooltip: 'Projectiles bounce to an additional enemy after each hit.\nTier 1: 1 bounce  Tier 2: 2 bounces  Tier 3: 3 bounces.\nBounces inherit explosive and chain effects at 75% damage.',
+    maxTier: 3,
+    baseCost: 6,
+    costMult: 2.5,
+    apply(tower, game, tier) {
+      tower.ricochetCount = tier;
+    },
+  },
+  {
+    id: 'poisonTouch',
+    name: 'Poison Touch',
+    tooltip: 'Projectile hits apply a poison that deals bonus damage over 3 seconds.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison refreshes on each new hit.',
+    maxTier: 3,
+    baseCost: 8,
+    costMult: 2.5,
+    apply(tower, game, tier) {
+      tower.poisonFraction = [0, 0.25, 0.40, 0.55][tier];
+    },
+  },
+
   // ── Utility / CC ─────────────────────────────────────────────────────────
   {
     id: 'laserSlow',
@@ -125,6 +149,41 @@ const PRESTIGE_UPGRADES = [
       if (tower.shieldCharges === undefined || tower.shieldCharges < tier) {
         tower.shieldCharges = tier;
       }
+    },
+  },
+  {
+    id: 'resurgence',
+    name: 'Resurgence',
+    tooltip: 'Once per run, when the tower would be destroyed, it survives at reduced HP.\nTier 1: revive at 25% HP  Tier 2: revive at 50% HP.\nGrants 2 s of invulnerability on proc.',
+    maxTier: 2,
+    baseCost: 15,
+    costMult: 3.0,
+    apply(tower, game, tier) {
+      tower.resurgenceHp = [0, 0.25, 0.50][tier];
+    },
+  },
+
+  // ── Meta / Shard ─────────────────────────────────────────────────────────
+  {
+    id: 'shardTithe',
+    name: 'Shard Tithe',
+    tooltip: 'Boss kills yield more shards.\nEach tier multiplies shard rewards by ×1.25.\nMax (tier 5): ×3.05× shard income.',
+    maxTier: 5,
+    baseCost: 4,
+    costMult: 2.5,
+    apply(tower, game, tier) {
+      game.shardBonusMult *= 1.25;
+    },
+  },
+  {
+    id: 'veteranBounty',
+    name: "Veteran's Bounty",
+    tooltip: 'When ascending, earn bonus shards based on the wave you reached.\nTier 1: +1 shard per 20 waves  Tier 2: per 15 waves  Tier 3: per 10 waves.\nStacks with all other shard sources.',
+    maxTier: 3,
+    baseCost: 5,
+    costMult: 3.0,
+    apply(tower, game, tier) {
+      game.veteranBonusDivisor = [0, 20, 15, 10][tier];
     },
   },
 ];
@@ -179,10 +238,16 @@ export class PrestigeShop {
     this.game.tower.shieldChargesMax    = 0;
     this.game.tower.shieldCharges       = 0;
     this.game.tower.invulnTimer         = 0;
+    this.game.tower.ricochetCount       = 0;
+    this.game.tower.poisonFraction      = 0;
+    this.game.tower.resurgenceHp        = 0;
+    this.game.tower.resurgenceUsed      = false;
     this.game.prestigeStartCurrency     = 0;
     this.game.prestigeStartWave         = 1;
     this.game.autoBuyInterval           = 0;
     this.game.autoBuyTimer              = 0;
+    this.game.shardBonusMult            = 1.0;
+    this.game.veteranBonusDivisor       = 0;
 
     for (const entry of this.catalogue) {
       const tiers = prestigeUpgrades[entry.id] ?? 0;

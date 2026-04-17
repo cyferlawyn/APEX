@@ -47,6 +47,10 @@ export class Enemy {
 
     // Boss enrage state
     this.enraged      = false;
+
+    // Poison DoT state
+    this.poisonDps    = 0;   // damage per second from poison
+    this.poisonTimer  = 0;   // seconds of poison remaining
   }
 
   init(type, wave, x, y) {
@@ -87,6 +91,8 @@ export class Enemy {
     this.armorProjectile = false;
     this.armorRing       = false;
     this.armorLaser      = false;
+    this.poisonDps   = 0;
+    this.poisonTimer = 0;
   }
 
   update(dt, game) {

@@ -59,9 +59,10 @@ export class Projectile {
     this.chainJumps       = 0;   // 0 = no chain
     this.chainDamage      = 0;   // damage for chain (set on fire)
     this.executeThreshold = 0;   // 0 = no execute
+    this.ricochetCount    = 0;   // remaining bounces
   }
 
-  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0) {
+  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0) {
     this.active           = true;
     this.x                = x;
     this.y                = y;
@@ -72,6 +73,7 @@ export class Projectile {
     this.chainJumps       = chainJumps;
     this.chainDamage      = damage * 0.6;
     this.executeThreshold = executeThreshold;
+    this.ricochetCount    = ricochetCount;
   }
 
   update(dt, game, bounds) {
@@ -149,6 +151,11 @@ export class Projectile {
     if (this.chainJumps > 0) {
       _chainFrom(this.x, this.y, target, this.chainDamage, this.chainJumps, game);
     }
+
+    // Ricochet
+    if (this.ricochetCount > 0) {
+      _ricochetFrom(this.x, this.y, target, this.damage * 0.75, this, game);
+    }
   }
 }
 
@@ -163,6 +170,14 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
   }
 
   e.hp -= dmg;
+
+  // Poison DoT — applied by projectile hits only; refreshes if already poisoned
+  if (source === 'projectile' && game.tower.poisonFraction > 0) {
+    const dotDmg = dmg * game.tower.poisonFraction;
+    e.poisonDps   = dotDmg / 3.0;  // deal dotDmg over 3 seconds
+    e.poisonTimer = 3.0;
+  }
+
   if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)) {
     e.hp = 0;
 
@@ -244,6 +259,29 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   }
 }
 
+function _ricochetFrom(x, y, lastHit, damage, srcProj, game) {
+  const RICOCHET_RANGE = 300;
+  const r2 = RICOCHET_RANGE * RICOCHET_RANGE;
+
+  let best = null, bestD2 = Infinity;
+  for (const e of game.enemyPool.pool) {
+    if (!e.active || e === lastHit) continue;
+    const dx = x - e.x, dy = y - e.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < r2 && d2 < bestD2) { best = e; bestD2 = d2; }
+  }
+  if (!best) return;
+
+  const dx   = best.x - x;
+  const dy   = best.y - y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const spd  = game.tower.projectileSpeed;
+  const p    = game.projectilePool.acquire();
+  if (p) p.init(x, y, (dx / dist) * spd, (dy / dist) * spd,
+    damage, srcProj.explosiveRadius, srcProj.chainJumps, srcProj.executeThreshold,
+    srcProj.ricochetCount - 1);
+}
+
 // ── pool ─────────────────────────────────────────────────────────────────────
 
 export class ProjectilePool {
@@ -256,9 +294,9 @@ export class ProjectilePool {
     return this.pool.find(p => !p.active) ?? null;
   }
 
-  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0) {
+  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0) {
     const p = this.acquire();
-    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold);
+    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold, ricochetCount);
     return p;
   }
 
@@ -267,6 +305,16 @@ export class ProjectilePool {
     _grid.clear();
     for (const e of game.enemyPool.pool) {
       if (e.active) _grid.insert(e);
+    }
+
+    // Tick poison DoT on all active enemies
+    if (game.tower.poisonFraction > 0) {
+      for (const e of game.enemyPool.pool) {
+        if (!e.active || e.poisonTimer <= 0) continue;
+        e.poisonTimer -= dt;
+        const dot = e.poisonDps * dt;
+        _damageEnemy(e, dot, game, 0, 'poison');
+      }
     }
 
     for (const p of this.pool) {
