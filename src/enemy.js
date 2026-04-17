@@ -256,3 +256,8 @@ const BASE_STATS = {
   [EnemyType.PHANTOM]:  { hp: 130,  speed: 138, radius: 11, color: '#b388ff', shape: 'triangle', reward: 28,  damage: 25  },
   [EnemyType.COLOSSUS]: { hp: 1200, speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 100 },
 };
+
+// Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
+export function droneHp(wave) {
+  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.07, wave - 1));
+}
