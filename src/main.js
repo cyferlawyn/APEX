@@ -29,7 +29,7 @@ function bootstrap() {
   game.enemyPool      = new EnemyPool(512);
   game.projectilePool = new ProjectilePool(2048);
   game.waveSpawner    = new WaveSpawner(game);
-  game.particles      = new ParticleSystem(512);
+  game.particles      = new ParticleSystem(2048);
   game.traitorSystem  = new TraitorSystem();
 
   // Restore preferences (quality, volume) — independent of save data

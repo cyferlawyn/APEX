@@ -14,24 +14,25 @@ class Particle {
     this.color    = '#fff';
   }
 
-  init(x, y, vx, vy, life, radius, color) {
-    this.active  = true;
-    this.x       = x;
-    this.y       = y;
-    this.vx      = vx;
-    this.vy      = vy;
-    this.life    = life;
-    this.maxLife = life;
-    this.radius  = radius;
-    this.color   = color;
+  init(x, y, vx, vy, life, radius, color, friction = 0.88) {
+    this.active   = true;
+    this.x        = x;
+    this.y        = y;
+    this.vx       = vx;
+    this.vy       = vy;
+    this.life     = life;
+    this.maxLife  = life;
+    this.radius   = radius;
+    this.color    = color;
+    this.friction = friction;
   }
 
   update(dt) {
     if (!this.active) return;
     this.x    += this.vx * dt;
     this.y    += this.vy * dt;
-    this.vx   *= 0.88; // friction
-    this.vy   *= 0.88;
+    this.vx   *= Math.pow(this.friction, dt * 60); // frame-rate independent
+    this.vy   *= Math.pow(this.friction, dt * 60);
     this.life -= dt;
     if (this.life <= 0) this.active = false;
   }
@@ -54,8 +55,8 @@ export class ParticleSystem {
     return p;
   }
 
-  _emit(x, y, vx, vy, life, radius, color) {
-    this._acquire().init(x, y, vx, vy, life, radius, color);
+  _emit(x, y, vx, vy, life, radius, color, friction = 0.88) {
+    this._acquire().init(x, y, vx, vy, life, radius, color, friction);
   }
 
   // ── emitters ────────────────────────────────────────────────────────────────
@@ -109,51 +110,45 @@ export class ParticleSystem {
 
   // Obliterate kill — fiery burst at the kill site + long-lived afterglow embers
   emitObliterateKill(x, y, enemyColor) {
-    const BURST_COLORS  = ['#ff6d00', '#ff1744', '#ffffff', '#ffd600', '#ff3d00'];
-    const EMBER_COLORS  = ['#ff6d00', '#ff3d00', '#ff1744', '#ff9100', '#ffab40'];
+    const BURST_COLORS = ['#ff6d00', '#ff1744', '#ffffff', '#ffd600', '#ff3d00'];
+    const EMBER_COLORS = ['#ff6d00', '#ff3d00', '#ff1744', '#ff9100', '#ffab40'];
 
-    // Fast burst: ring of fire sparks
-    const burstCount = 18;
-    for (let i = 0; i < burstCount; i++) {
-      const angle = (Math.PI * 2 / burstCount) * i + (Math.random() - 0.5) * 0.5;
-      const speed = 90 + Math.random() * 160;
-      const color = Math.random() < 0.25 ? '#ffffff'
+    // Fast burst: outward ring of fire sparks, normal friction
+    for (let i = 0; i < 20; i++) {
+      const angle = (Math.PI * 2 / 20) * i + (Math.random() - 0.5) * 0.4;
+      const speed = 100 + Math.random() * 200;
+      const color = Math.random() < 0.3 ? '#ffffff'
                   : BURST_COLORS[Math.floor(Math.random() * BURST_COLORS.length)];
       this._emit(x, y,
-        Math.cos(angle) * speed,
-        Math.sin(angle) * speed,
-        0.3 + Math.random() * 0.3,
-        1.5 + Math.random() * 2,
-        color
+        Math.cos(angle) * speed, Math.sin(angle) * speed,
+        0.4 + Math.random() * 0.4, 2 + Math.random() * 2.5, color, 0.88
       );
     }
 
-    // Afterglow embers: slow, hot, linger a long time
-    const emberCount = 12;
-    for (let i = 0; i < emberCount; i++) {
-      const angle  = Math.random() * Math.PI * 2;
-      const speed  = 8 + Math.random() * 35;
-      const rise   = -(20 + Math.random() * 50);  // drift upward
-      const color  = EMBER_COLORS[Math.floor(Math.random() * EMBER_COLORS.length)];
-      this._emit(x + (Math.random() - 0.5) * 20,
-                 y + (Math.random() - 0.5) * 20,
-        Math.cos(angle) * speed,
-        Math.sin(angle) * speed + rise,
-        1.2 + Math.random() * 1.2,
-        2.5 + Math.random() * 3.5,
-        color
+    // Afterglow embers: very low friction so they keep drifting, long lifetime
+    for (let i = 0; i < 14; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 15 + Math.random() * 45;
+      const rise  = -(25 + Math.random() * 60);
+      const color = EMBER_COLORS[Math.floor(Math.random() * EMBER_COLORS.length)];
+      this._emit(
+        x + (Math.random() - 0.5) * 24, y + (Math.random() - 0.5) * 24,
+        Math.cos(angle) * speed, Math.sin(angle) * speed + rise,
+        2.0 + Math.random() * 1.5,      // 2–3.5 s lifetime
+        4 + Math.random() * 5,           // 4–9 px — clearly visible
+        color, 0.97                      // very low friction — keep drifting
       );
     }
 
-    // One or two large hot cores at the kill point
-    for (let i = 0; i < 2; i++) {
-      this._emit(x + (Math.random() - 0.5) * 8,
-                 y + (Math.random() - 0.5) * 8,
-        (Math.random() - 0.5) * 20,
-        -(15 + Math.random() * 30),
-        0.8 + Math.random() * 0.6,
-        5 + Math.random() * 4,
-        i === 0 ? '#ffffff' : '#ffab40'
+    // 3 large hot cores — bright white/amber, slow rise, long fade
+    for (let i = 0; i < 3; i++) {
+      this._emit(
+        x + (Math.random() - 0.5) * 12, y + (Math.random() - 0.5) * 12,
+        (Math.random() - 0.5) * 18, -(20 + Math.random() * 40),
+        1.5 + Math.random() * 1.0,
+        8 + Math.random() * 6,
+        i === 0 ? '#ffffff' : '#ffab40',
+        0.97
       );
     }
   }
