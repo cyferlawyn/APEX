@@ -906,10 +906,29 @@ export class Renderer {
       ctx.restore();
       return true;
     });
+
+    // Skull popups — execute kills float a skull emoji upward and fade
+    game.skullPopups = game.skullPopups.filter(p => {
+      p.t -= DT;
+      if (p.t <= 0) return false;
+      p.y -= 28 * DT;  // float upward, slower than currency
+      const alpha = p.t > 0.3 ? 1 : p.t / 0.3;  // fade out over last 0.3s
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.font        = '16px monospace';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      if (game.quality === 'high') {
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#ff1744';
+      }
+      ctx.fillText('💀', p.x, p.y);
+      ctx.restore();
+      return true;
+    });
   }
 
   // ── state overlays ────────────────────────────────────────────────────────────
-
   _drawStateOverlay() {
     // Results overlay: timer-driven, fades out over last 0.5s, combat runs beneath
     if (this.game.resultsTimer > 0) this._drawResults();
