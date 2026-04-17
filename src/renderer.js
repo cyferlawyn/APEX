@@ -760,14 +760,17 @@ export class Renderer {
     ctx.fillStyle = COLORS.text;
     ctx.fillText(`Wave ${game.wave}`, 12, 22);
 
-    // Enemy count remaining
-    const remaining = game.enemyPool ? game.enemyPool.activeCount() : 0;
-    const total     = game.waveSpawner ? game.waveSpawner.totalSpawned : 0;
-    const pct       = total > 0 ? Math.min(100, Math.round((game.waveKills / total) * 100)) : 0;
-    const enemyLine = total > 0 ? `enemies: ${remaining}  (${pct}% cleared)` : `enemies: ${remaining}`;
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    ctx.font      = '11px monospace';
-    ctx.fillText(enemyLine, 12, 38);
+    // Wave cleared progress bar
+    const total  = game.waveSpawner ? game.waveSpawner.totalSpawned : 0;
+    const cleared = total > 0 ? Math.min(1, game.waveKills / total) : 0;
+    const pbW = 80;
+    const pbH = 5;
+    const pbX = 12;
+    const pbY = 28;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.fillRect(pbX, pbY, pbW, pbH);
+    ctx.fillStyle = cleared >= 1 ? '#00e676' : '#00bcd4';
+    ctx.fillRect(pbX, pbY, pbW * cleared, pbH);
 
     // HP bar
     const barW  = 200;

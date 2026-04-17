@@ -10,7 +10,8 @@ export class WaveSpawner {
 
   begin(waveNumber) {
     const entries = buildWave(waveNumber);
-    this.totalSpawned = entries.length;
+    const rollovers   = this.game.enemyPool.activeCount();
+    this.totalSpawned = entries.length + rollovers;
     this.done         = true;   // all enemies exist in the pool from frame 1
 
     const bounds = this.game.projectilePool._bounds;
