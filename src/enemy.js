@@ -62,9 +62,7 @@ export class Enemy {
     this.active      = true;
     this.atTower     = false;
     this.damageTick  = 0;
-    this.damage      = type === EnemyType.BOSS
-      ? Math.floor(def.damage * Math.pow(1.02, wave - 1))
-      : def.damage;
+    this.damage      = def.damage;
     this.type        = type;
     this.x           = x;
     this.y           = y;
