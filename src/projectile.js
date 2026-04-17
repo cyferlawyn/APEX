@@ -60,9 +60,10 @@ export class Projectile {
     this.chainDamage      = 0;   // damage for chain (set on fire)
     this.executeThreshold = 0;   // 0 = no execute
     this.ricochetCount    = 0;   // remaining bounces
+    this.overcharge       = false; // true = ×4 overcharge shot, distinct visual
   }
 
-  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0) {
+  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false) {
     this.active           = true;
     this.x                = x;
     this.y                = y;
@@ -74,6 +75,7 @@ export class Projectile {
     this.chainDamage      = damage * 0.6;
     this.executeThreshold = executeThreshold;
     this.ricochetCount    = ricochetCount;
+    this.overcharge       = overcharge;
   }
 
   update(dt, game, bounds) {
@@ -316,9 +318,9 @@ export class ProjectilePool {
     return this.pool.find(p => !p.active) ?? null;
   }
 
-  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0) {
+  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false) {
     const p = this.acquire();
-    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold, ricochetCount);
+    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold, ricochetCount, overcharge);
     return p;
   }
 

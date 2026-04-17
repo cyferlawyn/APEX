@@ -169,6 +169,7 @@ export class Tower {
     // Crit roll — applied to the damage passed into the projectile
     const isCrit = this.critChance > 0 && Math.random() < this.critChance;
     const dmg    = Math.round(this.damage * this._dmgMult * (isCrit ? this.critMult : 1) * overchargeMult);
+    const isOC   = overchargeMult > 1;
 
     if (this.spreadShot) {
       const baseA = Math.atan2(ny, nx);
@@ -176,7 +177,7 @@ export class Tower {
       const extra = this.spreadPellets - 1;
 
       game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
-        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount);
+        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount, isOC);
 
       const step = extra > 0 ? half / Math.ceil(extra / 2) : 0;
       for (let i = 1; i <= extra; i++) {
@@ -184,11 +185,11 @@ export class Tower {
         const offset = Math.ceil(i / 2) * step * side;
         const a      = baseA + offset;
         game.projectilePool.fire(ox, oy, Math.cos(a) * this.projectileSpeed, Math.sin(a) * this.projectileSpeed,
-          dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount);
+          dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount, isOC);
       }
     } else {
       game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
-        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount);
+        dmg, this.explosiveRadius, this.chainJumps, this.executeThreshold, this.ricochetCount, isOC);
     }
   }
 

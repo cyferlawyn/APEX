@@ -762,9 +762,34 @@ export class Renderer {
       if (quality === 'low') {
         // LOW — plain dot, no glow
         ctx.save();
+        ctx.fillStyle = p.overcharge ? '#ff6d00' : '#ffffff';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.overcharge ? 5 : 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else if (p.overcharge) {
+        // OVERCHARGE — large orange fireball
+        ctx.save();
+        ctx.globalAlpha = 0.30;
+        ctx.fillStyle   = '#ff3d00';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.shadowBlur  = 20;
+        ctx.shadowColor = '#ff6d00';
+        ctx.fillStyle   = '#ffab40';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       } else {
