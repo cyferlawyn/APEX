@@ -185,7 +185,6 @@ function update(dt) {
   switch (game.state) {
     case State.COMBAT:
       game.elapsed = (game.elapsed ?? 0) + dt;
-      game.waveSpawner.update(dt);
       game.enemyPool.update(dt, game);
       game.projectilePool.update(dt, game);
       game.tower.update(dt, game);
@@ -197,7 +196,7 @@ function update(dt) {
       if (game.tower.hp <= 0) {
         game.tower.hp = 0;
         onDefeated();
-      } else if (game.waveSpawner.done && game.enemyPool.activeCount() === 0) {
+      } else if (game.enemyPool.activeCount() === 0) {
         onWaveComplete();
       } else if (game.tower.waveSkipThreshold > 0) {
         const total = game.waveSpawner.totalSpawned;
