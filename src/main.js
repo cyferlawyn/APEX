@@ -198,7 +198,7 @@ function update(dt) {
         onDefeated();
       } else if (game.enemyPool.activeCount() === 0) {
         onWaveComplete();
-      } else if (game.tower.waveSkipThreshold > 0) {
+      } else if (game.tower.waveSkipThreshold > 0 && game.wave % 10 !== 0) {
         const total = game.waveSpawner.totalSpawned;
         if (total > 0 && game.waveKills / total >= game.tower.waveSkipThreshold) {
           onWaveComplete();
