@@ -171,11 +171,11 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
 
   e.hp -= dmg;
 
-  // Poison DoT — applied by projectile hits only; refreshes if already poisoned
+  // Poison DoT — stacks additively per hit, duration refreshes each time
   if (source === 'projectile' && game.tower.poisonFraction > 0) {
-    const dotDmg = dmg * game.tower.poisonFraction;
-    e.poisonDps   = dotDmg / 3.0;  // deal dotDmg over 3 seconds
-    e.poisonTimer = 3.0;
+    const dotDmg  = dmg * game.tower.poisonFraction;
+    e.poisonDps  += dotDmg / 3.0;  // stack on top of existing DoT
+    e.poisonTimer = 3.0;            // refresh duration
   }
 
   if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)) {
