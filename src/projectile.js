@@ -274,8 +274,8 @@ function _ricochetFrom(x, y, lastHit, damage, bouncesLeft, explosiveRadius, chai
   }
   if (!best) return;
 
-  // Tracer line — gold to distinguish from chain lightning (purple)
-  game.lightningArcs.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.25, color: '#ffd740' });
+  // Straight fading tracer — distinct from chain lightning arcs
+  game.ricochetLines.push({ x1: x, y1: y, x2: best.x, y2: best.y, t: 0.18, life: 0.18 });
   if (game.particles && game.quality !== 'low') game.particles.emitHit(best.x, best.y, '#ffd740');
 
   _damageEnemy(best, damage, game, executeThreshold, 'projectile');

@@ -60,6 +60,7 @@ export class Renderer {
     this._drawEnemies();
     this._drawProjectiles();
     this._drawLightningArcs();
+    this._drawRicochetLines();
     this._drawLaser();
     this._drawTower();
     if (game.particles) game.particles.draw(ctx, game.quality);
@@ -466,7 +467,7 @@ export class Renderer {
       pts.push({ x: arc.x2, y: arc.y2 });
 
       // Pass 1 — wide outer glow (skipped on medium)
-      const arcColor = arc.color ?? COLORS.chain;
+      const arcColor = COLORS.chain;
       if (!noGlow) {
         ctx.save();
         ctx.globalAlpha = alpha * 0.4;
@@ -509,7 +510,48 @@ export class Renderer {
     });
   }
 
-  // ── enemies ───────────────────────────────────────────────────────────────────
+  _drawRicochetLines() {
+    const { ctx, game } = this;
+    if (!game.ricochetLines?.length) return;
+    if (game.quality === 'low') { game.ricochetLines = []; return; }
+    const noGlow = game.quality === 'medium';
+
+    game.ricochetLines = game.ricochetLines.filter(line => {
+      line.t -= 1 / 60;
+      if (line.t <= 0) return false;
+
+      const alpha = line.t / line.life;  // linear fade from 1 → 0
+
+      ctx.save();
+
+      // Outer glow (high quality only)
+      if (!noGlow) {
+        ctx.globalAlpha = alpha * 0.35;
+        ctx.strokeStyle = '#ffd740';
+        ctx.shadowBlur  = 14;
+        ctx.shadowColor = '#ffd740';
+        ctx.lineWidth   = 5;
+        ctx.beginPath();
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+        ctx.stroke();
+      }
+
+      // Bright gold core
+      ctx.globalAlpha = alpha * 0.95;
+      ctx.strokeStyle = '#ffe57f';
+      ctx.shadowBlur  = noGlow ? 0 : 6;
+      ctx.shadowColor = '#ffd740';
+      ctx.lineWidth   = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(line.x1, line.y1);
+      ctx.lineTo(line.x2, line.y2);
+      ctx.stroke();
+
+      ctx.restore();
+      return true;
+    });
+  }
 
   _drawEnemies() {
     const { ctx, canvas, game } = this;

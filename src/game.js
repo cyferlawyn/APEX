@@ -27,6 +27,7 @@ export class Game {
     // Short-lived visual effects (drained each frame by renderer)
     this.explosions    = []; // { x, y, r, t } — t counts down to 0
     this.lightningArcs = []; // { x1, y1, x2, y2, t }
+    this.ricochetLines = []; // { x1, y1, x2, y2, t, life }
     this.deathRings    = []; // { x, y, r, t, color } — expanding ring on enemy death
     this.edgeFlash     = 0;  // seconds remaining for boss screen-edge flash
     this.currencyPopups = []; // { amount, x, y, t } — +$N floaters above killed enemies

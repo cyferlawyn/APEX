@@ -76,6 +76,7 @@ function beginWave(keepEnemies = false) {
   if (game.particles) game.particles.reset();
   game.explosions     = [];
   game.lightningArcs  = [];
+  game.ricochetLines  = [];
   game.deathRings     = [];
   game.edgeFlash      = 0;
   game.currencyPopups = [];
