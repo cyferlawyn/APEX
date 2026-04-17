@@ -103,7 +103,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'poisonTouch',
     name: 'Poison Touch',
-    tooltip: 'Projectile hits apply a poison that deals bonus damage over 3 seconds.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison refreshes on each new hit.',
+    tooltip: 'Projectile hits apply a poison that deals bonus damage over 3 seconds in ticks every 0.1s.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison stacks additively and refreshes duration on each new hit.',
     maxTier: 3,
     baseCost: 8,
     costMult: 2.5,

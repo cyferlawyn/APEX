@@ -63,6 +63,7 @@ export class Renderer {
     this._drawRicochetLines();
     this._drawLaser();
     this._drawTower();
+    this._drawPoisonIndicators();
     if (game.particles) game.particles.draw(ctx, game.quality);
     this._drawEdgeFlash();
     this._drawHUD();
@@ -813,6 +814,50 @@ export class Renderer {
         ctx.fill();
         ctx.restore();
       }
+    }
+  }
+
+  // ── Poison indicators ─────────────────────────────────────────────────────────
+
+  _drawPoisonIndicators() {
+    const { ctx, canvas, game } = this;
+    if (!game.tower || game.tower.poisonFraction <= 0) return;
+    if (!game.enemyPool) return;
+
+    const noGlow = game.quality !== 'high';
+
+    for (const e of game.enemyPool.pool) {
+      if (!e.active || e.poisonTimer <= 0 || e.poisonDps <= 0) continue;
+      // Off-screen cull
+      if (e.x < -50 || e.x > canvas.width + 50 ||
+          e.y < -50 || e.y > canvas.height + 50) continue;
+
+      const totalRemaining = Math.round(e.poisonDps * Math.max(e.poisonTimer, 0));
+      if (totalRemaining <= 0) continue;
+
+      const labelX = e.x;
+      const labelY = e.y - e.radius - 14;
+
+      ctx.save();
+
+      if (!noGlow) {
+        ctx.shadowBlur  = 6;
+        ctx.shadowColor = '#00e676';
+      }
+
+      // Vial icon + damage number
+      ctx.font      = '11px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Green tint fades toward white as timer runs out
+      const fade = Math.min(1, e.poisonTimer / 1.0);
+      const g    = Math.round(150 + 105 * fade);  // 150 → 255
+      ctx.fillStyle = `rgb(0,${g},80)`;
+
+      ctx.fillText(`\u{1F9EA}${totalRemaining}`, labelX, labelY);
+
+      ctx.restore();
     }
   }
 

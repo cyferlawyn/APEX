@@ -179,10 +179,16 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
     const dotDmg  = dmg * game.tower.poisonFraction;
     e.poisonDps  += dotDmg / 3.0;  // stack on top of existing DoT
     e.poisonTimer = 3.0;            // refresh duration
+    if (e.poisonTickTimer <= 0) e.poisonTickTimer = 0.1; // ensure next tick fires promptly
   }
 
   if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)) {
+    const wasExecuted = executeThreshold > 0 && e.hp > 0 && e.hp / e.maxHp < executeThreshold;
     e.hp = 0;
+
+    if (wasExecuted) {
+      game.skullPopups.push({ x: e.x, y: e.y, t: 1.0 });
+    }
 
     // Bomber detonates on death
     if (e.type === EnemyType.BOMBER) {
@@ -331,13 +337,17 @@ export class ProjectilePool {
       if (e.active) _grid.insert(e);
     }
 
-    // Tick poison DoT on all active enemies
+    // Tick poison DoT on all active enemies — fires every 0.1s
     if (game.tower.poisonFraction > 0) {
       for (const e of game.enemyPool.pool) {
         if (!e.active || e.poisonTimer <= 0) continue;
-        e.poisonTimer -= dt;
-        const dot = e.poisonDps * dt;
-        _damageEnemy(e, dot, game, 0, 'poison');
+        e.poisonTimer    -= dt;
+        e.poisonTickTimer -= dt;
+        if (e.poisonTickTimer <= 0) {
+          e.poisonTickTimer += 0.1;
+          const dot = e.poisonDps * 0.1;
+          _damageEnemy(e, dot, game, 0, 'poison');
+        }
       }
     }
 
