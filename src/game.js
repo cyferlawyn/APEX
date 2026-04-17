@@ -31,6 +31,7 @@ export class Game {
     this.deathRings    = []; // { x, y, r, t, color } — expanding ring on enemy death
     this.edgeFlash     = 0;  // seconds remaining for boss screen-edge flash
     this.currencyPopups = []; // { amount, x, y, t } — +$N floaters above killed enemies
+    this.skullPopups    = []; // { x, y, t } — skull floaters on execute kills
 
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;
@@ -38,7 +39,7 @@ export class Game {
     // Visual quality: 'high' | 'medium' | 'low'
     // Loaded from localStorage in main.js; default high.
     this.quality     = 'high';
-    this.autoQuality = false;  // when true, AUTO mode may step quality down
+    this.autoQuality = true;   // when true, AUTO mode may step quality down
 
     // FPS tracking — maintained by main.js loop, read by renderer
     this.fps         = 60;     // smoothed display value
