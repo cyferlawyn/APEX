@@ -830,11 +830,6 @@ export class Renderer {
       w.t -= 1 / 60;
       if (w.t <= 0) return false;
 
-      // Speed: expand fast — reaches maxR in ~0.35s
-      const progress = 1 - w.t / w.life;           // 0→1 over lifetime
-      const ease     = 1 - Math.pow(1 - progress, 2); // ease-out quad
-      w.r = w.r + (w.maxR - w.r) * (1 / 60) / 0.35;  // raw expansion
-
       const alpha = w.t / w.life;  // fade from 1 → 0
 
       ctx.save();

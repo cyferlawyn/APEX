@@ -178,13 +178,10 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
   // Obliterate — 10× overkill from a direct projectile hit arms the countdown
   if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
       game.obliterateTimer < 0 && dmg >= e.maxHp * 10) {
-    const baseline  = droneHp(game.wave);
-    const normShot  = normalizedShotDamage(game.tower, game);
+    const baseline = droneHp(game.wave);
+    const normShot = normalizedShotDamage(game.tower, game);
     game.obliterateTimer    = game.tower.obliterateDelay;
     game.obliterateOverkill = Math.floor(normShot / baseline);
-    const tx = game.tower.x, ty = game.tower.y;
-    const maxR = Math.sqrt(tx * tx + ty * ty) * 2.2;
-    game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4, maxR, t: 1.0, life: 1.0 });
   }
 
   // Poison DoT — stacks additively per hit, duration refreshes each time
@@ -378,15 +375,18 @@ export class ProjectilePool {
   }
 }
 
+// Kill a single enemy and award full rewards — used by blastwave contact kills.
+export function killEnemy(e, game) {
+  if (!e.active) return;
+  e.hp          = 0;
+  e.active      = false;
+  e.poisonDps   = 0;
+  e.poisonTimer = 0;
+  _awardKill(e, game);
+}
+
 // Kill every active enemy in the pool and award full kill rewards.
-// Called from main.js when the obliterate countdown expires.
+// Called as cleanup when the blastwave finishes expanding.
 export function obliterateWave(game) {
-  for (const e of game.enemyPool.pool) {
-    if (!e.active) continue;
-    e.hp = 0;
-    e.active = false;
-    e.poisonDps   = 0;
-    e.poisonTimer = 0;
-    _awardKill(e, game);
-  }
+  for (const e of game.enemyPool.pool) killEnemy(e, game);
 }

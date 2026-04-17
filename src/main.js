@@ -1,7 +1,7 @@
 import { Game, State }    from './game.js';
 import { Tower }           from './tower.js';
 import { EnemyPool }       from './enemy.js';
-import { ProjectilePool, obliterateWave }  from './projectile.js';
+import { ProjectilePool, killEnemy, obliterateWave } from './projectile.js';
 import { WaveSpawner }     from './wave.js';
 import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
@@ -203,7 +203,32 @@ function update(dt) {
         game.obliterateTimer -= dt;
         if (game.obliterateTimer <= 0) {
           game.obliterateTimer = -1;
-          obliterateWave(game);
+          // Emit the blastwave from the tower — it will kill enemies on contact
+          const tx = game.tower.x, ty = game.tower.y;
+          // maxR: distance from tower to the farthest canvas corner
+          const maxR = Math.sqrt(
+            Math.max(tx, canvas.width  - tx) ** 2 +
+            Math.max(ty, canvas.height - ty) ** 2
+          ) * 1.15;
+          const speed = maxR / 0.28; // crosses screen in 0.28 s
+          game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
+            maxR, speed, t: 0.7, life: 0.7, done: false });
+        }
+      }
+
+      // Blastwave contact kills — expand rings and kill enemies they sweep over
+      for (const w of game.blastwaves) {
+        if (w.done) continue;
+        w.r += w.speed * dt;
+        const r2 = w.r * w.r;
+        for (const e of game.enemyPool.pool) {
+          if (!e.active) continue;
+          const dx = e.x - w.x, dy = e.y - w.y;
+          if (dx * dx + dy * dy <= r2) killEnemy(e, game);
+        }
+        if (w.r >= w.maxR) {
+          w.done = true;
+          obliterateWave(game); // catch any off-screen stragglers
         }
       }
 
