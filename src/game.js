@@ -75,6 +75,24 @@ export class Game {
     // ── Traitor (pet) system ────────────────────────────────────────────────
     this.traitorSystem              = null; // set in main.js bootstrap
     this.pendingTraitorAnnouncements = [];  // [{ type, rarity }] drained by ui.js
+
+    // ── Faction (Covenant) system ───────────────────────────────────────────
+    this.factionSystem        = null;   // set in main.js bootstrap
+    // Per-run faction flags (reset by FactionSystem.reapplyAll)
+    this.lureProtocols        = false;  // NEXUS A1
+    this.optimalRoster        = false;  // NEXUS A2
+    this.stackCascade         = false;  // NEXUS A3
+    this.signalHarvest        = false;  // NEXUS B1
+    this.resonanceField       = false;  // NEXUS B2
+    this.apexProtocol         = false;  // NEXUS B3
+    this.dataHarvest          = false;  // NEXUS C1
+    this.stackAmplifier       = false;  // NEXUS C2
+    this.recursiveGrowth      = false;  // NEXUS C3
+    // Neural Stack counters
+    this.neuralStacks         = 0;      // total stacks active this run (permanent + run-earned)
+    this.permanentNeuralStacks = 0;     // preserved stacks from Singularity (loaded from capstone save)
+    // Lure Protocols — which enemy type has 3× capture this wave (set each wave start)
+    this.lureType             = null;
   }
 
   transition(newState) {
@@ -122,8 +140,23 @@ export class Game {
     return 1 + this.totalShardsEarned * 0.10;
   }
 
-  // Multiplicative damage bonus from active traitor pets (additive per-pet, then ×1+sum).
+  // Multiplicative damage bonus from active traitor pets.
+  // NEXUS B2 (Resonance Field) doubles each pet's bonus.
   traitorDmgMult() {
-    return 1 + (this.traitorSystem?.damageBonus() ?? 0);
+    const bonus = this.traitorSystem?.damageBonus() ?? 0;
+    const resonanceMult = this.resonanceField ? 2 : 1;
+    return 1 + bonus * resonanceMult;
+  }
+
+  // Multiplicative damage bonus from Neural Stacks (NEXUS C2: Stack Amplifier).
+  factionDmgMult() {
+    if (!this.stackAmplifier) return 1.0;
+    return 1 + this.neuralStacks * 0.008;
+  }
+
+  // Multiplicative currency bonus from Neural Stacks (NEXUS C2: Stack Amplifier).
+  factionCurrencyMult() {
+    if (!this.stackAmplifier) return 1.0;
+    return 1 + this.neuralStacks * 0.003;
   }
 }
