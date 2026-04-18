@@ -414,6 +414,7 @@ function buildFactionTree(factionId) {
 
       const cell = document.createElement('div');
       cell.className = 'faction-node' + (tier === 3 ? ' no-child' : '');
+      cell.dataset.col = String(col);   // used for column-specific tooltip positioning
 
       // Header row: button + tooltip icon
       const header = document.createElement('div');
@@ -546,8 +547,8 @@ function patchFactionTab() {
     if (btn.className !== wantClass) btn.className = wantClass;
     btn.disabled = purchased || !canBuy;
 
-    // Update cost text
-    const costEl = btn.nextElementSibling;
+    // Update cost text — costEl is a sibling of the header row, not of the button
+    const costEl = btn.closest('.faction-node')?.querySelector('.faction-node-cost');
     if (costEl) {
       const costText = purchased ? 'owned' : `$ ${fmt(node.cost)}`;
       if (costEl.textContent !== costText) costEl.textContent = costText;

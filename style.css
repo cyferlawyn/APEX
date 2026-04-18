@@ -976,7 +976,31 @@ html, body {
 /* Keep tooltip icon vertically centred and properly positioned */
 .faction-node-header .upgrade-tooltip-icon {
   flex-shrink: 0;
-  position: relative;
+  /* position: static so the tooltip box is positioned relative to
+     .faction-node (position:relative) rather than this 14px icon */
+  position: static;
+}
+
+/* Tooltip box positioning is relative to .faction-node (position:relative).
+   Each column opens toward the panel centre so it stays on-screen. */
+.faction-node[data-col="0"] .upgrade-tooltip-box {
+  left: 0;
+  right: auto;
+  top: calc(100% + 3px);
+  width: 200px;
+}
+.faction-node[data-col="1"] .upgrade-tooltip-box {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  top: calc(100% + 3px);
+  width: 200px;
+}
+.faction-node[data-col="2"] .upgrade-tooltip-box {
+  right: 0;
+  left: auto;
+  top: calc(100% + 3px);
+  width: 200px;
 }
 
 .faction-node-btn.state-cant-afford {
