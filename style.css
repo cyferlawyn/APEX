@@ -263,7 +263,7 @@ html, body {
 #currency-display {
   font-size: 13px;
   font-weight: bold;
-  color: #ffd600;
+  color: rgba(0, 229, 255, 0.6);
   flex-shrink: 0;
 }
 
