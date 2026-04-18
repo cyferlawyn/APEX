@@ -940,9 +940,25 @@ export class Renderer {
     ctx.fillStyle = cleared >= 1 ? '#00e676' : '#00bcd4';
     ctx.fillRect(pbX, pbY, pbW * cleared, pbH);
 
+    // Neural stacks HUD (NEXUS C2 Stack Amplifier)
+    if (game.neuralStacks > 0) {
+      ctx.font      = '10px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(0,229,255,0.65)';
+      ctx.fillText(`\u2B22 ${game.neuralStacks} stacks`, 12, 44);
+    }
+
+    // Lure type indicator (NEXUS A1 Lure Protocols)
+    if (game.lureType) {
+      ctx.font      = '10px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = 'rgba(0,229,255,0.5)';
+      const lureY   = game.neuralStacks > 0 ? 57 : 44;
+      ctx.fillText(`lure: ${game.lureType.toLowerCase()}`, 12, lureY);
+    }
+
     // Obliterate countdown
-    if (game.obliterateTimer > 0) {
-      const secs  = Math.ceil(game.obliterateTimer);
+    if (game.obliterateTimer > 0) {      const secs  = Math.ceil(game.obliterateTimer);
       const beat  = Math.abs(Math.sin(game.obliterateTimer * Math.PI * 2));
       const scale = 1 + 0.08 * beat;
       const overkillLabel = game.obliterateOverkill > 0

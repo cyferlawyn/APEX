@@ -2,6 +2,7 @@
 // Patches DOM in-place to avoid hover flicker from full re-renders.
 
 import { RARITIES, RARITY_COLOR, RARITY_BONUS, TYPE_BONUS_MULT, petBonus } from './traitor.js';
+import { FACTIONS, FACTION_NODES, FACTION_CAPSTONES } from './faction.js';
 import { fmt, fmtPct } from './util.js';
 
 function getApex() { return window.__apex; }
@@ -269,7 +270,7 @@ function patchTraitorPanel() {
   const passiveLine = document.getElementById('traitor-passive-line');
   const mult         = (1 + bonus).toFixed(1);
   const activeCount  = ts.activePets().length;
-  const passiveText  = `Pet bonus: ×${mult} dmg  (${activeCount}/3 active)`;
+  const passiveText  = `Pet bonus: ×${mult} dmg  (${activeCount}/${ts.slotCount} active)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
 
   // Only rebuild slots + roster DOM when state actually changed
@@ -280,7 +281,7 @@ function patchTraitorPanel() {
   // Active slots
   const slotsEl = document.getElementById('traitor-slots');
   slotsEl.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < ts.slotCount; i++) {
     const petId = ts.slots[i];
     const pet   = petId != null ? ts.roster.find(p => p.id === petId) : null;
     const div   = document.createElement('div');
@@ -345,7 +346,7 @@ function patchTraitorPanel() {
         data-assign-type="${type}" data-assign-rarity="${rarity}"
         ${(noEmptySlot || unassignedInGroup.length === 0) ? 'disabled' : ''}>SLOT</button>
       ${canMrg
-        ? `<button class="traitor-btn traitor-btn-merge" data-merge-type="${type}" data-merge-rarity="${rarity}">MERGE×5</button>`
+        ? `<button class="traitor-btn traitor-btn-merge" data-merge-type="${type}" data-merge-rarity="${rarity}">MERGE×${ts.mergeCount}</button>`
         : ''}
     `;
     rosterEl.appendChild(row);
@@ -396,6 +397,224 @@ function wireTraitorButtons() {
   });
 }
 
+// ── Faction tab ────────────────────────────────────────────────────────────
+
+let _factionTreeBuilt = false;  // tree DOM is static after first build
+
+function buildFactionTree(factionId) {
+  const treeEl = document.getElementById('faction-tree');
+  treeEl.innerHTML = '';
+
+  const nodes = FACTION_NODES[factionId] ?? [];
+  // Render in row-major order: tier 1 top (cols A B C), tier 2, tier 3
+  for (let tier = 1; tier <= 3; tier++) {
+    for (let col = 0; col < 3; col++) {
+      const node = nodes.find(n => n.col === col && n.tier === tier);
+      if (!node) { treeEl.appendChild(document.createElement('div')); continue; }
+
+      const cell = document.createElement('div');
+      cell.className = 'faction-node' + (tier === 3 ? ' no-child' : '');
+
+      const btn = document.createElement('button');
+      btn.className = 'faction-node-btn state-locked';
+      btn.dataset.nodeId = node.id;
+      btn.textContent = node.shortName;
+      btn.title = `${node.name}\n${node.tooltip}`;
+
+      const costEl = document.createElement('div');
+      costEl.className = 'faction-node-cost';
+      costEl.textContent = fmt(node.cost);
+
+      cell.appendChild(btn);
+      cell.appendChild(costEl);
+      treeEl.appendChild(cell);
+    }
+  }
+
+  // Capstone
+  const cs = FACTION_CAPSTONES[factionId];
+  const capArea = document.getElementById('faction-capstone-area');
+  capArea.innerHTML = '';
+  if (cs) {
+    const btn = document.createElement('button');
+    btn.id = 'faction-capstone-btn';
+    btn.textContent = cs.name;
+    btn.title = cs.tooltip;
+    const rank = document.createElement('div');
+    rank.id = 'faction-capstone-rank';
+    capArea.appendChild(btn);
+    capArea.appendChild(rank);
+  }
+
+  _factionTreeBuilt = true;
+}
+
+function patchFactionTab() {
+  const apex = getApex();
+  if (!apex) return;
+  const { game } = apex;
+  const fs = game.factionSystem;
+  if (!fs) return;
+
+  // Show/hide tab — visible once the player has ascended at least once
+  const tabFaction = document.getElementById('tab-faction');
+  const showTab = game.ascensionCount > 0;
+  if (tabFaction.classList.contains('hidden') === showTab) {
+    tabFaction.classList.toggle('hidden', !showTab);
+  }
+
+  // Show faction choice overlay if pending
+  const overlay = document.getElementById('faction-choice-overlay');
+  if (game.pendingFactionChoice) {
+    if (overlay.classList.contains('hidden')) {
+      _buildFactionChoiceCards(fs);
+      overlay.classList.remove('hidden');
+    }
+    return; // don't patch tree while choice is pending
+  } else {
+    if (!overlay.classList.contains('hidden')) {
+      overlay.classList.add('hidden');
+    }
+  }
+
+  if (!showTab) return;
+
+  // Neural stack display in tab header
+  document.getElementById('faction-stack-value').textContent = String(game.neuralStacks);
+
+  // Status line
+  const statusLine = document.getElementById('faction-status-line');
+  const fid = fs.activeFaction;
+  let statusText = 'No faction active.';
+  if (fid) {
+    const f = FACTIONS[fid];
+    const dmgBonus = game.stackAmplifier ? `  ×${(game.factionDmgMult()).toFixed(2)} dmg` : '';
+    statusText = `[${f.name}]  ⬡ ${game.neuralStacks} neural stacks${dmgBonus}`;
+  }
+  if (statusLine.textContent !== statusText) statusLine.textContent = statusText;
+
+  // Only render the tree for the active faction
+  if (!fid) return;
+
+  if (!_factionTreeBuilt) buildFactionTree(fid);
+
+  const nodes = FACTION_NODES[fid] ?? [];
+  for (const node of nodes) {
+    const btn = document.querySelector(`.faction-node-btn[data-node-id="${node.id}"]`);
+    if (!btn) continue;
+
+    const purchased = fs.isNodePurchased(node.id);
+    const prereqOk  = !node.prereq || fs.isNodePurchased(node.prereq);
+    const canBuy    = fs.canPurchaseNode(node.id, game);
+    const state     = purchased ? 'purchased' : (prereqOk && fid === fs.activeFaction) ? 'available' : 'locked';
+
+    const wantClass = `faction-node-btn state-${state}`;
+    if (btn.className !== wantClass) btn.className = wantClass;
+    btn.disabled = purchased || !canBuy;
+
+    // Update cost text
+    const costEl = btn.nextElementSibling;
+    if (costEl) {
+      const costText = purchased ? 'owned' : `$ ${fmt(node.cost)}`;
+      if (costEl.textContent !== costText) costEl.textContent = costText;
+    }
+  }
+
+  // Capstone
+  const cs  = FACTION_CAPSTONES[fid];
+  const csBtn = document.getElementById('faction-capstone-btn');
+  const csRank = document.getElementById('faction-capstone-rank');
+  if (cs && csBtn) {
+    const rank      = fs.capstoneRank(fid);
+    const cost      = fs.capstoneCost(fid);
+    const unlocked  = fs.capstoneUnlocked(fid);
+    const canBuyCs  = unlocked && game.currency >= cost && fid === fs.activeFaction;
+    csBtn.disabled  = !canBuyCs;
+    const label     = unlocked ? `${cs.name}  $ ${fmt(cost)}` : `${cs.name}  (locked)`;
+    if (csBtn.textContent !== label) csBtn.textContent = label;
+    if (csRank) {
+      const rankText = `Rank ${rank}` + (rank > 0 ? `  — preserves ${rank}% of run stacks` : '');
+      if (csRank.textContent !== rankText) csRank.textContent = rankText;
+    }
+  }
+}
+
+function _buildFactionChoiceCards(fs) {
+  const cardsEl = document.getElementById('faction-choice-cards');
+  cardsEl.innerHTML = '';
+
+  for (const fid of ['nexus', 'conclave', 'warborn']) {
+    const f    = FACTIONS[fid];
+    const card = document.createElement('div');
+    card.className = 'faction-choice-card' + (f.comingSoon ? ' coming-soon' : '');
+    if (fs.activeFaction === fid) card.classList.add('current-faction');
+    card.style.borderColor = f.color + '50';
+
+    const isCurrent = fs.activeFaction === fid;
+    const btnLabel  = f.comingSoon ? 'COMING SOON'
+                    : isCurrent ? 'RE-AFFIRM' : 'CHOOSE';
+
+    card.innerHTML = `
+      <div class="faction-card-name" style="color:${f.color}">${f.name}</div>
+      <div class="faction-card-flavor">${f.flavor}</div>
+      <div class="faction-card-desc">${f.description}</div>
+      <button class="faction-card-btn"
+        style="border:1px solid ${f.color}80;color:${f.color}"
+        data-faction-pick="${fid}"
+        ${f.comingSoon ? 'disabled' : ''}>${btnLabel}</button>
+    `;
+    cardsEl.appendChild(card);
+  }
+}
+
+function wireFactionButtons() {
+  // Faction node purchases (delegated from tree)
+  document.getElementById('faction-tree').addEventListener('click', e => {
+    const btn = e.target.closest('[data-node-id]');
+    if (!btn || btn.disabled) return;
+    const apex = getApex();
+    if (!apex) return;
+    const { game } = apex;
+    if (game.factionSystem?.purchaseNode(btn.dataset.nodeId, game)) {
+      // rebuild tree if slot count changed (Apex Protocol changes mergeCount via reapplyAll)
+      _factionTreeBuilt = false;
+      patchFactionTab();
+      patchTraitorPanel();
+    }
+  });
+
+  // Faction capstone purchase
+  document.getElementById('faction-capstone-area').addEventListener('click', e => {
+    const btn = e.target.closest('#faction-capstone-btn');
+    if (!btn || btn.disabled) return;
+    const apex = getApex();
+    if (!apex) return;
+    const { game } = apex;
+    const fid = game.factionSystem?.activeFaction;
+    if (fid && game.factionSystem.purchaseCapstone(fid, game)) {
+      // 4th slot was granted — rebuild traitor panel
+      _traitorFingerprint = '';
+      _factionTreeBuilt = false;
+      patchTraitorPanel();
+      patchFactionTab();
+    }
+  });
+
+  // Faction choice overlay — pick a faction
+  document.getElementById('faction-choice-cards').addEventListener('click', e => {
+    const btn = e.target.closest('[data-faction-pick]');
+    if (!btn || btn.disabled) return;
+    const fid = btn.dataset.factionPick;
+    document.getElementById('faction-choice-overlay').classList.add('hidden');
+    _factionTreeBuilt = false;
+    getApex()?.completeAscend(fid);
+    patchShopCards();
+    patchPrestigeCards();
+    patchFactionTab();
+    patchTraitorPanel();
+  });
+}
+
 // ── Tab collapse / expand ──────────────────────────────────────────────────
 
 function wireTabHeaders() {
@@ -416,6 +635,9 @@ function wireButtons() {
 
   // Traitor slots + roster
   wireTraitorButtons();
+
+  // Faction nodes + capstone + choice overlay
+  wireFactionButtons();
 
   // Upgrade purchases (delegated)
   document.getElementById('upgrade-list').addEventListener('click', e => {
@@ -451,7 +673,8 @@ function wireButtons() {
 
   document.getElementById('ascend-yes').addEventListener('click', () => {
     document.getElementById('ascend-overlay').classList.add('hidden');
-    getApex()?.ascend();
+    getApex()?.beginAscend();
+    // faction choice overlay will appear on next patchFactionTab tick
     patchShopCards();
     patchPrestigeCards();
   });
@@ -524,10 +747,12 @@ window.addEventListener('load', () => {
     patchShopCards();
     patchPrestigeCards();
     patchTraitorPanel();
+    patchFactionTab();
     syncPrefsUI();
     setInterval(patchShopCards, 250);
     setInterval(patchPrestigeCards, 250);
     setInterval(patchTraitorPanel, 250);
+    setInterval(patchFactionTab, 250);
   });
 });
 

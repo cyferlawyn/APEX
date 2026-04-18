@@ -122,8 +122,8 @@ export class Tower {
     if (this.hitFlash  > 0) this.hitFlash  -= dt;
     if (this.invulnTimer > 0) this.invulnTimer -= dt;
 
-    // Shard passive × traitor pet bonus × base damage for all weapons this frame
-    this._dmgMult = game.shardDmgMult() * game.traitorDmgMult();
+    // Shard passive × traitor pet bonus × faction (neural stacks) × base damage for all weapons this frame
+    this._dmgMult = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult();
 
     this._updateMainGun(dt, game);
     if (this.ringTier > 0)  this._updateRings(dt, game);
@@ -346,15 +346,18 @@ function _spawnCurrencyPopup(amount, game, x, y) {
 }
 
 function _towerKillEnemy(e, game) {
-  const earned = Math.floor(e.reward * game.currencyMultiplier);
+  const earned = Math.floor(e.reward * game.currencyMultiplier * game.factionCurrencyMult());
   game.currency   += earned;
   game.waveEarned += earned;
   game.waveKills  += 1;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
   // Traitor capture roll
-  const pet = game.traitorSystem?.tryCapture(e, game.wave);
-  if (pet) game.pendingTraitorAnnouncements.push(pet);
+  const pet = game.traitorSystem?.tryCapture(e, game.wave, game);
+  if (pet) {
+    game.pendingTraitorAnnouncements.push(pet);
+    game.traitorSystem.optimizeForNexus(game);
+  }
   // Leech: restore HP on kill
   if (game.tower.leechHp > 0) {
     game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);
@@ -388,7 +391,7 @@ function _towerKillEnemy(e, game) {
 // base damage (incl. Damage upgrade), shard multiplier, traitor bonus,
 // and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
 export function normalizedShotDamage(tower, game) {
-  const dmgMult        = game.shardDmgMult() * game.traitorDmgMult();
+  const dmgMult        = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult();
   const critFactor     = 1 + tower.critChance * (tower.critMult - 1);
   // Overcharge: every N-th shot is ×4; expected factor = (N−1 + 4) / N = 1 + 3/N
   const overchargeFactor = tower.overchargeN > 0 ? 1 + 3 / tower.overchargeN : 1;

@@ -1,17 +1,20 @@
 import { Game, State }    from './game.js';
 import { Tower }           from './tower.js';
-import { EnemyPool }       from './enemy.js';
+import { EnemyType, EnemyPool } from './enemy.js';
 import { ProjectilePool, killEnemy, obliterateWave } from './projectile.js';
 import { WaveSpawner }     from './wave.js';
 import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
 import { PrestigeShop }    from './prestige.js';
 import { TraitorSystem }   from './traitor.js';
+import { FactionSystem }   from './faction.js';
 import { ParticleSystem }  from './particles.js';
 import { audio }           from './audio.js';
 import { save, load, clear, hasSave, savePrefs, loadPrefs,
          savePrestige, loadPrestige, clearPrestige,
-         saveTraitors, loadTraitors, clearTraitors } from './storage.js';
+         saveTraitors, loadTraitors, clearTraitors,
+         saveFaction, loadFaction, clearFaction,
+         saveFactionCapstones, loadFactionCapstones, clearFactionCapstones } from './storage.js';
 
 const canvas        = document.getElementById('gameCanvas');
 const game          = new Game();
@@ -31,6 +34,7 @@ function bootstrap() {
   game.waveSpawner    = new WaveSpawner(game);
   game.particles      = new ParticleSystem(8192);
   game.traitorSystem  = new TraitorSystem();
+  game.factionSystem  = new FactionSystem();
 
   // Restore preferences (quality, volume) — independent of save data
   if (prefs) {
@@ -51,6 +55,10 @@ function bootstrap() {
   // Restore traitor system — persists across runs and ascensions, wiped only on hard reset
   game.traitorSystem.deserialize(loadTraitors());
 
+  // Restore faction capstones (permanent) then run state
+  game.factionSystem.deserializeCapstones(loadFactionCapstones());
+  game.factionSystem.deserializeRun(loadFaction());
+
   // Apply prestige upgrades on top of fresh tower (before run save overwrites tiers)
   prestigeShop.reapplyAll(game.prestigeUpgrades);
 
@@ -63,8 +71,13 @@ function bootstrap() {
     shop.reapplyAll(game.upgrades);
     // Re-apply prestige after run upgrades (prestige is additive on top)
     prestigeShop.reapplyAll(game.prestigeUpgrades);
+    // Apply faction nodes on top (resets flags then re-applies active faction nodes)
+    game.factionSystem.reapplyAll(game);
     // Restore tower HP after reapplyAll rebuilt the tower
     game.tower.hp = Math.min(saved.towerHP ?? game.tower.maxHp, game.tower.maxHp);
+  } else {
+    // No run save — still apply faction nodes (permanent stacks, 4th slot, etc.)
+    game.factionSystem.reapplyAll(game);
   }
 
   beginWave();
@@ -97,6 +110,13 @@ function beginWave(keepEnemies = false) {
   game.waveSpawner.begin(game.wave);
   game.waveEarned = 0;
   game.waveKills  = 0;
+  // NEXUS A1: pick a random lure type for this wave
+  if (game.lureProtocols) {
+    const types = Object.values(EnemyType);
+    game.lureType = types[Math.floor(Math.random() * types.length)];
+  } else {
+    game.lureType = null;
+  }
   game.transition(State.COMBAT);
 }
 
@@ -260,6 +280,18 @@ function onWaveComplete(keepEnemies = false) {
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
 
+  // NEXUS C1: Data Harvest — +1 neural stack per wave (× filled slots if C3 active)
+  if (game.dataHarvest) {
+    let stacks = 1;
+    if (game.recursiveGrowth) {
+      const filled = game.traitorSystem
+        ? game.traitorSystem.slots.filter(Boolean).length
+        : 0;
+      stacks = Math.max(1, filled);
+    }
+    game.neuralStacks += stacks;
+  }
+
   game.wave += 1;
   if (game.wave - 1 > game.bestWave) game.bestWave = game.wave - 1;
 
@@ -302,6 +334,8 @@ function saveGame() {
   });
   _savePrestigeState();
   saveTraitors(game.traitorSystem.serialize());
+  saveFaction(game.factionSystem.serializeRun());
+  saveFactionCapstones(game.factionSystem.serializeCapstones());
 }
 
 function _savePrestigeState() {
@@ -319,23 +353,27 @@ export function newGame(confirmed) {
   if (!confirmed && hasSave()) return;
   clear();
   clearTraitors();
+  clearFaction();
   game.wave               = 1;
   game.currency           = 0;
   game.upgrades           = {};
   game.currencyMultiplier = 1.0;
   game.bestWave           = 1;
   game.resultsTimer       = 0;
+  game.pendingFactionChoice = false;
   game.tower              = new Tower();
   shop.reapplyAll({});
   prestigeShop.reapplyAll(game.prestigeUpgrades);
+  game.factionSystem.activeFaction = null;
+  game.factionSystem.reapplyAll(game);
   // Apply War Chest start currency
   game.currency = game.prestigeStartCurrency ?? 0;
   game.wave     = game.prestigeStartWave ?? 1;
   beginWave();
 }
 
-// --- ascend: convert pending shards, wipe run, keep prestige ---
-export function ascend() {
+// --- ascend: step 1 — bank shards, call onAscend, show faction choice overlay ---
+export function beginAscend() {
   // Veteran's Bounty: award bonus shards based on wave reached this run
   if (game.veteranBonusDivisor > 0) {
     game.pendingShards += Math.floor(game.wave / game.veteranBonusDivisor);
@@ -347,7 +385,26 @@ export function ascend() {
   game.pendingShards      = 0;
   game.ascensionCount    += 1;
 
+  // Preserve neural stacks via Singularity before run resets
+  game.factionSystem.onAscend(game);
+
+  // Save permanent faction capstones immediately
+  saveFactionCapstones(game.factionSystem.serializeCapstones());
+  _savePrestigeState();
+
+  // Signal UI to show faction choice overlay (ui.js reads this flag)
+  game.pendingFactionChoice = true;
+}
+
+// --- ascend: step 2 — complete run reset after faction is chosen ---
+export function completeAscend(factionId) {
+  game.pendingFactionChoice = false;
+
+  // Join (or re-join) the chosen faction
+  if (factionId) game.factionSystem.join(factionId);
+
   // Wipe run state
+  clearFaction();
   clear();
   game.wave               = 1;
   game.currency           = 0;
@@ -357,11 +414,13 @@ export function ascend() {
   game.tower              = new Tower();
   shop.reapplyAll({});
   prestigeShop.reapplyAll(game.prestigeUpgrades);
+  game.factionSystem.reapplyAll(game);
 
   // Apply run-start bonuses from prestige
   game.currency = game.prestigeStartCurrency ?? 0;
   game.wave     = game.prestigeStartWave ?? 1;
 
+  saveFaction(game.factionSystem.serializeRun());
   _savePrestigeState();
   beginWave();
 }
@@ -388,7 +447,7 @@ export function setQuality(q) {
 }
 
 // Expose to UI
-window.__apex = { newGame, ascend, selfDestruct, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
+window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
 
 // Init AudioContext on first user gesture (browser autoplay policy)
 document.addEventListener('click',    () => audio.init(), { once: true });
