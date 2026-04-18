@@ -74,8 +74,8 @@ function beginWave(keepEnemies = false) {
   if (!keepEnemies) game.enemyPool.reset();
   game.projectilePool.reset();
   // Do NOT clear particle/FX arrays — let active animations finish naturally.
-  // Mark any in-flight blastwaves as done so they don't kill new-wave enemies.
-  for (const w of game.blastwaves) w.done = true;
+  // Mark any in-flight blastwaves as kill-done so they don't kill new-wave enemies.
+  for (const w of game.blastwaves) w.killDone = true;
   game.obliterateTimer    = -1;
   game.obliterateOverkill = 0;
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
@@ -217,25 +217,26 @@ function update(dt) {
         }
       }
 
-      // Blastwave contact kills — expand rings and kill enemies they sweep over
+      // Blastwave contact kills — always expand, kill enemies until killDone
       for (const w of game.blastwaves) {
-        if (w.done) continue;
-        w.r += w.speed * dt;
-        const r2 = w.r * w.r;
-        for (const e of game.enemyPool.pool) {
-          if (!e.active) continue;
-          const dx = e.x - w.x, dy = e.y - w.y;
-          if (dx * dx + dy * dy <= r2) {
-            const ex = e.x, ey = e.y, ec = e.color; // snapshot before deactivate
-            killEnemy(e, game);
-            if (game.particles && game.quality !== 'low') {
-              game.particles.emitObliterateKill(ex, ey, ec);
+        if (w.r < w.maxR) w.r += w.speed * dt;  // always keep expanding visually
+        if (!w.killDone) {
+          const r2 = w.r * w.r;
+          for (const e of game.enemyPool.pool) {
+            if (!e.active) continue;
+            const dx = e.x - w.x, dy = e.y - w.y;
+            if (dx * dx + dy * dy <= r2) {
+              const ex = e.x, ey = e.y, ec = e.color;
+              killEnemy(e, game);
+              if (game.particles && game.quality !== 'low') {
+                game.particles.emitObliterateKill(ex, ey, ec);
+              }
             }
           }
-        }
-        if (w.r >= w.maxR) {
-          w.done = true;
-          obliterateWave(game); // catch any off-screen stragglers
+          if (w.r >= w.maxR) {
+            w.killDone = true;
+            obliterateWave(game); // catch any off-screen stragglers
+          }
         }
       }
 

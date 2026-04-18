@@ -867,7 +867,7 @@ export class Renderer {
       ctx.stroke();
 
       ctx.restore();
-      return w.r < w.maxR;
+      return true;  // removed only when w.t reaches 0
     });
   }
 
