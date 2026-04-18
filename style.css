@@ -109,7 +109,7 @@ html, body {
 }
 
 .tab-body {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .tab-body--collapsed {
