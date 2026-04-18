@@ -108,22 +108,10 @@ export class ParticleSystem {
     }
   }
 
-  // Obliterate kill — fiery burst at the kill site + long-lived afterglow embers
+  // Obliterate kill — long-lived afterglow embers at the kill site.
+  // The burst is already handled by emitDeath() called in _awardKill().
   emitObliterateKill(x, y, enemyColor) {
-    const BURST_COLORS = ['#ff6d00', '#ff1744', '#ffffff', '#ffd600', '#ff3d00'];
     const EMBER_COLORS = ['#ff6d00', '#ff3d00', '#ff1744', '#ff9100', '#ffab40'];
-
-    // Fast burst: outward ring of fire sparks, normal friction
-    for (let i = 0; i < 20; i++) {
-      const angle = (Math.PI * 2 / 20) * i + (Math.random() - 0.5) * 0.4;
-      const speed = 100 + Math.random() * 200;
-      const color = Math.random() < 0.3 ? '#ffffff'
-                  : BURST_COLORS[Math.floor(Math.random() * BURST_COLORS.length)];
-      this._emit(x, y,
-        Math.cos(angle) * speed, Math.sin(angle) * speed,
-        0.4 + Math.random() * 0.4, 2 + Math.random() * 2.5, color, 0.88
-      );
-    }
 
     // Afterglow embers: very low friction so they keep drifting, long lifetime
     for (let i = 0; i < 14; i++) {
@@ -134,9 +122,9 @@ export class ParticleSystem {
       this._emit(
         x + (Math.random() - 0.5) * 24, y + (Math.random() - 0.5) * 24,
         Math.cos(angle) * speed, Math.sin(angle) * speed + rise,
-        2.0 + Math.random() * 1.5,      // 2–3.5 s lifetime
-        4 + Math.random() * 5,           // 4–9 px — clearly visible
-        color, 0.97                      // very low friction — keep drifting
+        2.0 + Math.random() * 1.5,
+        4 + Math.random() * 5,
+        color, 0.97
       );
     }
 
