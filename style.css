@@ -960,11 +960,50 @@ html, body {
   border-color: rgba(0,229,255,0.65);
 }
 
+/* Header row inside each tree node: button + tooltip icon */
+.faction-node-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.faction-node-header .faction-node-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Keep tooltip icon vertically centred and properly positioned */
+.faction-node-header .upgrade-tooltip-icon {
+  flex-shrink: 0;
+  position: relative;
+}
+
+.faction-node-btn.state-cant-afford {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.25);
+  cursor: default;
+}
+
 .faction-node-btn.state-locked {
   background: transparent;
   border: 1px solid rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.2);
   cursor: default;
+}
+
+/* Capstone row: button + tooltip icon side by side */
+.faction-capstone-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.faction-capstone-row #faction-capstone-btn {
+  flex: 0 1 auto;
 }
 
 .faction-node-btn:disabled {

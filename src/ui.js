@@ -415,17 +415,32 @@ function buildFactionTree(factionId) {
       const cell = document.createElement('div');
       cell.className = 'faction-node' + (tier === 3 ? ' no-child' : '');
 
+      // Header row: button + tooltip icon
+      const header = document.createElement('div');
+      header.className = 'faction-node-header';
+
       const btn = document.createElement('button');
       btn.className = 'faction-node-btn state-locked';
       btn.dataset.nodeId = node.id;
       btn.textContent = node.shortName;
-      btn.title = `${node.name}\n${node.tooltip}`;
+
+      const tipIcon = document.createElement('span');
+      tipIcon.className = 'upgrade-tooltip-icon';
+      tipIcon.textContent = '?';
+      tipIcon.setAttribute('aria-label', node.name);
+      const tipBox = document.createElement('span');
+      tipBox.className = 'upgrade-tooltip-box';
+      tipBox.innerHTML = `<strong>${node.name}</strong><br><br>${node.tooltip.replace(/\n/g, '<br>')}`;
+      tipIcon.appendChild(tipBox);
+
+      header.appendChild(btn);
+      header.appendChild(tipIcon);
 
       const costEl = document.createElement('div');
       costEl.className = 'faction-node-cost';
       costEl.textContent = fmt(node.cost);
 
-      cell.appendChild(btn);
+      cell.appendChild(header);
       cell.appendChild(costEl);
       treeEl.appendChild(cell);
     }
@@ -436,13 +451,28 @@ function buildFactionTree(factionId) {
   const capArea = document.getElementById('faction-capstone-area');
   capArea.innerHTML = '';
   if (cs) {
+    const row = document.createElement('div');
+    row.className = 'faction-capstone-row';
+
     const btn = document.createElement('button');
     btn.id = 'faction-capstone-btn';
     btn.textContent = cs.name;
-    btn.title = cs.tooltip;
+
+    const tipIcon = document.createElement('span');
+    tipIcon.className = 'upgrade-tooltip-icon';
+    tipIcon.textContent = '?';
+    tipIcon.setAttribute('aria-label', cs.name);
+    const tipBox = document.createElement('span');
+    tipBox.className = 'upgrade-tooltip-box';
+    tipBox.innerHTML = `<strong>${cs.name}</strong><br><br>${cs.tooltip.replace(/\n/g, '<br>')}`;
+    tipIcon.appendChild(tipBox);
+
+    row.appendChild(btn);
+    row.appendChild(tipIcon);
+
     const rank = document.createElement('div');
     rank.id = 'faction-capstone-rank';
-    capArea.appendChild(btn);
+    capArea.appendChild(row);
     capArea.appendChild(rank);
   }
 
@@ -503,10 +533,14 @@ function patchFactionTab() {
     const btn = document.querySelector(`.faction-node-btn[data-node-id="${node.id}"]`);
     if (!btn) continue;
 
-    const purchased = fs.isNodePurchased(node.id);
-    const prereqOk  = !node.prereq || fs.isNodePurchased(node.prereq);
-    const canBuy    = fs.canPurchaseNode(node.id, game);
-    const state     = purchased ? 'purchased' : (prereqOk && fid === fs.activeFaction) ? 'available' : 'locked';
+    const purchased   = fs.isNodePurchased(node.id);
+    const prereqOk    = !node.prereq || fs.isNodePurchased(node.prereq);
+    const canAfford   = game.currency >= node.cost;
+    const canBuy      = fs.canPurchaseNode(node.id, game);
+    const state       = purchased          ? 'purchased'
+                      : !prereqOk          ? 'locked'
+                      : !canAfford         ? 'cant-afford'
+                      :                      'available';
 
     const wantClass = `faction-node-btn state-${state}`;
     if (btn.className !== wantClass) btn.className = wantClass;
