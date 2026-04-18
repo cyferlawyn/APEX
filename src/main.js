@@ -198,22 +198,17 @@ function update(dt) {
         if (game.obliterateTimer <= 0) {
           game.obliterateTimer = -1;
           // Kill off-screen enemies instantly — the blastwave won't reach them
-          for (const e of game.enemyPool.pool) {
-            if (!e.active) continue;
-            if (e.x < 0 || e.x > canvas.width || e.y < 0 || e.y > canvas.height) {
-              killEnemy(e, game);
-            }
-          }
-          // Emit the blastwave from the tower — it will kill on-screen enemies on contact
+          // Emit the blastwave — maxR extends 300px beyond canvas edges to catch
+          // enemies that haven't entered the screen yet
           const tx = game.tower.x, ty = game.tower.y;
-          // maxR: distance from tower to the farthest canvas corner
+          const margin = 300;
           const maxR = Math.sqrt(
-            Math.max(tx, canvas.width  - tx) ** 2 +
-            Math.max(ty, canvas.height - ty) ** 2
-          ) * 1.15;
-          const speed = maxR / 0.28; // crosses screen in 0.28 s
+            Math.max(tx, canvas.width  - tx + margin) ** 2 +
+            Math.max(ty, canvas.height - ty + margin) ** 2
+          );
+          const speed = maxR / 0.35; // full sweep in 0.35 s
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
-            maxR, speed, t: 0.7, life: 0.7, done: false });
+            maxR, speed, t: 0.8, life: 0.8, killDone: false });
         }
       }
 
