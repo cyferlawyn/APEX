@@ -1,5 +1,5 @@
 // faction.js — Faction (Covenant) system
-// Only NEXUS is implemented. THE CONCLAVE and THE WARBORN are stubs.
+// NEXUS is fully implemented. THE WARBORN is implemented. THE CONCLAVE is a stub.
 
 // Rarity tier index used by Stack Cascade (1 = common … 10 = apex)
 export const RARITY_TIER = {
@@ -31,8 +31,8 @@ export const FACTIONS = {
     name:        'THE WARBORN',
     color:       '#ff1744',
     flavor:      '"The tower fights for you. Now fight for it."',
-    description: 'Coming soon.',
-    comingSoon:  true,
+    description: 'Mortar artillery, active abilities, and escalating Rush Stacks. Aggression rewarded.',
+    comingSoon:  false,
   },
 };
 
@@ -40,6 +40,83 @@ export const FACTIONS = {
 // col: 0=A, 1=B, 2=C   tier: 1-3   prereq: nodeId or null
 
 export const FACTION_NODES = {
+  warborn: [
+    // ── Column A: Mortar ──────────────────────────────────────────────────────
+    {
+      id: 'warborn_a1', col: 0, tier: 1, prereq: null,
+      name: 'Field Artillery',
+      shortName: 'Artillery',
+      tooltip: 'Mortar loop: 0.75 s shrinking crosshair tracks cursor → locks → 0.25 s flight → 50 px AoE at 100% normalized shot damage → repeat.\nOne mortar per second.',
+      cost: 500_000,
+      apply(game) { game.warbornMortar = true; },
+    },
+    {
+      id: 'warborn_a2', col: 0, tier: 2, prereq: 'warborn_a1',
+      name: 'Heavy Ordnance',
+      shortName: 'Heavy Ord.',
+      tooltip: 'Mortar blast radius 150 px. Mortar deals 300% normalized shot damage. Mortar hits stun enemies for 0.5 s.',
+      cost: 2_500_000,
+      apply(game) { game.warbornHeavyOrdnance = true; },
+    },
+    {
+      id: 'warborn_a3', col: 0, tier: 3, prereq: 'warborn_a2',
+      name: 'Carpet Bombing',
+      shortName: 'Carpet Bomb',
+      tooltip: '4 extra mortars detonate 100 px N/S/E/W from the primary impact point.',
+      cost: 12_500_000,
+      apply(game) { game.warbornCarpetBombing = true; },
+    },
+    // ── Column B: Active Abilities ────────────────────────────────────────────
+    {
+      id: 'warborn_b1', col: 1, tier: 1, prereq: null,
+      name: 'Rallying Cry',
+      shortName: 'Rally (1)',
+      tooltip: 'OVERDRIVE [key 1]: 3× fire rate for 5 s, 60 s cooldown.\nPassive: each wave clear removes 1 s from all ability cooldowns.',
+      cost: 500_000,
+      apply(game) { game.warbornRallyCry = true; },
+    },
+    {
+      id: 'warborn_b2', col: 1, tier: 2, prereq: 'warborn_b1',
+      name: 'Fury',
+      shortName: 'Fury (2)',
+      tooltip: 'FURY [key 2]: all damage ×2 for 4 s, 60 s cooldown.\nPassive: each wave clear extends all currently-active ability durations by 0.5 s.',
+      cost: 2_500_000,
+      apply(game) { game.warbornFury = true; },
+    },
+    {
+      id: 'warborn_b3', col: 1, tier: 3, prereq: 'warborn_b2',
+      name: 'Avatar of War',
+      shortName: 'Avatar (3)',
+      tooltip: 'ANNIHILATION [key 3]: all enemies instantly lose 30% of their current HP, 60 s cooldown.\nPassive: each wave clear removes another 1 s from all ability cooldowns (total −2 s/wave with Rallying Cry).',
+      cost: 12_500_000,
+      apply(game) { game.warbornAvatarOfWar = true; },
+    },
+    // ── Column C: Rush Stacks ─────────────────────────────────────────────────
+    {
+      id: 'warborn_c1', col: 2, tier: 1, prereq: null,
+      name: 'Blood Rush',
+      shortName: 'Blood Rush',
+      tooltip: 'Kills within 1.5 s grant a Rush Stack (no cap). Each stack: +3% damage. Stacks decay after 3 s with no kill.',
+      cost: 500_000,
+      apply(game) { game.warbornBloodRush = true; },
+    },
+    {
+      id: 'warborn_c2', col: 2, tier: 2, prereq: 'warborn_c1',
+      name: 'Rampage',
+      shortName: 'Rampage',
+      tooltip: '+1% fire rate bonus per 10 Rush Stacks.',
+      cost: 2_500_000,
+      apply(game) { game.warbornRampage = true; },
+    },
+    {
+      id: 'warborn_c3', col: 2, tier: 3, prereq: 'warborn_c2',
+      name: 'Unstoppable',
+      shortName: 'Unstoppable',
+      tooltip: 'Wave-start: 10 s decay protection. Mortar hits reset the decay timer. Mortar kills grant a Rush Stack. Overkill grants 2 stacks.',
+      cost: 12_500_000,
+      apply(game) { game.warbornUnstoppable = true; },
+    },
+  ],
   nexus: [
     {
       id: 'nexus_a1', col: 0, tier: 1, prereq: null,
@@ -119,6 +196,13 @@ export const FACTION_NODES = {
 // ── Capstone definitions ───────────────────────────────────────────────────
 
 export const FACTION_CAPSTONES = {
+  warborn: {
+    id:       'warborn_cs',
+    name:     'ETERNAL WARRIOR',
+    tooltip:  'Rank 1: mortar hits remove 5% of current HP in blast radius.\nEach rank: +0.1% mortar current-HP removal (rank 10 = 6%, rank 20 = 7%).\nEach rank: regular projectiles remove (rank × 0.1)% current HP — active regardless of faction.\nEach rank: all ability cooldowns −0.1 s (cap −30 s).',
+    baseCost: 1_000_000,
+    costMult: 1.30,
+  },
   nexus: {
     id:       'nexus_cs',
     name:     'SINGULARITY',
@@ -212,6 +296,12 @@ export class FactionSystem {
         while (game.traitorSystem.slots.length < 4) game.traitorSystem.slots.push(null);
       }
     }
+
+    // WARBORN: sync cross-faction capstone rank into game
+    if (factionId === 'warborn') {
+      game.warbornCapstoneRank = this.permanent.warborn.capstoneRank;
+    }
+
     return true;
   }
 
@@ -234,6 +324,16 @@ export class FactionSystem {
     game.dataHarvest     = false;
     game.stackAmplifier  = false;
     game.recursiveGrowth = false;
+    // WARBORN flags
+    game.warbornMortar        = false;
+    game.warbornHeavyOrdnance = false;
+    game.warbornCarpetBombing = false;
+    game.warbornRallyCry      = false;
+    game.warbornFury          = false;
+    game.warbornAvatarOfWar   = false;
+    game.warbornBloodRush     = false;
+    game.warbornRampage       = false;
+    game.warbornUnstoppable   = false;
 
     // Restore permanent neural stacks
     game.permanentNeuralStacks = this.permanent.nexus?.permanentNeuralStacks ?? 0;
@@ -258,6 +358,9 @@ export class FactionSystem {
         while (game.traitorSystem.slots.length < 4) game.traitorSystem.slots.push(null);
       }
     }
+
+    // Always sync WARBORN capstone rank (cross-faction benefit)
+    game.warbornCapstoneRank = this.permanent.warborn?.capstoneRank ?? 0;
 
     // Apply merge count reduction from Apex Protocol
     if (game.traitorSystem) {

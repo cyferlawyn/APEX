@@ -93,6 +93,47 @@ export class Game {
     this.permanentNeuralStacks = 0;     // preserved stacks from Singularity (loaded from capstone save)
     // Lure Protocols — which enemy type has 3× capture this wave (set each wave start)
     this.lureType             = null;
+
+    // ── WARBORN faction state ───────────────────────────────────────────────
+    // Node flags (reset by FactionSystem.reapplyAll)
+    this.warbornMortar        = false;  // A1
+    this.warbornHeavyOrdnance = false;  // A2
+    this.warbornCarpetBombing = false;  // A3
+    this.warbornRallyCry      = false;  // B1
+    this.warbornFury          = false;  // B2
+    this.warbornAvatarOfWar   = false;  // B3
+    this.warbornBloodRush     = false;  // C1
+    this.warbornRampage       = false;  // C2
+    this.warbornUnstoppable   = false;  // C3
+
+    // Mortar loop state (per-run, not saved)
+    this.mortarTrackTimer  = 0;      // counts up 0→0.75 s (tracking phase)
+    this.mortarLocked      = false;  // true = locked, waiting for flight
+    this.mortarLockedX     = 0;
+    this.mortarLockedY     = 0;
+    this.mortarInFlight    = false;
+    this.mortarFlightTimer = 0;      // counts down 0.25→0
+    this.mortarCursorX     = 0;      // canvas coords, updated by mousemove
+    this.mortarCursorY     = 0;
+
+    // Ability cooldowns/timers (per-run, not saved)
+    this.overdriveCooldown  = 0;    // seconds until Overdrive can be used again
+    this.overdriveActive    = false;
+    this.overdriveTimer     = 0;    // seconds remaining in active burst
+    this.furyCooldown       = 0;
+    this.furyActive         = false;
+    this.furyTimer          = 0;
+    this.annihilationCooldown = 0;
+
+    // Rush Stack state (per-run, not saved)
+    this.rushStacks         = 0;
+    this.rushDecayTimer     = 0;    // counts down; 0 = start decaying
+    this.rushDecayProtected = false;// Unstoppable wave-start protection
+    this.rushKillTimer      = 0;    // counts up; reset on kill; stack if < 1.5s
+
+    // Cross-faction permanent capstone rank (persists like NEXUS permanentNeuralStacks)
+    // Loaded from factionCapstones save; read by projectile.js and mortar damage calc
+    this.warbornCapstoneRank = 0;
   }
 
   transition(newState) {
@@ -158,5 +199,44 @@ export class Game {
   factionCurrencyMult() {
     if (!this.stackAmplifier) return 1.0;
     return 1 + this.neuralStacks * 0.003;
+  }
+
+  // WARBORN: Rush Stack damage multiplier (Blood Rush C1, each stack +3%)
+  rushDmgMult() {
+    if (!this.warbornBloodRush || this.rushStacks === 0) return 1.0;
+    return 1 + this.rushStacks * 0.03;
+  }
+
+  // WARBORN: Fury damage multiplier
+  furyDmgMult() {
+    return (this.warbornFury && this.furyActive) ? 2.0 : 1.0;
+  }
+
+  // WARBORN: Overdrive fire-rate multiplier
+  overdriveFireRateMult() {
+    return (this.warbornRallyCry && this.overdriveActive) ? 3.0 : 1.0;
+  }
+
+  // WARBORN: Rampage fire-rate bonus (% per 10 stacks)
+  rampageFireRateMult() {
+    if (!this.warbornRampage || this.rushStacks === 0) return 1.0;
+    return 1 + Math.floor(this.rushStacks / 10) * 0.01;
+  }
+
+  // WARBORN: cross-faction current-HP removal per regular projectile hit
+  warbornProjectileHpPct() {
+    if (this.warbornCapstoneRank <= 0) return 0;
+    return this.warbornCapstoneRank * 0.001; // rank × 0.1%
+  }
+
+  // WARBORN: mortar current-HP removal per hit (capstone rank 1 = 5%, +0.1%/rank)
+  warbornMortarHpPct() {
+    if (this.warbornCapstoneRank <= 0) return 0;
+    return 0.05 + (this.warbornCapstoneRank - 1) * 0.001;
+  }
+
+  // WARBORN: ability cooldown reduction from capstone (cap 30 s)
+  warbornCooldownReduction() {
+    return Math.min(30, this.warbornCapstoneRank * 0.1);
   }
 }

@@ -525,10 +525,19 @@ function patchFactionTab() {
   let statusText = 'No faction active.';
   if (fid) {
     const f = FACTIONS[fid];
-    const dmgBonus  = game.stackAmplifier ? `×${game.factionDmgMult().toFixed(2)} dmg` : '';
-    const currBonus = game.stackAmplifier ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
-    const bonuses   = [dmgBonus, currBonus].filter(Boolean).join('  ');
-    statusText = `[${f.name}]${bonuses ? '  ' + bonuses : ''}`;
+    if (fid === 'nexus') {
+      const dmgBonus  = game.stackAmplifier ? `×${game.factionDmgMult().toFixed(2)} dmg` : '';
+      const currBonus = game.stackAmplifier ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
+      const bonuses   = [dmgBonus, currBonus].filter(Boolean).join('  ');
+      statusText = `[${f.name}]${bonuses ? '  ' + bonuses : ''}`;
+    } else if (fid === 'warborn') {
+      const rushBonus = game.warbornBloodRush && game.rushStacks > 0
+        ? `  rush ×${(1 + game.rushStacks * 0.03).toFixed(2)} dmg`
+        : '';
+      statusText = `[${f.name}]${rushBonus}`;
+    } else {
+      statusText = `[${f.name}]`;
+    }
   }
   if (statusLine.textContent !== statusText) statusLine.textContent = statusText;
 
@@ -577,10 +586,15 @@ function patchFactionTab() {
     if (csBtn.textContent !== label) csBtn.textContent = label;
     if (csRank) {
       let rankText = `Rank ${rank}`;
-      if (rank > 0) {
+      if (fid === 'nexus' && rank > 0) {
         const runStacks = Math.max(0, game.neuralStacks - game.permanentNeuralStacks);
         const projection = Math.floor(runStacks * rank / 100);
         rankText += `  — preserves ${rank}% (≈${projection} stacks) of run stacks`;
+      } else if (fid === 'warborn' && rank > 0) {
+        const mortarPct = (5 + (rank - 1) * 0.1).toFixed(1);
+        const projPct   = (rank * 0.1).toFixed(1);
+        const cdRed     = Math.min(30, rank * 0.1).toFixed(1);
+        rankText += `  — mortar: ${mortarPct}% HP  proj: ${projPct}% HP  cd -${cdRed}s`;
       }
       if (csRank.textContent !== rankText) csRank.textContent = rankText;
     }

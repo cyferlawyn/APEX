@@ -122,8 +122,10 @@ export class Tower {
     if (this.hitFlash  > 0) this.hitFlash  -= dt;
     if (this.invulnTimer > 0) this.invulnTimer -= dt;
 
-    // Shard passive × traitor pet bonus × faction (neural stacks) × base damage for all weapons this frame
-    this._dmgMult = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult();
+    // Shard passive × traitor pet bonus × faction (neural stacks) × WARBORN (rush+fury) for all weapons this frame
+    this._dmgMult = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
+      * (game.rushDmgMult?.() ?? 1.0)
+      * (game.furyDmgMult?.() ?? 1.0);
 
     this._updateMainGun(dt, game);
     if (this.ringTier > 0)  this._updateRings(dt, game);
@@ -159,7 +161,9 @@ export class Tower {
     else if (this.multiShotCount > 1) audio.fireMulti();
     else                              audio.fireSingle();
 
-    this.fireCooldown = 1 / this.fireRate;
+    const overdriveMult = game.overdriveFireRateMult?.() ?? 1.0;
+    const rampageMult   = game.rampageFireRateMult?.()   ?? 1.0;
+    this.fireCooldown = 1 / (this.fireRate * overdriveMult * rampageMult);
   }
 
   _fireAt(target, game, ox, oy, overchargeMult = 1) {

@@ -175,6 +175,14 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
 
   e.hp -= dmg;
 
+  // WARBORN capstone: regular projectiles remove (rank × 0.1)% current HP — cross-faction
+  if (source === 'projectile') {
+    const hpPct = game.warbornProjectileHpPct?.() ?? 0;
+    if (hpPct > 0 && e.hp > 0) {
+      e.hp -= e.hp * hpPct;
+    }
+  }
+
   // Obliterate — trigger when normalized shot damage is 10× a drone's HP at this wave
   if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
       game.obliterateTimer < 0) {

@@ -66,9 +66,11 @@ export class Renderer {
     this._drawTower();
     this._drawBlastwaves();
     this._drawPoisonIndicators();
+    this._drawMortarCrosshair();
     if (game.particles) game.particles.draw(ctx, game.quality);
     this._drawEdgeFlash();
     this._drawHUD();
+    this._drawWarbornHUD();
     this._drawStateOverlay();
   }
 
@@ -252,6 +254,203 @@ export class Renderer {
       }
       ctx.restore();
     }
+  }
+
+  // ── WARBORN: mortar crosshair ────────────────────────────────────────────────
+
+  _drawMortarCrosshair() {
+    const { ctx, game } = this;
+    if (!game.warbornMortar) return;
+
+    const cx = game.mortarCursorX;
+    const cy = game.mortarCursorY;
+    const RED = '#ff1744';
+
+    if (game.mortarInFlight) {
+      // Draw mortar arc from tower to locked position
+      const tx = game.tower.x, ty = game.tower.y;
+      const lx = game.mortarLockedX, ly = game.mortarLockedY;
+      const progress = 1 - game.mortarFlightTimer / 0.25;
+      // Arc: midpoint elevated
+      const mx = (tx + lx) / 2;
+      const my = (ty + ly) / 2 - 80;
+      const t  = progress;
+      const bx = (1 - t) * (1 - t) * tx + 2 * (1 - t) * t * mx + t * t * lx;
+      const by = (1 - t) * (1 - t) * ty + 2 * (1 - t) * t * my + t * t * ly;
+
+      ctx.save();
+      ctx.strokeStyle = RED;
+      ctx.shadowBlur  = game.quality !== 'low' ? 8 : 0;
+      ctx.shadowColor = RED;
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.quadraticCurveTo(mx, my, bx, by);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Projectile dot
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle   = '#ff4081';
+      ctx.shadowBlur  = 12;
+      ctx.shadowColor = RED;
+      ctx.beginPath();
+      ctx.arc(bx, by, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Locked target reticle
+      this._drawTargetReticle(lx, ly, 12, RED, 1.0);
+      return;
+    }
+
+    if (game.mortarLocked) {
+      // Locked — solid bright reticle
+      this._drawTargetReticle(game.mortarLockedX, game.mortarLockedY, 12, RED, 1.0);
+      return;
+    }
+
+    // Tracking phase — shrinking crosshair
+    const trackFrac  = game.mortarTrackTimer / 0.75;  // 0→1
+    const outerR     = 28 - trackFrac * 16;           // shrinks 28→12
+    const alpha      = 0.55 + trackFrac * 0.35;
+    this._drawTargetReticle(cx, cy, outerR, RED, alpha);
+  }
+
+  _drawTargetReticle(x, y, r, color, alpha) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.shadowBlur  = this.game.quality !== 'low' ? 10 : 0;
+    ctx.shadowColor = color;
+    ctx.lineWidth   = 1.5;
+    // Circle
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.stroke();
+    // Cross lines
+    const gap = r * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(x - r - 4, y); ctx.lineTo(x - gap, y);
+    ctx.moveTo(x + gap,   y); ctx.lineTo(x + r + 4, y);
+    ctx.moveTo(x, y - r - 4); ctx.lineTo(x, y - gap);
+    ctx.moveTo(x, y + gap);   ctx.lineTo(x, y + r + 4);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ── WARBORN HUD: Rush Stacks + Ability panel ──────────────────────────────────
+
+  _drawWarbornHUD() {
+    const { ctx, canvas, game } = this;
+    if (!game.warbornBloodRush && !game.warbornRallyCry) return;
+
+    const WARBORN_RED = '#ff1744';
+
+    let hudY = 70; // start below existing HUD elements
+
+    // Rush Stack counter (C1 Blood Rush)
+    if (game.warbornBloodRush) {
+      const stacks = game.rushStacks;
+      ctx.save();
+      ctx.textAlign   = 'left';
+      ctx.font        = '10px monospace';
+      const dmgBonus  = stacks > 0 ? `+${(stacks * 3)}% dmg` : '';
+      const rushLabel = `⚔ ${stacks} rush${dmgBonus ? '  ' + dmgBonus : ''}`;
+      ctx.fillStyle   = stacks > 0 ? WARBORN_RED : 'rgba(255,23,68,0.3)';
+      if (stacks > 0 && game.quality !== 'low') {
+        ctx.shadowBlur  = 6;
+        ctx.shadowColor = WARBORN_RED;
+      }
+      ctx.fillText(rushLabel, 12, hudY);
+      hudY += 14;
+
+      // Decay bar: show only if decaying
+      if (stacks > 0 && !game.rushDecayProtected && game.rushDecayTimer > 0) {
+        const pct = Math.min(1, game.rushDecayTimer / 3.0);
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(12, hudY, 60, 3);
+        ctx.fillStyle = WARBORN_RED;
+        ctx.fillRect(12, hudY, 60 * pct, 3);
+        hudY += 8;
+      }
+      ctx.restore();
+    }
+
+    // Ability panel (B1/B2/B3)
+    if (!game.warbornRallyCry) return;
+
+    const abilities = [];
+    if (game.warbornRallyCry) {
+      abilities.push({
+        key: '1', name: 'OVERDRIVE',
+        active: game.overdriveActive, timer: game.overdriveTimer, maxTimer: 5,
+        cooldown: game.overdriveCooldown, maxCd: 60,
+      });
+    }
+    if (game.warbornFury) {
+      abilities.push({
+        key: '2', name: 'FURY',
+        active: game.furyActive, timer: game.furyTimer, maxTimer: 4,
+        cooldown: game.furyCooldown, maxCd: 60,
+      });
+    }
+    if (game.warbornAvatarOfWar) {
+      abilities.push({
+        key: '3', name: 'ANNIHIL.',
+        active: false, timer: 0, maxTimer: 1,
+        cooldown: game.annihilationCooldown, maxCd: 60,
+      });
+    }
+
+    const panelX  = canvas.width - 130;
+    let   panelY  = canvas.height - 20 - abilities.length * 26;
+
+    ctx.save();
+    for (const ab of abilities) {
+      const ready = !ab.active && ab.cooldown <= 0;
+      const color = ab.active ? '#ff4081' : ready ? WARBORN_RED : 'rgba(255,23,68,0.35)';
+
+      // Key badge
+      ctx.font        = 'bold 11px monospace';
+      ctx.textAlign   = 'left';
+      ctx.fillStyle   = color;
+      ctx.fillText(`[${ab.key}]`, panelX, panelY);
+
+      // Name
+      ctx.font      = '10px monospace';
+      ctx.fillStyle = color;
+      ctx.fillText(ab.name, panelX + 22, panelY);
+
+      // Status bar
+      const barX = panelX;
+      const barY = panelY + 3;
+      const barW = 110;
+      const barH = 3;
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(barX, barY, barW, barH);
+
+      if (ab.active) {
+        // Active: green fill showing remaining duration
+        const pct = Math.min(1, ab.timer / ab.maxTimer);
+        ctx.fillStyle = '#ff4081';
+        ctx.fillRect(barX, barY, barW * pct, barH);
+      } else if (ab.cooldown > 0) {
+        // Cooldown: red fill showing remaining cooldown (inverted — depletes)
+        const pct = Math.min(1, ab.cooldown / ab.maxCd);
+        ctx.fillStyle = 'rgba(255,23,68,0.4)';
+        ctx.fillRect(barX, barY, barW * (1 - pct), barH);
+      } else {
+        // Ready
+        ctx.fillStyle = WARBORN_RED;
+        ctx.fillRect(barX, barY, barW, barH);
+      }
+
+      panelY += 26;
+    }
+    ctx.restore();
   }
 
   _hexPath(cx, cy, r) {
