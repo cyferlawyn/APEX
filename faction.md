@@ -98,6 +98,7 @@ Automation path. The tree deepens the traitor/pet system — passive compounding
 - **Each rank**: at ascension, (rank)% of run-earned Neural Stacks are permanently preserved and seed every future run
 - Permanent stacks are never re-counted by Singularity (only fresh run-earned stacks are subject to the %)
 - Stored in `apex_faction_capstones` alongside capstone rank
+- Cross-faction synergy: permanent Neural Stacks — and their C2 damage/currency multiplier — are active in every future run regardless of which faction is chosen next
 
 ### Implementation Notes
 
@@ -171,8 +172,9 @@ Active path. The player fires mortars by targeting positions on the canvas and t
 
 - `baseCost: 1,000,000`, `costMult: 1.30`, unlimited rank
 - **Rank 1**: mortar hits remove 15% of current HP from all enemies in the blast radius (in addition to flat damage)
-- **Each rank**: regular projectiles (including spread, multi-shot, chain, ricochet extra hits) remove `(1 + rank × 0.1)%` of current HP of each enemy hit
+- **Each rank**: regular projectiles (including spread, multi-shot, chain, ricochet extra hits) remove `(1 + rank × 0.1)%` of current HP of each enemy hit — **this bonus is active regardless of current faction**, giving WARBORN capstone holders a permanent combat edge in all future runs
 - Current-HP removal is applied after flat damage on the same hit
+- Cross-faction synergy: just as NEXUS Singularity seeds permanent Neural Stacks into every future run, ETERNAL WARRIOR seeds a permanent per-hit current-HP% strip into every future run — the more ranks, the more every projectile shreds high-HP enemies across all factions
 
 ### Implementation Notes (pre-build)
 
