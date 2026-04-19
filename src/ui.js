@@ -553,13 +553,12 @@ function patchFactionTab() {
         : '';
       statusText = `[${f.name}]${rushBonus}`;
     } else if (fid === 'vanguard') {
-      const spoilsText = game.vanguardSpoilsOfWar && game.vanguardSpoilsStacks > 0
-        ? `  spoils +${game.vanguardSpoilsStacks * 5}% dmg`
-        : '';
-      const speedText = game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0
-        ? `  spd +${Math.round(game.vanguardSpeedBonus * 100)}%`
-        : '';
-      statusText = `[${f.name}]${speedText}${spoilsText}`;
+      const parts = [];
+      if (game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0)
+        parts.push(`spd +${Math.round(game.vanguardSpeedBonus * 100)}%`);
+      if (game.vanguardSpoilsOfWar)
+        parts.push(`spoils +${game.vanguardSpoilsStacks * 5}% dmg/crit`);
+      statusText = `[${f.name}]${parts.length ? '  ' + parts.join('  ') : ''}`;
     } else {
       statusText = `[${f.name}]`;
     }
