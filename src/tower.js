@@ -399,10 +399,12 @@ function _towerKillEnemy(e, game) {
 }
 
 // Returns the expected (normalized) damage of a single regular shot, factoring in:
-// base damage (incl. Damage upgrade), shard multiplier, traitor bonus,
-// and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
+// base damage (incl. Damage upgrade), shard multiplier, traitor bonus, faction stacks,
+// WARBORN rush/fury, and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
 export function normalizedShotDamage(tower, game) {
-  const dmgMult        = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult();
+  const dmgMult        = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
+                         * (game.rushDmgMult?.() ?? 1.0)
+                         * (game.furyDmgMult?.() ?? 1.0);
   const critFactor     = 1 + tower.critChance * (tower.critMult - 1);
   // Overcharge: every N-th shot is ×4; expected factor = (N−1 + 4) / N = 1 + 3/N
   const overchargeFactor = tower.overchargeN > 0 ? 1 + 3 / tower.overchargeN : 1;
