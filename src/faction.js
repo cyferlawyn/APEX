@@ -87,7 +87,7 @@ export const FACTION_NODES = {
       shortName: 'Apex Proto',
       tooltip: 'Merge cost reduced from 5 to 4 pets per merge.',
       cost: 12_500_000,
-      apply(game) { game.apexProtocol = true; },
+      apply(game) { game.apexProtocol = true; if (game.traitorSystem) game.traitorSystem.mergeCount = 4; },
     },
     {
       id: 'nexus_c1', col: 2, tier: 1, prereq: null,
