@@ -576,7 +576,12 @@ function patchFactionTab() {
     const label     = unlocked ? `${cs.name}  $ ${fmt(cost)}` : `${cs.name}  (locked)`;
     if (csBtn.textContent !== label) csBtn.textContent = label;
     if (csRank) {
-      const rankText = `Rank ${rank}` + (rank > 0 ? `  — preserves ${rank}% of run stacks` : '');
+      let rankText = `Rank ${rank}`;
+      if (rank > 0) {
+        const runStacks = Math.max(0, game.neuralStacks - game.permanentNeuralStacks);
+        const projection = Math.floor(runStacks * rank / 100);
+        rankText += `  — preserves ${rank}% (≈${projection} stacks) of run stacks`;
+      }
       if (csRank.textContent !== rankText) csRank.textContent = rankText;
     }
   }
