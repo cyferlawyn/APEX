@@ -210,7 +210,8 @@ function _showNextToast() {
   const pet   = _toastQueue.shift();
   const toast = document.getElementById('traitor-toast');
   const color = RARITY_COLOR[pet.rarity] ?? '#9e9e9e';
-  const bonus = petBonus(pet.type, pet.rarity);
+  const _resonanceMult = getApex()?.game?.resonanceField ? 2 : 1;
+  const bonus = petBonus(pet.type, pet.rarity) * _resonanceMult;
 
   toast.innerHTML = `
     <div id="traitor-toast-label">traitor deserted!</div>
@@ -261,7 +262,8 @@ function patchTraitorPanel() {
   if (!show) return;
 
   // Header bonus display
-  const bonus      = ts.damageBonus();
+  const resonanceMult = game.resonanceField ? 2 : 1;
+  const bonus      = ts.damageBonus() * resonanceMult;
   const bonusEl    = document.getElementById('traitor-bonus-value');
   const bonusText  = fmtPct(bonus);
   if (bonusEl.textContent !== bonusText) bonusEl.textContent = bonusText;
@@ -327,7 +329,7 @@ function patchTraitorPanel() {
     const [type, rarity] = key.split('|');
     const count  = counts[key];
     const color  = RARITY_COLOR[rarity] ?? '#9e9e9e';
-    const bonus  = petBonus(type, rarity);
+    const bonus  = petBonus(type, rarity) * (game.resonanceField ? 2 : 1);
     const canMrg = ts.canMerge(type, rarity);
 
     // Is at least one of this group already in a slot?
