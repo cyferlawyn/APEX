@@ -237,7 +237,12 @@ export class FactionSystem {
 
     // Restore permanent neural stacks
     game.permanentNeuralStacks = this.permanent.nexus?.permanentNeuralStacks ?? 0;
-    game.neuralStacks          = game.permanentNeuralStacks;
+    if (this._runNeuralStacks != null) {
+      game.neuralStacks    = this._runNeuralStacks;
+      this._runNeuralStacks = null;
+    } else {
+      game.neuralStacks = game.permanentNeuralStacks;
+    }
 
     if (!this.activeFaction) return;
 
@@ -272,13 +277,14 @@ export class FactionSystem {
 
   // ── Serialization ─────────────────────────────────────────────────────────
 
-  serializeRun() {
-    return { activeFaction: this.activeFaction };
+  serializeRun(neuralStacks = 0) {
+    return { activeFaction: this.activeFaction, neuralStacks };
   }
 
   deserializeRun(data) {
     if (!data) return;
-    this.activeFaction = data.activeFaction ?? null;
+    this.activeFaction   = data.activeFaction ?? null;
+    this._runNeuralStacks = (data.neuralStacks != null) ? data.neuralStacks : null;
   }
 
   serializeCapstones() {

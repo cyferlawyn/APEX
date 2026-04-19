@@ -334,7 +334,7 @@ function saveGame() {
   });
   _savePrestigeState();
   saveTraitors(game.traitorSystem.serialize());
-  saveFaction(game.factionSystem.serializeRun());
+  saveFaction(game.factionSystem.serializeRun(game.neuralStacks));
   saveFactionCapstones(game.factionSystem.serializeCapstones());
 }
 
