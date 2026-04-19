@@ -151,36 +151,41 @@ Strategic path. Amplifies tower weapon systems passively and unlocks three power
 
 > *"The tower fights for you. Now fight for it."*
 
-Active path. The player fires mortars by targeting enemies on the canvas and triggers three combat abilities. Demands constant attention; rewards it with a DPS ceiling neither other faction can reach.
+Active path. The player fires mortars by targeting positions on the canvas and triggers three combat abilities. Demands constant attention; rewards it with a DPS ceiling neither other faction can reach.
 
 ### Talent Tree
 
 | Node | Name | Effect |
 |---|---|---|
-| A1 | *Field Artillery* | Hover over an enemy for 0.3 s to lock mortar target; fires after 0.8 s charge dealing 100% tower base damage, 3 s CD. Crosshair reticle drawn on target. |
-| A2 | *Heavy Ordnance* | Mortar damage 300% tower base damage, 60 px splash, 1.5 s CD |
-| A3 | *Carpet Bombing* | 3 mortars fire simultaneously (locked target + 2 nearest), 2 s CD for the trio |
+| A1 | *Field Artillery* | Enables mortar. A crosshair follows the cursor and shrinks over 0.75 s. At 0.75 s it locks in place. A mortar projectile flies to that position in 0.25 s, hitting all enemies within 50 px (accounts for moving targets). Loop restarts immediately — one mortar per second. Visual: shrinking crosshair ring during tracking, locked crosshair while in flight. |
+| A2 | *Heavy Ordnance* | Mortar blast radius 150 px; enemies hit are stunned for 0.5 s. |
+| A3 | *Carpet Bombing* | 4 additional mortar projectiles fire simultaneously, each offset 100 px from the main impact point (N/S/E/W). Incentive: if the main shot lands directly on a dense cluster all 5 overlap for 5× effective hits. |
 | B1 | *Rallying Cry* | Unlocks ability panel. **OVERDRIVE** (1) — tower fires 3× rate for 5 s, 60 s CD |
-| B2 | *Fury* | **FURY** (2) — all damage ×2 for 4 s, 80 s CD |
-| B3 | *Avatar of War* | **ANNIHILATION** (3) — all enemies on screen instantly lose 30% current HP, ignores armor, 100 s CD |
-| C1 | *Blood Rush* | Kills within 1.5 s of each other grant a Rush Stack (max 10). Each stack: +3% damage. Stacks decay after 3 s with no kill. |
-| C2 | *Rampage* | At 5+ Rush Stacks: fire rate +20%. At 10 stacks: fire rate +40% |
-| C3 | *Unstoppable* | Rush Stacks never decay mid-wave; mortar kills grant stacks; overkill grants 2 stacks |
+| B2 | *Fury* | **FURY** (2) — all damage ×2 for 4 s, 60 s CD |
+| B3 | *Avatar of War* | **ANNIHILATION** (3) — all enemies on screen instantly lose 30% current HP, 60 s CD |
+| C1 | *Blood Rush* | Kills within 1.5 s of each other grant a Rush Stack (no cap). Each stack: +3% damage. Stacks decay 3 s after the last kill. |
+| C2 | *Rampage* | For every 100 Rush Stacks, tower fire rate +10%. |
+| C3 | *Unstoppable* | At the start of each wave, Rush Stacks are protected from decay for 10 s (enemies need time to reach the tower). Mortar hits reset the decay timer. Mortar kills grant a stack. Overkill kills grant 2 stacks. |
 
 ### Capstone — ETERNAL WARRIOR
 
-- `baseCost: 75,000`, `costMult: 1.35`, **capped at rank 40**
-- Each rank: +5% mortar damage, +1 Rush Stack cap
-- Each rank: +0.001 to `warbornHpContribution` (enemy HP exponent reduction)
+- `baseCost: 1,000,000`, `costMult: 1.30`, unlimited rank
+- **Rank 1**: mortar hits remove 15% of current HP from all enemies in the blast radius (in addition to flat damage)
+- **Each rank**: regular projectiles (including spread, multi-shot, chain, ricochet extra hits) remove `(1 + rank × 0.1)%` of current HP of each enemy hit
+- Current-HP removal is applied after flat damage on the same hit
 
 ### Implementation Notes (pre-build)
 
-- Mortar is visual arc projectile (not instant-hit) with travel time ~0.4 s for feel
-- Ability panel: 3 buttons keyed 1/2/3, cooldown fill bars
-- Rush Stack counter in HUD (top-left, below neural stacks if NEXUS was active previous run)
-- `rushStacks`, `rushDecayTimer`, `mortarTarget`, `mortarHoverTimer`, `mortarCooldown` all live on `game`
-- Canvas `mousemove` drives hover timer; click fires mortar if charged
-- `warbornHpContribution` stored in `apex_faction_capstones`
+- Mortar state per frame: `mortarTrackTimer` (0→0.75 s), `mortarLocked` (bool), `mortarLockedX/Y`, `mortarInFlight` (bool), `mortarFlightTimer` (0→0.25 s)
+- Canvas `mousemove` updates `game.mortarCursorX/Y`; tracking phase follows cursor, locked phase ignores it
+- Crosshair drawn in `renderer.js`: large ring shrinking to small ring over 0.75 s during tracking; static ring during flight
+- On lock: record `mortarLockedX/Y`, set `mortarInFlight = true`, reset `mortarFlightTimer`
+- On impact: AoE hit all enemies within 50 px (150 px with A2); apply stun if A2; fire 4 offset projectiles if A3; then restart tracking phase
+- Stun: enemies with `stunTimer > 0` skip movement update
+- Rush Stack counter in HUD
+- `rushStacks`, `rushDecayTimer`, `mortarLockedX`, `mortarLockedY`, `mortarTrackTimer`, `mortarInFlight`, `mortarFlightTimer` all live on `game`
+- `warbornHpContribution` stored in `apex_faction_capstones` (for future use — no HP exponent effect in current design)
+- Ability cooldowns are per-run, not saved
 
 ---
 
@@ -190,7 +195,7 @@ Active path. The player fires mortars by targeting enemies on the canvas and tri
 |---|---|
 | Faction nodes wiped on ascension — refunded or lost? | **Permanent** — nodes are never lost, re-picking the same faction restores full tree |
 | CONCLAVE OBLITERATING STRIKE vs prestige OBLITERATE overlap? | **Stack** — different triggers (manual timed ability vs auto overkill reaction) |
-| Mortar visual: instant-hit or arc projectile? | **Arc projectile**, ~0.4 s travel time |
+| Mortar visual: instant-hit or arc projectile? | **Arc projectile**, 0.25 s travel time after 0.75 s cursor-tracking lock-in phase |
 | Ability panel placement? | Below HP bar on canvas for both CONCLAVE and WARBORN |
 | Neural Stack double-dip via Singularity? | **No** — `onAscend` subtracts `permanentNeuralStacks` before applying the %; only fresh run-earned stacks count |
 | Roster size cap? | **Removed** — no cap; merging to apex requires far more than any fixed limit |
