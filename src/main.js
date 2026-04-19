@@ -251,9 +251,13 @@ function update(dt) {
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
           // 0.5 s after the blastwave fires, kill everything unconditionally.
-          // The blastwave visually "passes through" enemies; this guarantees
-          // no off-screen or fast-moving stragglers survive.
-          setTimeout(() => obliterateWave(game), 500);
+          // Double-pass: the first call kills all enemies including Spawners;
+          // the second call (deferred one tick) catches any children Spawners
+          // emitted in the gap between blastwave trigger and the kill pass.
+          setTimeout(() => {
+            obliterateWave(game);
+            setTimeout(() => obliterateWave(game), 50);
+          }, 500);
         }
       }
 
