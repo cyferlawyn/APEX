@@ -10,6 +10,7 @@ import { TraitorSystem }   from './traitor.js';
 import { FactionSystem }   from './faction.js';
 import { ParticleSystem }  from './particles.js';
 import { audio }           from './audio.js';
+import { applyTabPrefs }   from './ui.js';
 import { save, load, clear, hasSave, savePrefs, loadPrefs,
          savePrestige, loadPrestige, clearPrestige,
          saveTraitors, loadTraitors, clearTraitors,
@@ -41,6 +42,7 @@ function bootstrap() {
     if (prefs.quality)             game.quality     = prefs.quality;
     if (prefs.autoQuality != null) game.autoQuality = prefs.autoQuality;
     if (prefs.volume != null)      audio.setVolume(prefs.volume);
+    applyTabPrefs(prefs);
   }
 
   // Restore prestige state — persists across runs and New Game

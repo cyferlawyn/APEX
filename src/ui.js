@@ -4,6 +4,7 @@
 import { RARITIES, RARITY_COLOR, RARITY_BONUS, TYPE_BONUS_MULT, petBonus } from './traitor.js';
 import { FACTIONS, FACTION_NODES, FACTION_CAPSTONES } from './faction.js';
 import { fmt, fmtPct } from './util.js';
+import { savePrefs, loadPrefs } from './storage.js';
 
 function getApex() { return window.__apex; }
 
@@ -654,12 +655,35 @@ function wireFactionButtons() {
 
 // ── Tab collapse / expand ──────────────────────────────────────────────────
 
+function _saveTabPrefs() {
+  const collapsed = {};
+  document.querySelectorAll('.tab-header').forEach(header => {
+    const tabId = header.dataset.tab;
+    if (tabId) collapsed[tabId] = header.nextElementSibling.classList.contains('tab-body--collapsed');
+  });
+  const prefs = loadPrefs() ?? {};
+  savePrefs({ ...prefs, tabCollapsed: collapsed });
+}
+
+export function applyTabPrefs(prefs) {
+  if (!prefs?.tabCollapsed) return;
+  document.querySelectorAll('.tab-header').forEach(header => {
+    const tabId = header.dataset.tab;
+    if (tabId == null || !(tabId in prefs.tabCollapsed)) return;
+    const body      = header.nextElementSibling;
+    const collapsed = prefs.tabCollapsed[tabId];
+    body.classList.toggle('tab-body--collapsed', collapsed);
+    header.classList.toggle('is-collapsed', collapsed);
+  });
+}
+
 function wireTabHeaders() {
   document.querySelectorAll('.tab-header').forEach(header => {
     header.addEventListener('click', () => {
       const body = header.nextElementSibling;
       const collapsed = body.classList.toggle('tab-body--collapsed');
       header.classList.toggle('is-collapsed', collapsed);
+      _saveTabPrefs();
     });
   });
 }
