@@ -86,6 +86,11 @@ export class TraitorSystem {
   // Called from every kill path. Returns the captured pet object or null.
   // game is optional; when provided, NEXUS bonuses (A1, B1) are applied.
   tryCapture(enemy, wave, game) {
+    // If Optimal Roster is active and roster is full, attempt a merge pass first
+    // to free space — otherwise captures deadlock once MAX_ROSTER is reached.
+    if (game?.optimalRoster && this.roster.length >= MAX_ROSTER) {
+      this.optimizeForNexus(game);
+    }
     if (this.roster.length >= MAX_ROSTER) return null;
     let chance = CHANCE_MIN + (CHANCE_MAX - CHANCE_MIN) * Math.min(wave, 100) / 100;
 
