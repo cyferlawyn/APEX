@@ -525,8 +525,10 @@ function patchFactionTab() {
   let statusText = 'No faction active.';
   if (fid) {
     const f = FACTIONS[fid];
-    const currBonus = game.stackAmplifier ? `  +${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
-    statusText = `[${f.name}]  ⬡ ${game.neuralStacks} neural stacks${currBonus}`;
+    const dmgBonus  = game.stackAmplifier ? `×${game.factionDmgMult().toFixed(2)} dmg` : '';
+    const currBonus = game.stackAmplifier ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
+    const bonuses   = [dmgBonus, currBonus].filter(Boolean).join('  ');
+    statusText = `[${f.name}]${bonuses ? '  ' + bonuses : ''}`;
   }
   if (statusLine.textContent !== statusText) statusLine.textContent = statusText;
 
