@@ -241,9 +241,6 @@ function update(dt) {
         game.obliterateTimer -= dt;
         if (game.obliterateTimer <= 0) {
           game.obliterateTimer = -1;
-          // Kill off-screen enemies instantly — the blastwave won't reach them
-          // Emit the blastwave — maxR extends 300px beyond canvas edges to catch
-          // enemies that haven't entered the screen yet
           const tx = game.tower.x, ty = game.tower.y;
           const margin = 300;
           const maxR = Math.sqrt(
@@ -253,29 +250,18 @@ function update(dt) {
           const speed = maxR / 0.35; // full sweep in 0.35 s
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
+          // Kill ALL enemies immediately — blastwave is visual only.
+          // This catches off-screen stragglers that the expanding ring never reaches.
+          obliterateWave(game);
         }
       }
 
-      // Blastwave contact kills — always expand, kill enemies until killDone
+      // Blastwave visual expansion — enemies already killed at trigger time,
+      // so this loop is purely cosmetic (particles on enemies the wave "passes through").
       for (const w of game.blastwaves) {
-        if (w.r < w.maxR) w.r += w.speed * dt;  // always keep expanding visually
+        if (w.r < w.maxR) w.r += w.speed * dt;
         if (!w.killDone) {
-          const r2 = w.r * w.r;
-          for (const e of game.enemyPool.pool) {
-            if (!e.active) continue;
-            const dx = e.x - w.x, dy = e.y - w.y;
-            if (dx * dx + dy * dy <= r2) {
-              const ex = e.x, ey = e.y, ec = e.color;
-              killEnemy(e, game);
-              if (game.particles && game.quality !== 'low') {
-                game.particles.emitObliterateKill(ex, ey, ec);
-              }
-            }
-          }
-          if (w.r >= w.maxR) {
-            w.killDone = true;
-            obliterateWave(game); // catch any off-screen stragglers
-          }
+          if (w.r >= w.maxR) w.killDone = true;
         }
       }
 
