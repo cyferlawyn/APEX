@@ -160,7 +160,7 @@ Wave-farming path. Rewards speed-running the wave ladder. Primary damage scaling
 | Node | Name | Effect |
 |---|---|---|
 | A1 | *Advance Guard* | Enemies gain +2% movement speed per wave cleared (stacks within run, resets on ascension) |
-| A2 | *Tide Surge* | On non-boss waves, killing 50% of the wave immediately triggers the next wave, carrying survivors over. Replaces the Wave Rush prestige upgrade entirely (Wave Rush is removed from the prestige shop; existing purchases are refunded in shards) |
+| A2 | *Tide Surge* | Killing 50% of a wave immediately triggers the next wave, carrying survivors over. On boss waves the boss must die first. Replaces the Wave Rush prestige upgrade entirely (Wave Rush is removed from the prestige shop; existing purchases are refunded in shards) |
 | A3 | *Spoils of War* | When a wave switches early via Tide Surge, each enemy alive at the moment of switch grants +5% damage and +5% crit damage until the *next* early switch. Stacks additive, resets to zero at each switch |
 | B1 | *Eternal Tithe* | Each ascension grants bonus shards equal to the current ascension count (e.g. 3rd ascension = +3 bonus shards on top of normal award) |
 | B2 | *Shard Mastery* | Doubles the per-shard coefficient in the passive damage formula (stacks with C1 — if C1 is also purchased the coefficient is ×1.5 from C1 then ×2 from B2 = ×3 overall: `1 + shards × 0.30`) |
@@ -182,7 +182,7 @@ Wave-farming path. Rewards speed-running the wave ladder. Primary damage scaling
 - `vanguardSpeedBonus` — accumulated speed ramp, resets on ascension
 - `vanguardSpoilsStacks` — current A3 additive stack count; reset to 0 at each early-switch, then recalculated from carryover enemy count
 - `ascensionCount` — incremented in `beginAscend()`; used by B1 (bonus shards) and C2 (shard multiplier)
-- Tide Surge trigger: on non-boss waves, at 50% of wave total killed, fire wave transition and carry survivors
+- Tide Surge trigger: at 50% of wave total killed, fire wave transition and carry survivors; on boss waves also requires boss to be dead
 - A3 wired into both damage multiplier and crit damage multiplier in `normalizedShotDamage()` / crit path
 - C3 Iron Will: intercept tower-death path in `main.js`, trigger `beginAscend()` instead; set `ironWillUsed = true` for the run; faction choice overlay timeout uses `setInterval` countdown displayed in overlay
 - Auto-ascension logic (capstone): `autoAscensionMode ∈ {off, overkill, defeat}` stored in `apex_prefs`; checked after overkill-end and after defeat events
