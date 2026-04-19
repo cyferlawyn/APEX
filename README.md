@@ -1,6 +1,8 @@
 # APEX
 
-A browser-based single-tower defense game. One tower. Endless waves. Countless upgrades.
+A browser-based single-tower defense game. One tower. Endless waves. Deep upgrade systems.
+
+The tower fights autonomously — all strategy happens between waves in the shop panel.
 
 ## Playing the Game
 
@@ -10,63 +12,91 @@ ES modules require a local HTTP server — opening `index.html` directly via `fi
 npm start
 ```
 
-Then open **http://localhost:3000** in your browser. Node.js is the only requirement.
+Then open **http://localhost:3000**. Node.js is the only dependency.
 
 ---
 
-## Development Process
+## Current State (v1.7.x)
 
-### Guiding Principle
+### Core Loop
 
-Every commit leaves the game in a **working, playable state**. No commit may break
-the game loop or introduce a runtime error visible to the player. Work-in-progress
-code lives on a branch or stays local until it meets this bar.
+- Endless waves of enemies march toward the tower
+- Tower fights automatically based on purchased upgrades
+- Defeat resets the wave counter but **keeps all upgrades and currency**
+- Ascension resets the run for permanent cross-run shard upgrades
 
-### Workflow per Phase
+### Upgrade Shop
 
-Each phase in the MVP Implementation Plan (see `ROADMAP.md`) follows this exact sequence:
+Permanent upgrades purchased with in-wave currency:
 
-1. **Implement** — write the code for all checklist items in the phase
-2. **Test manually** — open `index.html`, verify the phase's features work end-to-end;
-   check that nothing broken from previous phases
-3. **Check off** — mark every completed item in `ROADMAP.md` with `[x]`
-4. **Commit** — one commit per completed phase, message format:
+| Category | Description |
+|---|---|
+| Damage | Raw damage multiplier (unlimited tiers, costMult 1.25) |
+| Fire Rate | Attacks per second |
+| Projectile Speed | Projectile velocity |
+| Range | Detection and engagement radius |
+| Max HP | Tower maximum health |
+| HP Regen | Regeneration per second |
+| Bounty | Currency earned per kill (multiplicative, 15 tiers) |
+| Spread Shot | Fan of pellets per shot (5 tiers) |
+| Orbital Death Ring | Rotating close-range kill ring (5 tiers) |
+| Explosive Rounds | AoE splash on impact (5 tiers) |
+| Laser Burst | Periodic 360° sweep beam (5 tiers) |
+| Chain Lightning | Arcing hit chain (5 tiers) |
+| Multi-Shot | Simultaneous multi-target fire (5 tiers) |
 
-   ```
-   phase N: <short description>
+### Ascension (Prestige)
 
-   - bullet summary of what was added
-   - any notable decisions or deviations from the plan
-   ```
+After reaching a certain power threshold, the player may ascend — resetting the run in exchange for permanent **Shard upgrades** that carry into every future run. Shard upgrades include: Overkill/Obliterate, Critical Hits, Execute, Overcharge, Ricochet, Poison, and HP Exponent reduction.
 
-No phase is committed until all its checklist items are checked off and the game
-runs without errors.
+### The Covenant (Faction System)
 
-### What "Functioning State" Means
+After the first ascension, the player joins one of three factions. Currently only **NEXUS** is playable; THE CONCLAVE and THE WARBORN are in design.
 
-At every commit, the game must satisfy all of the following:
+**NEXUS** deepens the traitor/pet system:
 
-- `index.html` opens in the browser without console errors
-- The current and all previously completed phases work as specified
-- No placeholder UI that crashes or produces visible errors
-- Save/load does not corrupt game state
-- Performance is acceptable (target: 60 fps during combat)
+- Enemies have a small per-kill chance to desert and join as traitor pets
+- Active traitor pets grant a stacking additive damage bonus
+- Rarer traitors grant larger bonuses; 5 natural rarities capturable, 5 merge-only (up to Apex)
+- NEXUS talent tree: Lure Protocols, Signal Harvest, Resonance Field, Optimal Roster, Apex Protocol, Stack Cascade, Data Harvest, Stack Amplifier, Recursive Growth
+- **SINGULARITY** capstone: permanently preserves a % of run Neural Stacks across ascensions; rank 1 unlocks a 4th traitor slot forever
 
-If a phase introduces a partially-implemented system (e.g. an upgrade whose combat
-effect is wired in a later phase), it must degrade gracefully — the button exists,
-the purchase works, the stat is stored — it just has no visible combat effect yet.
+Faction nodes and capstones are **permanent** — they survive ascension and hard reset. See `faction.md` for full design documentation.
 
-### Branch Strategy
+### Enemy Types
 
-- `main` — stable, every commit is a completed phase
-- Feature work that spans multiple sessions may use a short-lived branch named
-  `phase/N-description`, merged to `main` only when the phase is complete
+| Type | Description |
+|---|---|
+| Drone | Fast, low HP — baseline type |
+| Swarm | Tiny, very low HP — spawns in clusters from wave 3 |
+| Brute | Slow, high HP — high currency reward |
+| Elite | Medium speed and HP |
+| Dasher | Fast, evasive |
+| Bomber | Explodes on tower contact for extra damage |
+| Spawner | Periodically releases Swarm drones |
+| Phantom | Intangible (projectiles pass through) — vulnerable only to AoE/laser/ring |
+| Colossus | Very high HP, slow |
+| Boss | Massive HP — every 10 waves |
 
-### Post-MVP
+---
 
-After the 9 MVP phases are committed, subsequent milestones (fire modes, polish,
-balance) follow the same process: implement → test → check off → commit.
-The `ROADMAP.md` is the single source of truth for what is done and what is next.
+## Development
+
+### Run / Syntax Check
+
+```
+npm start                    # serves on http://localhost:3000
+node --check src/<file>.js   # syntax check a file (no bundler/linter)
+```
+
+### Commit Convention
+
+- Every commit leaves the game **fully playable**
+- Always push immediately after committing (`git push`)
+- Semantic version tags after each session (`git tag vX.Y.Z && git push origin vX.Y.Z`)
+  - patch — bug fixes, balance tweaks, polish
+  - minor — new features or content
+  - major — large redesigns
 
 ---
 
@@ -76,24 +106,29 @@ The `ROADMAP.md` is the single source of truth for what is done and what is next
 tower-defense/
 ├── index.html
 ├── style.css
-├── README.md
-├── ROADMAP.md
+├── faction.md           ← Covenant faction system design doc
+├── AGENTS.md            ← AI agent instructions
 └── src/
-    ├── main.js          # Entry point, requestAnimationFrame loop
-    ├── game.js          # State machine (SHOP / COMBAT / RESULTS / GAME_OVER)
-    ├── tower.js         # Tower stats, targeting, attack logic
-    ├── enemy.js         # Enemy types, object pool, spawning, movement
-    ├── projectile.js    # Projectile pool, movement, collision
-    ├── wave.js          # Wave definitions, scaling, boss scheduling
-    ├── shop.js          # Upgrade catalogue, purchase logic, cost curves
-    ├── renderer.js      # All canvas drawing
-    ├── particles.js     # Particle effect pool
-    └── storage.js       # localStorage save / load / reset
+    ├── main.js          # Game loop, save/load wiring, ascension flow
+    ├── game.js          # Game state, multiplier helpers (traitor/faction/shard)
+    ├── tower.js         # Tower stats, main gun, laser burst, orbital ring
+    ├── projectile.js    # Projectile pool, collision, chain lightning, splash
+    ├── enemy.js         # Enemy pool, BASE_STATS, per-wave HP/speed scaling
+    ├── wave.js          # buildWave() — spawn queue with delays
+    ├── shop.js          # Upgrade catalogue, cost formula, reapplyAll()
+    ├── renderer.js      # All canvas drawing, HUD, overlays
+    ├── particles.js     # Particle pool
+    ├── ui.js            # DOM shop panel, faction tab, traitor panel
+    ├── audio.js         # Procedural Web Audio — no audio files
+    ├── traitor.js       # Traitor/pet system — capture, merge, roster
+    ├── faction.js       # FactionSystem, NEXUS nodes, capstones
+    ├── prestige.js      # Shard upgrade catalogue
+    └── storage.js       # save/load under apex_save; prefs under apex_prefs
 ```
 
 ## Tech Stack
 
 - **Rendering:** Canvas 2D API
-- **Language:** Vanilla JS (ES modules)
+- **Language:** Vanilla JS (ES modules, no bundler)
 - **Persistence:** localStorage
 - **Dependencies:** None
