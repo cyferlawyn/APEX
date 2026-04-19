@@ -32,7 +32,7 @@ export class WaveSpawner {
         case 3: x = w + margin + (Math.random() - 0.5) * jitter; y = Math.random() * h; break;
       }
 
-      const e = this.game.enemyPool.spawn(entry.type, this.game.wave, x, y);
+      const e = this.game.enemyPool.spawn(entry.type, this.game.wave, x, y, this.game);
 
       // Push the enemy further outside by delay × its own speed so it arrives
       // at the canvas edge at roughly the same time it would have been spawned.

@@ -135,6 +135,30 @@ export class Game {
     // Cross-faction permanent capstone rank (persists like NEXUS permanentNeuralStacks)
     // Loaded from factionCapstones save; read by projectile.js and mortar damage calc
     this.warbornCapstoneRank = 0;
+
+    // ── VANGUARD faction state ──────────────────────────────────────────────
+    // Node flags (reset by FactionSystem.reapplyAll)
+    this.vanguardAdvanceGuard  = false; // A1
+    this.vanguardTideSurge     = false; // A2
+    this.vanguardSpoilsOfWar   = false; // A3
+    this.vanguardEternalTithe  = false; // B1
+    this.vanguardShardMastery  = false; // B2
+    this.vanguardIronVault     = false; // B3
+    this.vanguardBattleHardened = false;// C1
+    this.vanguardMomentum      = false; // C2
+    this.vanguardIronWill      = false; // C3
+
+    // Per-run VANGUARD state (reset on ascension)
+    this.vanguardSpeedBonus    = 0;     // accumulated +2%/wave (applied multiplicatively in enemy.js)
+    this.vanguardSpoilsStacks  = 0;     // current A3 additive stack count
+    this.vanguardIronWillUsed  = false; // C3 one-time per run
+    this.vanguardBossKilledThisWave = false; // track boss death for Tide Surge trigger
+
+    // Cross-faction capstone rank
+    this.vanguardCapstoneRank  = 0;
+
+    // Auto-ascension mode (capstone synergy): 'off' | 'overkill' | 'defeat'
+    this.autoAscensionMode     = 'off';
   }
 
   transition(newState) {
@@ -178,8 +202,13 @@ export class Game {
   }
 
   // Passive damage multiplier from total shards ever earned (spent shards still count).
+  // VANGUARD C1 Battle Hardened: ×1.5 coefficient → 0.15
+  // VANGUARD B2 Shard Mastery:   ×2 the C1 coefficient → 0.30 (or 0.20 without C1)
   shardDmgMult() {
-    return 1 + this.totalShardsEarned * 0.10;
+    let coeff = 0.10;
+    if (this.vanguardBattleHardened) coeff *= 1.5;
+    if (this.vanguardShardMastery)   coeff *= 2;
+    return 1 + this.totalShardsEarned * coeff;
   }
 
   // Multiplicative damage bonus from active traitor pets.
@@ -249,5 +278,25 @@ export class Game {
   // WARBORN: ability cooldown reduction from capstone (cap 30 s)
   warbornCooldownReduction() {
     return Math.min(30, this.warbornCapstoneRank * 0.1);
+  }
+
+  // VANGUARD: Spoils of War damage multiplier (A3)
+  // Each surviving carryover enemy at switch = +5% dmg until next switch
+  vanguardSpoilsDmgMult() {
+    if (!this.vanguardSpoilsOfWar || this.vanguardSpoilsStacks === 0) return 1.0;
+    return 1 + this.vanguardSpoilsStacks * 0.05;
+  }
+
+  // VANGUARD: Spoils of War crit damage multiplier (A3)
+  // Each surviving carryover enemy at switch = +5% crit damage
+  vanguardSpoilsCritAdd() {
+    if (!this.vanguardSpoilsOfWar || this.vanguardSpoilsStacks === 0) return 0;
+    return this.vanguardSpoilsStacks * 0.05;
+  }
+
+  // VANGUARD capstone: multiplier applied to obliterate normShot check only
+  vanguardObliterateCheckMult() {
+    if (this.vanguardCapstoneRank <= 0) return 1.0;
+    return 1 + this.vanguardCapstoneRank * 0.25;
   }
 }

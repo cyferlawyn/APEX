@@ -108,6 +108,7 @@
       <div id="faction-choice-cards">
         <!-- populated by ui.js -->
       </div>
+      <div id="faction-choice-countdown" class="hidden"></div>
     </div>
   </div>
 
@@ -127,6 +128,14 @@
     <div id="ascend-box">
       <p id="ascend-confirm-text">Ascend and reset this run?</p>
       <p id="ascend-confirm-sub"></p>
+      <div id="auto-ascension-row" class="hidden">
+        <label for="auto-ascension-select">Auto-ascend:</label>
+        <select id="auto-ascension-select">
+          <option value="off">Off</option>
+          <option value="overkill">On overkill end</option>
+          <option value="defeat">On defeat</option>
+        </select>
+      </div>
       <div class="btn-row">
         <button id="ascend-yes">ASCEND</button>
         <button id="ascend-no">CANCEL</button>

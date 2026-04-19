@@ -41,18 +41,8 @@ const PRESTIGE_UPGRADES = [
       game.prestigeStartCurrency = bonus[tier] ?? 8000;
     },
   },
-  {
-    id: 'waveRush',
-    name: 'Wave Rush',
-    tooltip: 'Once enough of a wave is cleared, the next wave triggers immediately.\nTier 1: 90% killed  Tier 2: 80%  Tier 3: 70%\nTier 4: 60%  Tier 5: 50% killed to advance.\nStragglers roll over into the next wave.',
-    maxTier: 5,
-    baseCost: 2,
-    costMult: 2.0,
-    apply(tower, game, tier) {
-      const thresholds = [0, 0.90, 0.80, 0.70, 0.60, 0.50];
-      tower.waveSkipThreshold = thresholds[tier];
-    },
-  },
+  // Wave Rush was removed in v1.9.0 — replaced by THE VANGUARD A2 (Tide Surge).
+  // Any previously purchased tiers are refunded in shards at load time (see reapplyAll).
   {
     id: 'bounty2',
     name: 'Bounty II',
@@ -240,6 +230,18 @@ export class PrestigeShop {
   // Re-apply all prestige upgrades from scratch.
   // Must be called after tower is rebuilt (reapplyAll in shop.js).
   reapplyAll(prestigeUpgrades) {
+    // Wave Rush was removed in v1.9.0. Refund shards for any prior purchase.
+    // Cost table was: baseCost 2, costMult 2.0 → tiers 1-5 cost 2, 4, 8, 16, 32 = 62 total
+    const waveRushTiers = prestigeUpgrades['waveRush'] ?? 0;
+    if (waveRushTiers > 0) {
+      let refund = 0;
+      const baseCost = 2, costMult = 2.0;
+      for (let t = 0; t < waveRushTiers; t++) refund += Math.round(baseCost * Math.pow(costMult, t));
+      this.game.shards += refund;
+      delete prestigeUpgrades['waveRush'];
+      console.log(`Wave Rush refunded: +${refund} shards`);
+    }
+
     // Reset prestige-driven tower fields to defaults before replaying
     this.game.tower.critChance          = 0;
     this.game.tower.critMult            = 2.0;

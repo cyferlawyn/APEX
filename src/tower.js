@@ -122,10 +122,11 @@ export class Tower {
     if (this.hitFlash  > 0) this.hitFlash  -= dt;
     if (this.invulnTimer > 0) this.invulnTimer -= dt;
 
-    // Shard passive × traitor pet bonus × faction (neural stacks) × WARBORN (rush+fury) for all weapons this frame
+    // Shard passive × traitor pet bonus × faction (neural stacks) × WARBORN (rush+fury) × VANGUARD (spoils) for all weapons this frame
     this._dmgMult = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
       * (game.rushDmgMult?.() ?? 1.0)
-      * (game.furyDmgMult?.() ?? 1.0);
+      * (game.furyDmgMult?.() ?? 1.0)
+      * (game.vanguardSpoilsDmgMult?.() ?? 1.0);
 
     this._updateMainGun(dt, game);
     if (this.ringTier > 0)  this._updateRings(dt, game);
@@ -175,7 +176,10 @@ export class Tower {
 
     // Crit roll — applied to the damage passed into the projectile
     const isCrit = this.critChance > 0 && Math.random() < this.critChance;
-    const dmg    = Math.round(this.damage * this._dmgMult * (isCrit ? this.critMult : 1) * overchargeMult);
+    // VANGUARD A3: Spoils of War adds flat crit damage bonus
+    const spoilsCritAdd = game.vanguardSpoilsCritAdd?.() ?? 0;
+    const effectiveCritMult = this.critMult + spoilsCritAdd;
+    const dmg    = Math.round(this.damage * this._dmgMult * (isCrit ? effectiveCritMult : 1) * overchargeMult);
     const isOC   = overchargeMult > 1;
 
     if (this.spreadShot) {
@@ -377,13 +381,14 @@ function _towerKillEnemy(e, game) {
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
   if (e.type === EnemyType.BOSS) {
     audio.deathBoss(); game.edgeFlash = 0.5; game.awardShards(game.wave);
+    game.vanguardBossKilledThisWave = true;
   } else if (e.type === EnemyType.COLOSSUS) {
     audio.deathBoss();
     // Release 3 drones on death
     for (let i = 0; i < 3; i++) {
       const angle = (Math.PI * 2 / 3) * i;
       game.enemyPool.spawn(EnemyType.DRONE, Math.max(1, game.wave - 1),
-        e.x + Math.cos(angle) * 20, e.y + Math.sin(angle) * 20);
+        e.x + Math.cos(angle) * 20, e.y + Math.sin(angle) * 20, game);
     }
   } else if (e.type === EnemyType.BOMBER) {
     _bomberDetonate(e, game);
@@ -404,8 +409,11 @@ function _towerKillEnemy(e, game) {
 export function normalizedShotDamage(tower, game) {
   const dmgMult        = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
                          * (game.rushDmgMult?.() ?? 1.0)
-                         * (game.furyDmgMult?.() ?? 1.0);
-  const critFactor     = 1 + tower.critChance * (tower.critMult - 1);
+                         * (game.furyDmgMult?.() ?? 1.0)
+                         * (game.vanguardSpoilsDmgMult?.() ?? 1.0);
+  const spoilsCritAdd  = game.vanguardSpoilsCritAdd?.() ?? 0;
+  const effectiveCritMult = tower.critMult + spoilsCritAdd;
+  const critFactor     = 1 + tower.critChance * (effectiveCritMult - 1);
   // Overcharge: every N-th shot is ×4; expected factor = (N−1 + 4) / N = 1 + 3/N
   const overchargeFactor = tower.overchargeN > 0 ? 1 + 3 / tower.overchargeN : 1;
   // Execute: skips the last `threshold` fraction of every enemy's HP

@@ -71,6 +71,7 @@ export class Renderer {
     this._drawEdgeFlash();
     this._drawHUD();
     this._drawWarbornHUD();
+    this._drawVanguardHUD();
     this._drawStateOverlay();
   }
 
@@ -469,6 +470,41 @@ export class Renderer {
       panelY += 30;
     }
     ctx.restore();
+  }
+
+  // ── VANGUARD HUD ──────────────────────────────────────────────────────────────
+
+  _drawVanguardHUD() {
+    const { ctx, game } = this;
+    if (!game.vanguardSpoilsOfWar && !game.vanguardAdvanceGuard) return;
+
+    const VANGUARD_GREEN = '#76ff03';
+    let hudY = 80;
+
+    // Advance Guard: speed ramp indicator
+    if (game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0) {
+      ctx.save();
+      ctx.textAlign = 'left';
+      ctx.font      = '13px monospace';
+      ctx.fillStyle = `rgba(118,255,3,0.55)`;
+      if (game.quality !== 'low') { ctx.shadowBlur = 4; ctx.shadowColor = VANGUARD_GREEN; }
+      ctx.fillText(`\u{26A1} +${Math.round(game.vanguardSpeedBonus * 100)}% spd`, 12, hudY);
+      ctx.restore();
+      hudY += 17;
+    }
+
+    // Spoils of War stack counter
+    if (game.vanguardSpoilsOfWar && game.vanguardSpoilsStacks > 0) {
+      const stacks   = game.vanguardSpoilsStacks;
+      const dmgBonus = stacks * 5;
+      ctx.save();
+      ctx.textAlign = 'left';
+      ctx.font      = '13px monospace';
+      ctx.fillStyle = VANGUARD_GREEN;
+      if (game.quality !== 'low') { ctx.shadowBlur = 6; ctx.shadowColor = VANGUARD_GREEN; }
+      ctx.fillText(`\u2694 ${fmt(stacks)} spoils  +${fmt(dmgBonus)}% dmg/crit`, 12, hudY);
+      ctx.restore();
+    }
   }
 
   _hexPath(cx, cy, r) {

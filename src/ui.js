@@ -95,6 +95,17 @@ function patchPrestigeCards() {
     if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
   }
 
+  // Auto-ascension dropdown — show only if ENDLESS WAR capstone rank > 0
+  const autoAscRow = document.getElementById('auto-ascension-row');
+  const autoAscEl2 = document.getElementById('auto-ascension-select');
+  if (autoAscRow && autoAscEl2) {
+    const showAutoAsc = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
+    autoAscRow.classList.toggle('hidden', !showAutoAsc);
+    if (showAutoAsc && autoAscEl2.value !== game.autoAscensionMode) {
+      autoAscEl2.value = game.autoAscensionMode ?? 'off';
+    }
+  }
+
   if (!showPrestige) return;
 
   // Shard balance
@@ -506,11 +517,13 @@ function patchFactionTab() {
     if (overlay.classList.contains('hidden')) {
       _buildFactionChoiceCards(fs);
       overlay.classList.remove('hidden');
+      _startFactionChoiceCountdown(fs);
     }
     return; // don't patch tree while choice is pending
   } else {
     if (!overlay.classList.contains('hidden')) {
       overlay.classList.add('hidden');
+      _clearFactionChoiceCountdown();
     }
   }
 
@@ -535,6 +548,14 @@ function patchFactionTab() {
         ? `  rush ×${(1 + game.rushStacks * 0.03).toFixed(2)} dmg`
         : '';
       statusText = `[${f.name}]${rushBonus}`;
+    } else if (fid === 'vanguard') {
+      const spoilsText = game.vanguardSpoilsOfWar && game.vanguardSpoilsStacks > 0
+        ? `  spoils +${game.vanguardSpoilsStacks * 5}% dmg`
+        : '';
+      const speedText = game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0
+        ? `  spd +${Math.round(game.vanguardSpeedBonus * 100)}%`
+        : '';
+      statusText = `[${f.name}]${speedText}${spoilsText}`;
     } else {
       statusText = `[${f.name}]`;
     }
@@ -595,9 +616,67 @@ function patchFactionTab() {
         const projPct   = (rank * 0.1).toFixed(1);
         const cdRed     = Math.min(30, rank * 0.1).toFixed(1);
         rankText += `  — mortar: ${mortarPct}% HP  proj: ${projPct}% HP  cd -${cdRed}s`;
+      } else if (fid === 'vanguard' && rank > 0) {
+        const checkBoost = (rank * 25).toFixed(0);
+        rankText += `  — obliterate check ×${(1 + rank * 0.25).toFixed(2)}  (+${checkBoost}%)`;
       }
       if (csRank.textContent !== rankText) csRank.textContent = rankText;
     }
+  }
+}
+
+// Faction choice overlay countdown (Iron Will C3 / VANGUARD)
+let _factionChoiceCountdown   = null; // setInterval handle
+let _factionChoiceCountSecs   = 0;
+
+function _startFactionChoiceCountdown(fs) {
+  _clearFactionChoiceCountdown();
+  // Only start countdown if Iron Will is active (VANGUARD C3 purchased)
+  if (!getApex()?.game?.vanguardIronWill) return;
+
+  const prevFaction = fs.activeFaction;
+  if (!prevFaction) return;
+
+  _factionChoiceCountSecs = 10;
+  _updateCountdownEl(_factionChoiceCountSecs);
+
+  _factionChoiceCountdown = setInterval(() => {
+    _factionChoiceCountSecs -= 1;
+    _updateCountdownEl(_factionChoiceCountSecs);
+    if (_factionChoiceCountSecs <= 0) {
+      _clearFactionChoiceCountdown();
+      // Auto-select previous faction
+      const apex = getApex();
+      if (apex && apex.game.pendingFactionChoice) {
+        document.getElementById('faction-choice-overlay').classList.add('hidden');
+        _factionTreeBuilt = false;
+        apex.completeAscend(prevFaction);
+        patchShopCards();
+        patchPrestigeCards();
+        patchFactionTab();
+        patchTraitorPanel();
+      }
+    }
+  }, 1000);
+}
+
+function _clearFactionChoiceCountdown() {
+  if (_factionChoiceCountdown !== null) {
+    clearInterval(_factionChoiceCountdown);
+    _factionChoiceCountdown = null;
+  }
+  _updateCountdownEl(null);
+}
+
+function _updateCountdownEl(secs) {
+  const el = document.getElementById('faction-choice-countdown');
+  if (!el) return;
+  if (secs === null || secs <= 0) {
+    el.textContent = '';
+    el.classList.add('hidden');
+  } else {
+    el.textContent = `Auto-selecting previous faction in ${secs}s...`;
+    el.classList.remove('hidden');
   }
 }
 
@@ -605,7 +684,7 @@ function _buildFactionChoiceCards(fs) {
   const cardsEl = document.getElementById('faction-choice-cards');
   cardsEl.innerHTML = '';
 
-  for (const fid of ['nexus', 'conclave', 'warborn']) {
+  for (const fid of ['nexus', 'conclave', 'warborn', 'vanguard']) {
     const f    = FACTIONS[fid];
     const card = document.createElement('div');
     card.className = 'faction-choice-card' + (f.comingSoon ? ' coming-soon' : '');
@@ -668,6 +747,7 @@ function wireFactionButtons() {
     if (!btn || btn.disabled) return;
     const fid = btn.dataset.factionPick;
     document.getElementById('faction-choice-overlay').classList.add('hidden');
+    _clearFactionChoiceCountdown();
     _factionTreeBuilt = false;
     getApex()?.completeAscend(fid);
     patchShopCards();
@@ -789,6 +869,14 @@ function wireButtons() {
   document.getElementById('confirm-no').addEventListener('click', () => {
     document.getElementById('confirm-overlay').classList.add('hidden');
   });
+
+  // Auto-ascension dropdown (ENDLESS WAR capstone)
+  const autoAscEl = document.getElementById('auto-ascension-select');
+  if (autoAscEl) {
+    autoAscEl.addEventListener('change', e => {
+      getApex()?.setAutoAscensionMode?.(e.target.value);
+    });
+  }
 
   // Volume slider
   document.getElementById('volume-slider').addEventListener('input', e => {

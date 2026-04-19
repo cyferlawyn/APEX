@@ -197,9 +197,11 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
       game.obliterateTimer < 0) {
     const baseline = droneHp(game.wave);
     const normShot = normalizedShotDamage(game.tower, game);
-    if (normShot >= baseline * 10) {
+    // VANGUARD capstone ENDLESS WAR: boost the check value only (not actual damage)
+    const checkMult = game.vanguardObliterateCheckMult?.() ?? 1.0;
+    if (normShot * checkMult >= baseline * 10) {
       game.obliterateTimer    = game.tower.obliterateDelay;
-      game.obliterateOverkill = Math.floor(normShot / baseline);
+      game.obliterateOverkill = Math.floor(normShot * checkMult / baseline);
     }
   }
 
@@ -253,7 +255,7 @@ function _awardKill(e, game) {
   }
   if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-  if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); }
+  if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); game.vanguardBossKilledThisWave = true; }
   else if (e.type === EnemyType.COLOSSUS) { audio.deathBoss(); _releaseColossusSpawn(e, game); }
   else if (e.type === EnemyType.BRUTE || e.type === EnemyType.SPAWNER) audio.deathLarge();
   else if (e.type === EnemyType.ELITE || e.type === EnemyType.PHANTOM) audio.deathMedium();
@@ -266,7 +268,7 @@ function _releaseColossusSpawn(colossus, game) {
     const angle = (Math.PI * 2 / 3) * i;
     const ox = colossus.x + Math.cos(angle) * 20;
     const oy = colossus.y + Math.sin(angle) * 20;
-    game.enemyPool.spawn(EnemyType.DRONE, Math.max(1, game.wave - 1), ox, oy);
+    game.enemyPool.spawn(EnemyType.DRONE, Math.max(1, game.wave - 1), ox, oy, game);
   }
 }
 

@@ -156,7 +156,7 @@ export class Enemy {
       if (this.spawnTimer <= 0) {
         this.spawnTimer = 1.0;
         const spawnType = Math.random() < 0.5 ? EnemyType.DRONE : EnemyType.SWARM;
-        game.enemyPool.spawn(spawnType, Math.max(1, game.wave - 2), this.x, this.y);
+        game.enemyPool.spawn(spawnType, Math.max(1, game.wave - 2), this.x, this.y, game);
       }
     }
 
@@ -222,9 +222,17 @@ export class EnemyPool {
     return this.pool.find(e => !e.active) ?? null;
   }
 
-  spawn(type, wave, x, y) {
+  spawn(type, wave, x, y, game = null) {
     const e = this.acquire();
-    if (e) e.init(type, wave, x, y);
+    if (e) {
+      e.init(type, wave, x, y);
+      // VANGUARD A1: Advance Guard — +2% speed per wave cleared (stacks within run)
+      if (game && game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0) {
+        const mult = 1 + game.vanguardSpeedBonus;
+        e.speed     *= mult;
+        e.baseSpeed *= mult;
+      }
+    }
     return e;
   }
 

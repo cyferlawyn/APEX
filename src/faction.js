@@ -1,5 +1,5 @@
 // faction.js — Faction (Covenant) system
-// NEXUS is fully implemented. THE WARBORN is implemented. THE CONCLAVE is a stub.
+// NEXUS is fully implemented. THE WARBORN is implemented. THE VANGUARD is implemented.
 
 // Rarity tier index used by Stack Cascade (1 = common … 10 = apex)
 export const RARITY_TIER = {
@@ -32,6 +32,14 @@ export const FACTIONS = {
     color:       '#ff1744',
     flavor:      '"The tower fights for you. Now fight for it."',
     description: 'Mortar artillery, active abilities, and escalating Rush Stacks. Aggression rewarded.',
+    comingSoon:  false,
+  },
+  vanguard: {
+    id:          'vanguard',
+    name:        'THE VANGUARD',
+    color:       '#76ff03',
+    flavor:      '"Every wave is a resource. Learn to spend it wisely."',
+    description: 'Wave farming and shard scaling. Carry enemies between waves for mounting damage. Long-game capstone synergies for all factions.',
     comingSoon:  false,
   },
 };
@@ -191,6 +199,83 @@ export const FACTION_NODES = {
       apply(game) { game.recursiveGrowth = true; },
     },
   ],
+  vanguard: [
+    // ── Column A: Wave Weaving ────────────────────────────────────────────────
+    {
+      id: 'vanguard_a1', col: 0, tier: 1, prereq: null,
+      name: 'Advance Guard',
+      shortName: 'Adv. Guard',
+      tooltip: 'Enemies gain +2% movement speed per wave cleared (stacks within run, resets on ascension).\nWave 10: +20% speed. Wave 50: +100% speed. High risk, high reward.',
+      cost: 500_000,
+      apply(game) { game.vanguardAdvanceGuard = true; },
+    },
+    {
+      id: 'vanguard_a2', col: 0, tier: 2, prereq: 'vanguard_a1',
+      name: 'Tide Surge',
+      shortName: 'Tide Surge',
+      tooltip: 'Once the wave\'s boss is dead, killing 50% of the wave triggers the next wave immediately.\nSurvivors carry over. Replaces the Wave Rush prestige upgrade.',
+      cost: 2_500_000,
+      apply(game) { game.vanguardTideSurge = true; },
+    },
+    {
+      id: 'vanguard_a3', col: 0, tier: 3, prereq: 'vanguard_a2',
+      name: 'Spoils of War',
+      shortName: 'Spoils',
+      tooltip: 'On an early-switch (Tide Surge), each enemy alive at the switch grants\n+5% damage and +5% crit damage until the next early-switch.\nStacks additive. Resets at each switch.',
+      cost: 12_500_000,
+      apply(game) { game.vanguardSpoilsOfWar = true; },
+    },
+    // ── Column B: Shard Scaling ───────────────────────────────────────────────
+    {
+      id: 'vanguard_b1', col: 1, tier: 1, prereq: null,
+      name: 'Eternal Tithe',
+      shortName: 'Et. Tithe',
+      tooltip: 'Each ascension grants bonus shards equal to the current ascension count.\nExample: 3rd ascension = +3 bonus shards on top of normal award.',
+      cost: 500_000,
+      apply(game) { game.vanguardEternalTithe = true; },
+    },
+    {
+      id: 'vanguard_b2', col: 1, tier: 2, prereq: 'vanguard_b1',
+      name: 'Shard Mastery',
+      shortName: 'Shard Mast.',
+      tooltip: 'Doubles the per-shard passive damage coefficient.\nWith Battle Hardened (C1) also active: ×3 total (0.10 × 1.5 × 2 = 0.30 per shard).',
+      cost: 2_500_000,
+      apply(game) { game.vanguardShardMastery = true; },
+    },
+    {
+      id: 'vanguard_b3', col: 1, tier: 3, prereq: 'vanguard_b2',
+      name: 'Iron Vault',
+      shortName: 'Iron Vault',
+      tooltip: 'On ascension, gain 1% of your current shards as bonus shards (rounded down, min 1).\nScale: 100 shards → +1, 1000 shards → +10, 10000 shards → +100.',
+      cost: 12_500_000,
+      apply(game) { game.vanguardIronVault = true; },
+    },
+    // ── Column C: Ascension Engine ────────────────────────────────────────────
+    {
+      id: 'vanguard_c1', col: 2, tier: 1, prereq: null,
+      name: 'Battle Hardened',
+      shortName: 'Batt. Hard.',
+      tooltip: '×1.5 to the per-shard passive damage coefficient (0.10 → 0.15).\nStacks with Shard Mastery (B2): 0.10 × 1.5 × 2 = 0.30.',
+      cost: 500_000,
+      apply(game) { game.vanguardBattleHardened = true; },
+    },
+    {
+      id: 'vanguard_c2', col: 2, tier: 2, prereq: 'vanguard_c1',
+      name: 'Momentum',
+      shortName: 'Momentum',
+      tooltip: 'Shards awarded on ascension are multiplied by (1 + 0.1 × ascensionCount).\nExample: 10th ascension → ×2 shards.',
+      cost: 2_500_000,
+      apply(game) { game.vanguardMomentum = true; },
+    },
+    {
+      id: 'vanguard_c3', col: 2, tier: 3, prereq: 'vanguard_c2',
+      name: 'Iron Will',
+      shortName: 'Iron Will',
+      tooltip: 'When the tower would be destroyed, automatically ascend instead (once per run).\nThe faction choice overlay gains a 10-second countdown that re-selects the previous faction.',
+      cost: 12_500_000,
+      apply(game) { game.vanguardIronWill = true; },
+    },
+  ],
 };
 
 // ── Capstone definitions ───────────────────────────────────────────────────
@@ -210,6 +295,13 @@ export const FACTION_CAPSTONES = {
     baseCost: 1_000_000,
     costMult: 1.30,
   },
+  vanguard: {
+    id:       'vanguard_cs',
+    name:     'ENDLESS WAR',
+    tooltip:  'All factions: once 75% of a wave is killed, the next wave triggers (boss not required; VANGUARD keeps 50% + boss-dead).\nAll factions: auto-ascension dropdown on the ascension overlay — Off / On overkill end / On defeat.\nEach rank: the obliterate overkill check treats your shot as ×(1 + rank × 0.25) stronger — does NOT change actual damage.',
+    baseCost: 1_000_000,
+    costMult: 1.30,
+  },
 };
 
 // ── FactionSystem ──────────────────────────────────────────────────────────
@@ -217,7 +309,7 @@ export const FACTION_CAPSTONES = {
 export class FactionSystem {
   constructor() {
     // Per-run state
-    this.activeFaction = null;   // 'nexus' | 'conclave' | 'warborn' | null
+    this.activeFaction = null;   // 'nexus' | 'conclave' | 'warborn' | 'vanguard' | null
 
     // Permanent state — survives ascension, wiped only by hard reset
     // { nexus: { nodes: {id:true}, capstoneRank: N, permanentNeuralStacks: N } }
@@ -225,6 +317,7 @@ export class FactionSystem {
       nexus:    { nodes: {}, capstoneRank: 0, permanentNeuralStacks: 0 },
       conclave: { nodes: {}, capstoneRank: 0 },
       warborn:  { nodes: {}, capstoneRank: 0 },
+      vanguard: { nodes: {}, capstoneRank: 0 },
     };
   }
 
@@ -302,6 +395,11 @@ export class FactionSystem {
       game.warbornCapstoneRank = this.permanent.warborn.capstoneRank;
     }
 
+    // VANGUARD: sync cross-faction capstone rank into game
+    if (factionId === 'vanguard') {
+      game.vanguardCapstoneRank = this.permanent.vanguard.capstoneRank;
+    }
+
     return true;
   }
 
@@ -334,6 +432,16 @@ export class FactionSystem {
     game.warbornBloodRush     = false;
     game.warbornRampage       = false;
     game.warbornUnstoppable   = false;
+    // VANGUARD flags
+    game.vanguardAdvanceGuard   = false;
+    game.vanguardTideSurge      = false;
+    game.vanguardSpoilsOfWar    = false;
+    game.vanguardEternalTithe   = false;
+    game.vanguardShardMastery   = false;
+    game.vanguardIronVault      = false;
+    game.vanguardBattleHardened = false;
+    game.vanguardMomentum       = false;
+    game.vanguardIronWill       = false;
 
     // Restore permanent neural stacks
     game.permanentNeuralStacks = this.permanent.nexus?.permanentNeuralStacks ?? 0;
@@ -361,6 +469,9 @@ export class FactionSystem {
 
     // Always sync WARBORN capstone rank (cross-faction benefit)
     game.warbornCapstoneRank = this.permanent.warborn?.capstoneRank ?? 0;
+
+    // Always sync VANGUARD capstone rank (cross-faction benefit)
+    game.vanguardCapstoneRank = this.permanent.vanguard?.capstoneRank ?? 0;
 
     // Apply merge count reduction from Apex Protocol
     if (game.traitorSystem) {
@@ -406,6 +517,7 @@ export class FactionSystem {
           p.nexus.permanentNeuralStacks ?? 0;
       }
     }
+    // Legacy: if saved data has old keys not in this.permanent, ignore them
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

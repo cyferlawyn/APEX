@@ -40,9 +40,10 @@ function bootstrap() {
 
   // Restore preferences (quality, volume) — independent of save data
   if (prefs) {
-    if (prefs.quality)             game.quality     = prefs.quality;
-    if (prefs.autoQuality != null) game.autoQuality = prefs.autoQuality;
+    if (prefs.quality)             game.quality          = prefs.quality;
+    if (prefs.autoQuality != null) game.autoQuality      = prefs.autoQuality;
     if (prefs.volume != null)      audio.setVolume(prefs.volume);
+    if (prefs.autoAscensionMode)   game.autoAscensionMode = prefs.autoAscensionMode;
     applyTabPrefs(prefs);
   }
 
@@ -61,8 +62,9 @@ function bootstrap() {
   // Restore faction capstones (permanent) then run state
   game.factionSystem.deserializeCapstones(loadFactionCapstones());
   game.factionSystem.deserializeRun(loadFaction());
-  // Sync cross-faction capstone rank into game state
-  game.warbornCapstoneRank = game.factionSystem.permanent.warborn?.capstoneRank ?? 0;
+  // Sync cross-faction capstone ranks into game state
+  game.warbornCapstoneRank  = game.factionSystem.permanent.warborn?.capstoneRank  ?? 0;
+  game.vanguardCapstoneRank = game.factionSystem.permanent.vanguard?.capstoneRank ?? 0;
 
   // Apply prestige upgrades on top of fresh tower (before run save overwrites tiers)
   prestigeShop.reapplyAll(game.prestigeUpgrades);
@@ -73,6 +75,10 @@ function bootstrap() {
     game.upgrades           = saved.upgrades           ?? {};
     game.bestWave           = saved.bestWave           ?? 1;
     game.currencyMultiplier = saved.currencyMultiplier ?? 1.0;
+    // VANGUARD per-run state
+    game.vanguardSpeedBonus   = saved.vanguardSpeedBonus   ?? 0;
+    game.vanguardSpoilsStacks = saved.vanguardSpoilsStacks ?? 0;
+    game.vanguardIronWillUsed = saved.vanguardIronWillUsed ?? false;
     shop.reapplyAll(game.upgrades);
     // Re-apply prestige after run upgrades (prestige is additive on top)
     prestigeShop.reapplyAll(game.prestigeUpgrades);
@@ -122,6 +128,8 @@ function beginWave(keepEnemies = false) {
   } else {
     game.lureType = null;
   }
+  // VANGUARD: reset boss-killed flag at wave start
+  game.vanguardBossKilledThisWave = false;
   game.transition(State.COMBAT);
 }
 
@@ -257,6 +265,10 @@ function update(dt) {
           if (w.r >= w.maxR) {
             w.killDone = true;
             obliterateWave(game); // catch any off-screen stragglers
+            // ENDLESS WAR capstone: auto-ascension on overkill end
+            if (game.autoAscensionMode === 'overkill' && game.pendingShards > 0) {
+              setTimeout(() => beginAscend(), 400);
+            }
           }
         }
       }
@@ -265,10 +277,31 @@ function update(dt) {
         onDefeated();
       } else if (game.enemyPool.activeCount() === 0) {
         onWaveComplete();
-      } else if (game.tower.waveSkipThreshold > 0 && game.wave % 10 !== 0) {
+      } else {
+        // ── Wave skip checks ──────────────────────────────────────────────
         const total = game.waveSpawner.totalSpawned;
-        if (total > 0 && game.waveKills / total >= game.tower.waveSkipThreshold) {
-          onWaveComplete(true);  // keepEnemies — rollovers carry into next wave
+        if (total > 0) {
+          const killPct = game.waveKills / total;
+
+          // VANGUARD A2: Tide Surge — boss must be dead AND 50% of wave killed
+          if (game.vanguardTideSurge && game.vanguardBossKilledThisWave) {
+            if (killPct >= 0.50 && game.wave % 10 !== 0) {
+              onWaveComplete(true);
+            }
+          }
+          // ENDLESS WAR capstone: all factions get 75% threshold (non-boss waves)
+          else if (game.vanguardCapstoneRank > 0 && game.wave % 10 !== 0) {
+            if (killPct >= 0.75) {
+              onWaveComplete(true);
+            }
+          }
+          // Prestige Wave Rush (now removed but waveSkipThreshold may still be set
+          // by an old save — keep for safety, non-boss waves only)
+          else if (game.tower.waveSkipThreshold > 0 && game.wave % 10 !== 0) {
+            if (killPct >= game.tower.waveSkipThreshold) {
+              onWaveComplete(true);
+            }
+          }
         }
       }
       break;
@@ -491,6 +524,19 @@ function onWaveComplete(keepEnemies = false) {
     setTimeout(() => { game.rushDecayProtected = false; }, 10_000);
   }
 
+  // VANGUARD A1: Advance Guard — accumulate +2% per wave cleared
+  if (game.vanguardAdvanceGuard) {
+    game.vanguardSpeedBonus += 0.02;
+  }
+
+  // VANGUARD A3: Spoils of War — if this was an early switch, count survivors
+  if (keepEnemies && game.vanguardSpoilsOfWar) {
+    game.vanguardSpoilsStacks = game.enemyPool.activeCount();
+  } else if (!keepEnemies && game.vanguardSpoilsOfWar) {
+    // Normal wave end (all enemies dead) — Spoils stacks reset
+    game.vanguardSpoilsStacks = 0;
+  }
+
   game.wave += 1;
   if (game.wave - 1 > game.bestWave) game.bestWave = game.wave - 1;
 
@@ -503,6 +549,14 @@ function onWaveComplete(keepEnemies = false) {
 }
 
 function onDefeated() {
+  // VANGUARD C3: Iron Will — auto-ascend instead of dying (once per run)
+  if (game.vanguardIronWill && !game.vanguardIronWillUsed) {
+    game.vanguardIronWillUsed = true;
+    game.tower.hp = 1; // keep tower alive with 1 HP
+    beginAscend();
+    return;
+  }
+
   game.waveEarned = 0;
 
   if (game.wave > game.bestWave) game.bestWave = game.wave;
@@ -511,11 +565,21 @@ function onDefeated() {
   audio.laserStop(); // cut laser drone if it was active
   audio.defeated();
   game.transition(State.DEFEATED);
+
+  // ENDLESS WAR capstone: auto-ascension on defeat
+  if (game.autoAscensionMode === 'defeat' && game.pendingShards > 0) {
+    setTimeout(() => {
+      if (game.state === State.DEFEATED) beginAscend();
+    }, 500);
+  }
 }
 
 function resetToWaveOne() {
   // Fall back to the last x1 wave (e.g. die on 38 → restart at 31, die on 93 → restart at 91)
   game.wave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
+  // Reset VANGUARD per-run state (but keep speed bonus — earned via waves)
+  game.vanguardIronWillUsed       = false;
+  game.vanguardBossKilledThisWave = false;
   // Upgrades and currency are kept — tower is rebuilt from upgrades
   shop.reapplyAll(game.upgrades);
   prestigeShop.reapplyAll(game.prestigeUpgrades);
@@ -530,6 +594,10 @@ function saveGame() {
     upgrades:           game.upgrades,
     bestWave:           game.bestWave,
     currencyMultiplier: game.currencyMultiplier,
+    // VANGUARD per-run state
+    vanguardSpeedBonus:  game.vanguardSpeedBonus,
+    vanguardSpoilsStacks: game.vanguardSpoilsStacks,
+    vanguardIronWillUsed: game.vanguardIronWillUsed,
   });
   _savePrestigeState();
   saveTraitors(game.traitorSystem.serialize());
@@ -560,6 +628,11 @@ export function newGame(confirmed) {
   game.bestWave           = 1;
   game.resultsTimer       = 0;
   game.pendingFactionChoice = false;
+  // Reset VANGUARD per-run state
+  game.vanguardSpeedBonus           = 0;
+  game.vanguardSpoilsStacks         = 0;
+  game.vanguardIronWillUsed         = false;
+  game.vanguardBossKilledThisWave   = false;
   game.tower              = new Tower();
   shop.reapplyAll({});
   prestigeShop.reapplyAll(game.prestigeUpgrades);
@@ -578,11 +651,31 @@ export function beginAscend() {
     game.pendingShards += Math.floor(game.wave / game.veteranBonusDivisor);
   }
 
+  // VANGUARD C2: Momentum — multiply pending shards by (1 + 0.1 × ascensionCount)
+  if (game.vanguardMomentum && game.pendingShards > 0) {
+    const mult = 1 + 0.1 * game.ascensionCount;
+    game.pendingShards = Math.floor(game.pendingShards * mult);
+  }
+
   // Bank pending shards — now they count toward the passive damage bonus
   game.totalShardsEarned += game.pendingShards;
   game.shards            += game.pendingShards;
   game.pendingShards      = 0;
   game.ascensionCount    += 1;
+
+  // VANGUARD B1: Eternal Tithe — +ascensionCount bonus shards
+  if (game.vanguardEternalTithe) {
+    const bonus = game.ascensionCount; // already incremented above
+    game.shards            += bonus;
+    game.totalShardsEarned += bonus;
+  }
+
+  // VANGUARD B3: Iron Vault — +1% of current shards (rounded down, min 1)
+  if (game.vanguardIronVault && game.shards > 0) {
+    const bonus = Math.max(1, Math.floor(game.shards * 0.01));
+    game.shards            += bonus;
+    game.totalShardsEarned += bonus;
+  }
 
   // Preserve neural stacks via Singularity before run resets
   game.factionSystem.onAscend(game);
@@ -611,6 +704,11 @@ export function completeAscend(factionId) {
   game.currencyMultiplier = 1.0;
   game.resultsTimer       = 0;
   game.tower              = new Tower();
+  // Reset VANGUARD per-run state
+  game.vanguardSpeedBonus           = 0;
+  game.vanguardSpoilsStacks         = 0;
+  game.vanguardIronWillUsed         = false;
+  game.vanguardBossKilledThisWave   = false;
   shop.reapplyAll({});
   prestigeShop.reapplyAll(game.prestigeUpgrades);
   game.factionSystem.reapplyAll(game);
@@ -645,8 +743,15 @@ export function setQuality(q) {
   savePrefs({ quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality });
 }
 
+// --- set auto-ascension mode (ENDLESS WAR capstone pref) ---
+export function setAutoAscensionMode(mode) {
+  game.autoAscensionMode = mode;
+  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: mode };
+  savePrefs(prefs);
+}
+
 // Expose to UI
-window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
+window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, setAutoAscensionMode, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
 
 // Init AudioContext on first user gesture (browser autoplay policy)
 document.addEventListener('click',    () => audio.init(), { once: true });
