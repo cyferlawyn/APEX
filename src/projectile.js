@@ -165,6 +165,14 @@ export class Projectile {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+// WARBORN Blood Rush: called from every kill path to grant a stack and reset decay.
+function _warbornRushOnKill(game) {
+  if (!game.warbornBloodRush) return;
+  game.rushStacks     += 1;
+  game.rushDecayTimer  = 3.0;
+  game.rushKillTimer   = 0;
+}
+
 function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile') {
   // Colossus armor: absorb the first hit from each weapon source per wave
   if (e.type === EnemyType.COLOSSUS) {
@@ -230,6 +238,8 @@ function _awardKill(e, game) {
   game.waveKills  += 1;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
+  // WARBORN Blood Rush: any kill resets decay timer and grants a stack
+  _warbornRushOnKill(game);
   // Leech: restore HP on kill
   if (game.tower.leechHp > 0) {
     game.tower.hp = Math.min(game.tower.maxHp, game.tower.hp + game.tower.leechHp);

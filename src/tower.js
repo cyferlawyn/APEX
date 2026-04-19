@@ -356,6 +356,12 @@ function _towerKillEnemy(e, game) {
   game.waveKills  += 1;
   game.logEarned(earned);
   _spawnCurrencyPopup(earned, game, e.x, e.y);
+  // WARBORN Blood Rush: any kill resets decay timer and grants a stack
+  if (game.warbornBloodRush) {
+    game.rushStacks    += 1;
+    game.rushDecayTimer = 3.0;
+    game.rushKillTimer  = 0;
+  }
   // Traitor capture roll
   const pet = game.traitorSystem?.tryCapture(e, game.wave, game);
   if (pet) {
