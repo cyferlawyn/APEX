@@ -192,18 +192,8 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
     }
   }
 
-  // Obliterate — trigger when normalized shot damage is 10× a drone's HP at this wave
-  if (source === 'projectile' && game.tower.obliterateDelay > 0 &&
-      game.obliterateTimer < 0) {
-    const baseline = droneHp(game.wave);
-    const normShot = normalizedShotDamage(game.tower, game);
-    // VANGUARD capstone ENDLESS WAR: boost the check value only (not actual damage)
-    const checkMult = game.vanguardObliterateCheckMult?.() ?? 1.0;
-    if (normShot * checkMult >= baseline * 10) {
-      game.obliterateTimer    = game.tower.obliterateDelay;
-      game.obliterateOverkill = Math.floor(normShot * checkMult / baseline);
-    }
-  }
+  // Obliterate — now checked once at wave start (see main.js beginWave).
+  // Per-hit check removed; trigger is set by checkObliterateAtWaveStart().
 
   // Poison DoT — stacks additively per hit, duration refreshes each time
   if (source === 'projectile' && game.tower.poisonFraction > 0) {
@@ -415,4 +405,19 @@ export function killEnemy(e, game) {
 // Called as cleanup when the blastwave finishes expanding.
 export function obliterateWave(game) {
   for (const e of game.enemyPool.pool) killEnemy(e, game);
+}
+
+// Check obliterate threshold at wave start. Returns true if overkill fires, false if not.
+// If false and autoAscensionMode === 'overkill', main.js should trigger beginAscend().
+export function checkObliterateAtWaveStart(game) {
+  if (game.tower.obliterateDelay <= 0) return false;
+  const baseline  = droneHp(game.wave);
+  const normShot  = normalizedShotDamage(game.tower, game);
+  const checkMult = game.vanguardObliterateCheckMult?.() ?? 1.0;
+  if (normShot * checkMult >= baseline * 10) {
+    game.obliterateTimer    = game.tower.obliterateDelay;
+    game.obliterateOverkill = Math.floor(normShot * checkMult / baseline);
+    return true;
+  }
+  return false;
 }

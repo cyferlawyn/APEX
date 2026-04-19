@@ -1,7 +1,7 @@
 import { Game, State }    from './game.js';
 import { Tower }           from './tower.js';
 import { EnemyType, EnemyPool } from './enemy.js';
-import { ProjectilePool, killEnemy, obliterateWave } from './projectile.js';
+import { ProjectilePool, killEnemy, obliterateWave, checkObliterateAtWaveStart } from './projectile.js';
 import { normalizedShotDamage } from './tower.js';
 import { WaveSpawner }     from './wave.js';
 import { Renderer }        from './renderer.js';
@@ -119,6 +119,16 @@ function beginWave(keepEnemies = false) {
   game.tower.invulnTimer = 0;
   game.tower.overchargeCounter = 0;
   game.waveSpawner.begin(game.wave);
+
+  // Check obliterate overkill threshold at wave start.
+  // If the tower is strong enough, fire the countdown immediately.
+  // If not and auto-ascension is set to 'overkill', this is the signal to ascend.
+  if (game.tower.obliterateDelay > 0) {
+    const fires = checkObliterateAtWaveStart(game);
+    if (!fires && game.autoAscensionMode === 'overkill' && game.pendingShards > 0) {
+      setTimeout(() => beginAscend(), 400);
+    }
+  }
   game.waveEarned = 0;
   game.waveKills  = 0;
   // NEXUS A1: pick a random lure type for this wave
@@ -265,10 +275,6 @@ function update(dt) {
           if (w.r >= w.maxR) {
             w.killDone = true;
             obliterateWave(game); // catch any off-screen stragglers
-            // ENDLESS WAR capstone: auto-ascension on overkill end
-            if (game.autoAscensionMode === 'overkill' && game.pendingShards > 0) {
-              setTimeout(() => beginAscend(), 400);
-            }
           }
         }
       }
