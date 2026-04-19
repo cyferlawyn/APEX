@@ -655,11 +655,17 @@ document.addEventListener('pointerdown', () => audio.init(), { once: true });
 
 // ── WARBORN: mortar cursor tracking ────────────────────────────────────────
 canvas.addEventListener('mousemove', e => {
+  if (game.mortarCursorFrozen) return;
   const rect = canvas.getBoundingClientRect();
   const scaleX = canvas.width  / rect.width;
   const scaleY = canvas.height / rect.height;
   game.mortarCursorX = (e.clientX - rect.left) * scaleX;
   game.mortarCursorY = (e.clientY - rect.top)  * scaleY;
+});
+
+canvas.addEventListener('click', () => {
+  if (!game.warbornMortar) return;
+  game.mortarCursorFrozen = !game.mortarCursorFrozen;
 });
 
 // ── WARBORN: ability keys 1 / 2 / 3 ────────────────────────────────────────

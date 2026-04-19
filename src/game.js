@@ -115,6 +115,7 @@ export class Game {
     this.mortarFlightTimer = 0;      // counts down 0.25→0
     this.mortarCursorX     = 0;      // canvas coords, updated by mousemove
     this.mortarCursorY     = 0;
+    this.mortarCursorFrozen = false; // true = crosshair locked in place on click
 
     // Ability cooldowns/timers (per-run, not saved)
     this.overdriveCooldown  = 0;    // seconds until Overdrive can be used again

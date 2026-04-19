@@ -311,7 +311,24 @@ export class Renderer {
       return;
     }
 
-    // Tracking phase — shrinking crosshair
+    const FROZEN_COLOR = '#ff9100';
+
+    // Tracking phase — shrinking crosshair; orange and fully-sized when frozen
+    if (game.mortarCursorFrozen) {
+      this._drawTargetReticle(cx, cy, 28, FROZEN_COLOR, 0.9);
+      // Pause indicator above reticle
+      ctx.save();
+      ctx.font        = 'bold 11px monospace';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle   = FROZEN_COLOR;
+      ctx.shadowBlur  = game.quality !== 'low' ? 8 : 0;
+      ctx.shadowColor = FROZEN_COLOR;
+      ctx.fillText('[ ]', cx, cy - 42);
+      ctx.restore();
+      return;
+    }
+
     const trackFrac  = game.mortarTrackTimer / 0.75;  // 0→1
     const outerR     = 28 - trackFrac * 16;           // shrinks 28→12
     const alpha      = 0.55 + trackFrac * 0.35;
