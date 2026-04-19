@@ -201,6 +201,16 @@ export class Game {
     return 1 + this.neuralStacks * 0.003;
   }
 
+  // WARBORN: maximum Rush Stacks (base 1000, +25 per Eternal Warrior rank)
+  rushStackCap() {
+    return 1000 + this.warbornCapstoneRank * 25;
+  }
+
+  // Increment Rush Stacks by n, clamped to the cap.
+  addRushStacks(n = 1) {
+    this.rushStacks = Math.min(this.rushStackCap(), this.rushStacks + n);
+  }
+
   // WARBORN: Rush Stack damage multiplier (Blood Rush C1, each stack +3%)
   rushDmgMult() {
     if (!this.warbornBloodRush || this.rushStacks === 0) return 1.0;

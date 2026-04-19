@@ -417,10 +417,10 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
 
       // C3 Unstoppable: mortar kills grant extra stack
       if (game.warbornUnstoppable && game.warbornBloodRush) {
-        game.rushStacks      += 1;
+        game.addRushStacks(1);
         game.rushDecayTimer   = 3.0;
         // Overkill = 2 stacks
-        if (overkill > 0) game.rushStacks += 1;
+        if (overkill > 0) game.addRushStacks(1);
       }
 
       // Award kill (reuse killEnemy path)
@@ -449,7 +449,7 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
     game.rushDecayTimer = 3.0;
     if (!game.warbornUnstoppable) {
       // Each kill in blast = 1 stack (Unstoppable already added them above)
-      game.rushStacks += killedCount;
+      game.addRushStacks(killedCount);
     }
   }
 }
