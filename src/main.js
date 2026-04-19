@@ -247,22 +247,20 @@ function update(dt) {
             Math.max(tx, canvas.width  - tx + margin) ** 2 +
             Math.max(ty, canvas.height - ty + margin) ** 2
           );
-          const speed = maxR / 0.35; // full sweep in 0.35 s
+          const speed = maxR / 0.35; // full visual sweep in 0.35 s
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
-          // Kill ALL enemies immediately — blastwave is visual only.
-          // This catches off-screen stragglers that the expanding ring never reaches.
-          obliterateWave(game);
+          // 0.5 s after the blastwave fires, kill everything unconditionally.
+          // The blastwave visually "passes through" enemies; this guarantees
+          // no off-screen or fast-moving stragglers survive.
+          setTimeout(() => obliterateWave(game), 500);
         }
       }
 
-      // Blastwave visual expansion — enemies already killed at trigger time,
-      // so this loop is purely cosmetic (particles on enemies the wave "passes through").
+      // Blastwave visual expansion only — kill logic handled by the setTimeout above.
       for (const w of game.blastwaves) {
         if (w.r < w.maxR) w.r += w.speed * dt;
-        if (!w.killDone) {
-          if (w.r >= w.maxR) w.killDone = true;
-        }
+        if (!w.killDone && w.r >= w.maxR) w.killDone = true;
       }
 
       if (game.tower.hp <= 0) {
