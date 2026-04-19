@@ -58,7 +58,6 @@ const RARITY_WEIGHTS = [60, 25, 10, 4, 1];
 // Capture chance scales from 0.01% at wave 1 to 0.1% at wave 100+
 const CHANCE_MIN  = 0.0001;
 const CHANCE_MAX  = 0.001;
-const MAX_ROSTER  = 100;
 
 function rollRarity() {
   let roll = Math.random() * 100;
@@ -86,12 +85,7 @@ export class TraitorSystem {
   // Called from every kill path. Returns the captured pet object or null.
   // game is optional; when provided, NEXUS bonuses (A1, B1) are applied.
   tryCapture(enemy, wave, game) {
-    // If Optimal Roster is active and roster is full, attempt a merge pass first
-    // to free space — otherwise captures deadlock once MAX_ROSTER is reached.
-    if (game?.optimalRoster && this.roster.length >= MAX_ROSTER) {
-      this.optimizeForNexus(game);
-    }
-    if (this.roster.length >= MAX_ROSTER) return null;
+    // No roster cap — merging to apex requires far more than any previous limit.
     let chance = CHANCE_MIN + (CHANCE_MAX - CHANCE_MIN) * Math.min(wave, 100) / 100;
 
     // NEXUS B1: Signal Harvest — double global capture chance
