@@ -213,7 +213,7 @@ export const FACTION_NODES = {
       id: 'vanguard_a2', col: 0, tier: 2, prereq: 'vanguard_a1',
       name: 'Tide Surge',
       shortName: 'Tide Surge',
-      tooltip: 'Once the wave\'s boss is dead, killing 50% of the wave triggers the next wave immediately.\nSurvivors carry over. Replaces the Wave Rush prestige upgrade.',
+      tooltip: 'On non-boss waves, killing 50% of the wave immediately triggers the next wave.\nSurvivors carry over into the next wave. Replaces the Wave Rush prestige upgrade.',
       cost: 2_500_000,
       apply(game) { game.vanguardTideSurge = true; },
     },

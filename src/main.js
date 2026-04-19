@@ -277,9 +277,9 @@ function update(dt) {
         if (total > 0) {
           const killPct = game.waveKills / total;
 
-          // VANGUARD A2: Tide Surge — boss must be dead AND 50% of wave killed
-          if (game.vanguardTideSurge && game.vanguardBossKilledThisWave) {
-            if (killPct >= 0.50 && game.wave % 10 !== 0) {
+          // VANGUARD A2: Tide Surge — 50% of non-boss wave killed triggers next wave
+          if (game.vanguardTideSurge && game.wave % 10 !== 0) {
+            if (killPct >= 0.50) {
               onWaveComplete(true);
             }
           }
