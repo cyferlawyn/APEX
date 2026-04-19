@@ -349,14 +349,14 @@ export class Renderer {
 
     const WARBORN_RED = '#ff1744';
 
-    let hudY = 70; // start below existing HUD elements
+    let hudY = 80; // start below existing HUD elements (adjusted for larger wave label)
 
     // Rush Stack counter (C1 Blood Rush)
     if (game.warbornBloodRush) {
       const stacks = game.rushStacks;
       ctx.save();
       ctx.textAlign   = 'left';
-      ctx.font        = '10px monospace';
+      ctx.font        = '13px monospace';
       const dmgBonus  = stacks > 0 ? `+${(stacks * 3)}% dmg` : '';
       const rushLabel = `⚔ ${stacks} rush${dmgBonus ? '  ' + dmgBonus : ''}`;
       ctx.fillStyle   = stacks > 0 ? WARBORN_RED : 'rgba(255,23,68,0.3)';
@@ -365,7 +365,7 @@ export class Renderer {
         ctx.shadowColor = WARBORN_RED;
       }
       ctx.fillText(rushLabel, 12, hudY);
-      hudY += 14;
+      hudY += 17;
 
       // Decay bar: show only if decaying
       if (stacks > 0 && !game.rushDecayProtected && game.rushDecayTimer > 0) {
@@ -405,8 +405,8 @@ export class Renderer {
       });
     }
 
-    const panelX  = canvas.width - 130;
-    let   panelY  = canvas.height - 20 - abilities.length * 26;
+    const panelX  = canvas.width - 140;
+    let   panelY  = canvas.height - 20 - abilities.length * 30;
 
     ctx.save();
     for (const ab of abilities) {
@@ -414,20 +414,20 @@ export class Renderer {
       const color = ab.active ? '#ff4081' : ready ? WARBORN_RED : 'rgba(255,23,68,0.35)';
 
       // Key badge
-      ctx.font        = 'bold 11px monospace';
+      ctx.font        = 'bold 14px monospace';
       ctx.textAlign   = 'left';
       ctx.fillStyle   = color;
       ctx.fillText(`[${ab.key}]`, panelX, panelY);
 
       // Name
-      ctx.font      = '10px monospace';
+      ctx.font      = '13px monospace';
       ctx.fillStyle = color;
-      ctx.fillText(ab.name, panelX + 22, panelY);
+      ctx.fillText(ab.name, panelX + 28, panelY);
 
       // Status bar
       const barX = panelX;
-      const barY = panelY + 3;
-      const barW = 110;
+      const barY = panelY + 4;
+      const barW = 120;
       const barH = 3;
       ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.fillRect(barX, barY, barW, barH);
@@ -448,7 +448,7 @@ export class Renderer {
         ctx.fillRect(barX, barY, barW, barH);
       }
 
-      panelY += 26;
+      panelY += 30;
     }
     ctx.restore();
   }
@@ -1122,7 +1122,7 @@ export class Renderer {
     const t = game.tower;
     if (!t) return;
 
-    ctx.font      = '13px monospace';
+    ctx.font      = '16px monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.text;
     ctx.fillText(`Wave ${fmt(game.wave)}`, 12, 22);
@@ -1133,7 +1133,7 @@ export class Renderer {
     const pbW = 80;
     const pbH = 5;
     const pbX = 12;
-    const pbY = 28;
+    const pbY = 30;
     ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.fillRect(pbX, pbY, pbW, pbH);
     ctx.fillStyle = cleared >= 1 ? '#00e676' : '#00bcd4';
@@ -1141,18 +1141,18 @@ export class Renderer {
 
     // Neural stacks HUD (NEXUS C2 Stack Amplifier)
     if (game.neuralStacks > 0) {
-      ctx.font      = '10px monospace';
+      ctx.font      = '13px monospace';
       ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(0,229,255,0.65)';
-      ctx.fillText(`\u2B22 ${fmt(game.neuralStacks)} stacks`, 12, 44);
+      ctx.fillText(`\u2B22 ${fmt(game.neuralStacks)} stacks`, 12, 50);
     }
 
     // Lure type indicator (NEXUS A1 Lure Protocols)
     if (game.lureType) {
-      ctx.font      = '10px monospace';
+      ctx.font      = '13px monospace';
       ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(0,229,255,0.5)';
-      const lureY   = game.neuralStacks > 0 ? 57 : 44;
+      const lureY   = game.neuralStacks > 0 ? 66 : 50;
       ctx.fillText(`lure: ${game.lureType.toLowerCase()}`, 12, lureY);
     }
 
@@ -1171,13 +1171,13 @@ export class Renderer {
       ctx.textBaseline = 'middle';
 
       // Overkill label — white with red glow
-      ctx.font      = 'bold 18px monospace';
+      ctx.font      = 'bold 23px monospace';
       ctx.fillStyle = '#ffffff';
       if (game.quality !== 'low') { ctx.shadowBlur = 22; ctx.shadowColor = '#ff1744'; }
-      ctx.fillText(overkillLabel, 0, -22);
+      ctx.fillText(overkillLabel, 0, -26);
 
       // Countdown line — large red
-      ctx.font      = 'bold 28px monospace';
+      ctx.font      = 'bold 35px monospace';
       ctx.fillStyle = '#ff1744';
       ctx.shadowBlur = game.quality !== 'low' ? 28 : 0;
       ctx.fillText(`OBLITERATE IN ${secs}`, 0, 10);
@@ -1202,7 +1202,7 @@ export class Renderer {
 
     ctx.fillStyle   = COLORS.text;
     ctx.textAlign   = 'center';
-    ctx.font        = '11px monospace';
+    ctx.font        = '14px monospace';
     ctx.fillText(`${fmt(Math.ceil(t.hp))} / ${fmt(t.maxHp)}`, canvas.width / 2, barY - 3);
 
     // Laser cooldown indicator
@@ -1217,9 +1217,9 @@ export class Renderer {
       ctx.fillStyle = COLORS.laser;
       ctx.fillRect(indX, indY, indW * pct, indH);
       ctx.fillStyle = 'rgba(255,64,129,0.5)';
-      ctx.font      = '9px monospace';
+      ctx.font      = '11px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('LASER', canvas.width / 2, indY + indH + 8);
+      ctx.fillText('LASER', canvas.width / 2, indY + indH + 10);
     }
 
     // FPS counter — colour shifts red when below 55
@@ -1227,7 +1227,7 @@ export class Renderer {
     const fpsColor = fps < 45 ? '#ff1744' : fps < 55 ? '#ffea00' : 'rgba(255,255,255,0.28)';
     ctx.textAlign  = 'right';
     ctx.fillStyle  = fpsColor;
-    ctx.font       = '10px monospace';
+    ctx.font       = '13px monospace';
     const fpsLabel = game.autoQuality
       ? `${fps} fps  AUTO:${game.quality.toUpperCase()}`
       : `${fps} fps`;
@@ -1245,7 +1245,7 @@ export class Renderer {
       ctx.fillStyle   = COLORS.currency;
       ctx.shadowBlur  = game.quality === 'high' ? 6 : 0;
       ctx.shadowColor = COLORS.currency;
-      ctx.font        = '11px monospace';
+      ctx.font        = '14px monospace';
       ctx.textAlign   = 'center';
       ctx.fillText(`+$${fmt(p.amount)}`, p.x, p.y);
       ctx.restore();
@@ -1263,7 +1263,7 @@ export class Renderer {
       ctx.textAlign    = 'center';
       ctx.textBaseline = 'middle';
       // Draw a bold "X" marker in red as the base so it always renders
-      ctx.font      = 'bold 20px monospace';
+      ctx.font      = 'bold 25px monospace';
       ctx.fillStyle = '#ff1744';
       if (game.quality === 'high') {
         ctx.shadowBlur  = 12;
@@ -1272,7 +1272,7 @@ export class Renderer {
       ctx.fillText('✕', p.x, p.y + 1);
       // Overlay the skull emoji at a larger size
       ctx.shadowBlur = 0;
-      ctx.font = '22px sans-serif';
+      ctx.font = '28px sans-serif';
       ctx.fillText('💀', p.x, p.y);
       ctx.restore();
       return true;
