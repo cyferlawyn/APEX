@@ -317,11 +317,14 @@ function patchTraitorPanel() {
     return;
   }
 
-  // Sort groups: rarity desc, then type asc
+  // Sort groups: rarity desc, then damage% desc within same rarity
+  const resonanceMult2 = game.resonanceField ? 2 : 1;
   const sortedKeys = Object.keys(counts).sort((a, b) => {
-    const [, ra] = a.split('|');
-    const [, rb] = b.split('|');
-    return RARITIES.indexOf(rb) - RARITIES.indexOf(ra);
+    const [ta, ra] = a.split('|');
+    const [tb, rb] = b.split('|');
+    const rarityDiff = RARITIES.indexOf(rb) - RARITIES.indexOf(ra);
+    if (rarityDiff !== 0) return rarityDiff;
+    return petBonus(tb, rb) * resonanceMult2 - petBonus(ta, ra) * resonanceMult2;
   });
 
   const noEmptySlot = ts.slots.indexOf(null) === -1;
