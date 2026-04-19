@@ -1208,10 +1208,9 @@ html, body {
 /* ── ENDLESS WAR: auto-ascension row in ascend overlay ───────────────────── */
 
 #auto-ascension-row {
-  margin: 10px 0 4px;
+  margin: 6px 0 8px;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   font-size: 11px;
   color: rgba(255,255,255,0.55);
