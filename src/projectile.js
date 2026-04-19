@@ -168,9 +168,10 @@ export class Projectile {
 // WARBORN Blood Rush: called from every kill path to grant a stack and reset decay.
 function _warbornRushOnKill(game) {
   if (!game.warbornBloodRush) return;
-  game.rushStacks     += 1;
-  game.rushDecayTimer  = 3.0;
-  game.rushKillTimer   = 0;
+  game.rushStacks          += 1;
+  game.rushDecayTimer       = 3.0;
+  game.rushKillTimer        = 0;
+  game.rushDecayProtected   = false;  // first kill ends wave-start decay protection
 }
 
 function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile') {

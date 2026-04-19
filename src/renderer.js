@@ -367,12 +367,13 @@ export class Renderer {
       ctx.fillText(rushLabel, 12, hudY);
       hudY += 17;
 
-      // Decay bar: show only if decaying
-      if (stacks > 0 && !game.rushDecayProtected && game.rushDecayTimer > 0) {
-        const pct = Math.min(1, game.rushDecayTimer / 3.0);
+      // Decay bar: always show when stacks > 0; full and bright when decay is paused
+      if (stacks > 0) {
+        const pct = game.rushDecayProtected ? 1.0 : Math.min(1, game.rushDecayTimer / 3.0);
+        const barColor = game.rushDecayProtected ? '#ffffff' : WARBORN_RED;
         ctx.fillStyle = 'rgba(255,255,255,0.1)';
         ctx.fillRect(12, hudY, 60, 3);
-        ctx.fillStyle = WARBORN_RED;
+        ctx.fillStyle = barColor;
         ctx.fillRect(12, hudY, 60 * pct, 3);
         hudY += 8;
       }
