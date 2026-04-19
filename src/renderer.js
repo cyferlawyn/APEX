@@ -1125,7 +1125,7 @@ export class Renderer {
     ctx.font      = '13px monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.text;
-    ctx.fillText(`Wave ${game.wave}`, 12, 22);
+    ctx.fillText(`Wave ${fmt(game.wave)}`, 12, 22);
 
     // Wave cleared progress bar
     const total  = game.waveSpawner ? game.waveSpawner.totalSpawned : 0;
@@ -1144,7 +1144,7 @@ export class Renderer {
       ctx.font      = '10px monospace';
       ctx.textAlign = 'left';
       ctx.fillStyle = 'rgba(0,229,255,0.65)';
-      ctx.fillText(`\u2B22 ${game.neuralStacks} stacks`, 12, 44);
+      ctx.fillText(`\u2B22 ${fmt(game.neuralStacks)} stacks`, 12, 44);
     }
 
     // Lure type indicator (NEXUS A1 Lure Protocols)
@@ -1301,7 +1301,7 @@ export class Renderer {
     ctx.fillStyle = '#00e676';
     ctx.font      = 'bold 20px monospace';
     if (game.quality === 'high') { ctx.shadowBlur = 10; ctx.shadowColor = '#00e676'; }
-    ctx.fillText(`Wave ${game.lastWave} complete!`, canvas.width / 2, anchorY);
+    ctx.fillText(`Wave ${fmt(game.lastWave)} complete!`, canvas.width / 2, anchorY);
 
     ctx.shadowBlur = 0;
     ctx.fillStyle  = COLORS.currency;
@@ -1328,11 +1328,11 @@ export class Renderer {
 
     ctx.fillStyle = COLORS.text;
     ctx.font      = '18px monospace';
-    ctx.fillText(`Fell on wave ${game.wave}`, canvas.width / 2, canvas.height / 2 + 2);
+    ctx.fillText(`Fell on wave ${fmt(game.wave)}`, canvas.width / 2, canvas.height / 2 + 2);
 
     ctx.fillStyle = COLORS.currency;
     ctx.font      = '14px monospace';
-    ctx.fillText(`Best: wave ${game.bestWave}`, canvas.width / 2, canvas.height / 2 + 26);
+    ctx.fillText(`Best: wave ${fmt(game.bestWave)}`, canvas.width / 2, canvas.height / 2 + 26);
 
     ctx.fillStyle = COLORS.currency;
     ctx.font      = '13px monospace';
@@ -1341,6 +1341,6 @@ export class Renderer {
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '12px monospace';
     const restartWave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
-    ctx.fillText(`upgrades kept — restarting from wave ${restartWave}...`, canvas.width / 2, canvas.height / 2 + 68);
+    ctx.fillText(`upgrades kept — restarting from wave ${fmt(restartWave)}...`, canvas.width / 2, canvas.height / 2 + 68);
   }
 }
