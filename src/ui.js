@@ -684,7 +684,7 @@ function _buildFactionChoiceCards(fs) {
   const cardsEl = document.getElementById('faction-choice-cards');
   cardsEl.innerHTML = '';
 
-  for (const fid of ['nexus', 'conclave', 'warborn', 'vanguard']) {
+  for (const fid of ['nexus', 'warborn', 'vanguard']) {
     const f    = FACTIONS[fid];
     const card = document.createElement('div');
     card.className = 'faction-choice-card' + (f.comingSoon ? ' coming-soon' : '');
