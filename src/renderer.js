@@ -1299,18 +1299,18 @@ export class Renderer {
     ctx.textAlign   = 'center';
 
     ctx.fillStyle = '#00e676';
-    ctx.font      = 'bold 20px monospace';
+    ctx.font      = 'bold 25px monospace';
     if (game.quality === 'high') { ctx.shadowBlur = 10; ctx.shadowColor = '#00e676'; }
     ctx.fillText(`Wave ${fmt(game.lastWave)} complete!`, canvas.width / 2, anchorY);
 
     ctx.shadowBlur = 0;
     ctx.fillStyle  = COLORS.currency;
-    ctx.font       = '15px monospace';
-    ctx.fillText(`+$ ${fmt(game.lastWaveEarned)} earned`, canvas.width / 2, anchorY + 22);
+    ctx.font       = '19px monospace';
+    ctx.fillText(`+$ ${fmt(game.lastWaveEarned)} earned`, canvas.width / 2, anchorY + 28);
 
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font      = '11px monospace';
-    ctx.fillText('next wave incoming...', canvas.width / 2, anchorY + 40);
+    ctx.font      = '14px monospace';
+    ctx.fillText('next wave incoming...', canvas.width / 2, anchorY + 52);
 
     ctx.restore();
   }
@@ -1323,24 +1323,24 @@ export class Renderer {
 
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ff1744';
-    ctx.font      = 'bold 32px monospace';
-    ctx.fillText('TOWER DESTROYED', canvas.width / 2, canvas.height / 2 - 36);
+    ctx.font      = 'bold 40px monospace';
+    ctx.fillText('TOWER DESTROYED', canvas.width / 2, canvas.height / 2 - 46);
 
     ctx.fillStyle = COLORS.text;
+    ctx.font      = '23px monospace';
+    ctx.fillText(`Fell on wave ${fmt(game.wave)}`, canvas.width / 2, canvas.height / 2 + 4);
+
+    ctx.fillStyle = COLORS.currency;
     ctx.font      = '18px monospace';
-    ctx.fillText(`Fell on wave ${fmt(game.wave)}`, canvas.width / 2, canvas.height / 2 + 2);
+    ctx.fillText(`Best: wave ${fmt(game.bestWave)}`, canvas.width / 2, canvas.height / 2 + 32);
 
     ctx.fillStyle = COLORS.currency;
-    ctx.font      = '14px monospace';
-    ctx.fillText(`Best: wave ${fmt(game.bestWave)}`, canvas.width / 2, canvas.height / 2 + 26);
-
-    ctx.fillStyle = COLORS.currency;
-    ctx.font      = '13px monospace';
-    ctx.fillText(`Total currency: $ ${fmt(game.currency)}`, canvas.width / 2, canvas.height / 2 + 48);
+    ctx.font      = '16px monospace';
+    ctx.fillText(`Total currency: $ ${fmt(game.currency)}`, canvas.width / 2, canvas.height / 2 + 56);
 
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font      = '12px monospace';
+    ctx.font      = '15px monospace';
     const restartWave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
-    ctx.fillText(`upgrades kept — restarting from wave ${fmt(restartWave)}...`, canvas.width / 2, canvas.height / 2 + 68);
+    ctx.fillText(`upgrades kept — restarting from wave ${fmt(restartWave)}...`, canvas.width / 2, canvas.height / 2 + 80);
   }
 }
