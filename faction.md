@@ -158,36 +158,41 @@ Active path. The player fires mortars by targeting positions on the canvas and t
 
 | Node | Name | Effect |
 |---|---|---|
-| A1 | *Field Artillery* | Enables mortar. A crosshair follows the cursor and shrinks over 0.75 s. At 0.75 s it locks in place. A mortar projectile flies to that position in 0.25 s, hitting all enemies within 50 px (accounts for moving targets). Loop restarts immediately — one mortar per second. Visual: shrinking crosshair ring during tracking, locked crosshair while in flight. |
-| A2 | *Heavy Ordnance* | Mortar blast radius 150 px; enemies hit are stunned for 0.5 s. |
+| A1 | *Field Artillery* | Enables mortar. A crosshair follows the cursor and shrinks over 0.75 s. At 0.75 s it locks in place. A mortar projectile flies to that position in 0.25 s, dealing 100% normalized shot damage to all enemies within 50 px. Loop restarts immediately — one mortar per second. Visual: shrinking crosshair ring during tracking, locked crosshair while in flight. |
+| A2 | *Heavy Ordnance* | Mortar blast radius 150 px; mortar damage 300% normalized shot damage; enemies hit are stunned for 0.5 s. |
 | A3 | *Carpet Bombing* | 4 additional mortar projectiles fire simultaneously, each offset 100 px from the main impact point (N/S/E/W). Incentive: if the main shot lands directly on a dense cluster all 5 overlap for 5× effective hits. |
-| B1 | *Rallying Cry* | Unlocks ability panel. **OVERDRIVE** (1) — tower fires 3× rate for 5 s, 60 s CD |
-| B2 | *Fury* | **FURY** (2) — all damage ×2 for 4 s, 60 s CD |
-| B3 | *Avatar of War* | **ANNIHILATION** (3) — all enemies on screen instantly lose 30% current HP, 60 s CD |
+| B1 | *Rallying Cry* | Unlocks ability panel. **OVERDRIVE** (1) — tower fires 3× rate for 5 s, 60 s CD. Passive: completing a wave removes 1 s from all active ability cooldowns. |
+| B2 | *Fury* | **FURY** (2) — all damage ×2 for 4 s, 60 s CD. Passive: active abilities that are currently running have their remaining duration extended by 0.5 s on wave completion. |
+| B3 | *Avatar of War* | **ANNIHILATION** (3) — all enemies on screen instantly lose 30% current HP, 60 s CD. Passive: completing a wave removes an additional 1 s from all active ability cooldowns (stacks with B1, total −2 s per wave clear). |
 | C1 | *Blood Rush* | Kills within 1.5 s of each other grant a Rush Stack (no cap). Each stack: +3% damage. Stacks decay 3 s after the last kill. |
-| C2 | *Rampage* | For every 100 Rush Stacks, tower fire rate +10%. |
+| C2 | *Rampage* | For every 10 Rush Stacks, tower fire rate +1%. |
 | C3 | *Unstoppable* | At the start of each wave, Rush Stacks are protected from decay for 10 s (enemies need time to reach the tower). Mortar hits reset the decay timer. Mortar kills grant a stack. Overkill kills grant 2 stacks. |
 
 ### Capstone — ETERNAL WARRIOR
 
 - `baseCost: 1,000,000`, `costMult: 1.30`, unlimited rank
-- **Rank 1**: mortar hits remove 15% of current HP from all enemies in the blast radius (in addition to flat damage)
-- **Each rank**: regular projectiles (including spread, multi-shot, chain, ricochet extra hits) remove `(1 + rank × 0.1)%` of current HP of each enemy hit — **this bonus is active regardless of current faction**, giving WARBORN capstone holders a permanent combat edge in all future runs
+- **Rank 1**: mortar hits remove 5% of current HP from all enemies in the blast radius (in addition to flat damage)
+- **Each rank**: mortar current-HP removal increases by +0.1% (rank 10: 6%, rank 20: 7%, etc.)
+- **Each rank**: regular projectiles (including spread, multi-shot, chain, ricochet extra hits) remove `(rank × 0.1)%` of current HP of each enemy hit — **active regardless of current faction**
+- **Each rank**: all ability cooldowns are reduced by 0.1 s (cap: −30 s total, i.e. rank 300 ceiling, effectively unlimited for normal play)
 - Current-HP removal is applied after flat damage on the same hit
 - Cross-faction synergy: just as NEXUS Singularity seeds permanent Neural Stacks into every future run, ETERNAL WARRIOR seeds a permanent per-hit current-HP% strip into every future run — the more ranks, the more every projectile shreds high-HP enemies across all factions
 
 ### Implementation Notes (pre-build)
 
+- Mortar damage uses `normalizedShotDamage(tower, game)` — already accounts for shard/traitor/faction/crit/overcharge multipliers without recalculating them
 - Mortar state per frame: `mortarTrackTimer` (0→0.75 s), `mortarLocked` (bool), `mortarLockedX/Y`, `mortarInFlight` (bool), `mortarFlightTimer` (0→0.25 s)
 - Canvas `mousemove` updates `game.mortarCursorX/Y`; tracking phase follows cursor, locked phase ignores it
 - Crosshair drawn in `renderer.js`: large ring shrinking to small ring over 0.75 s during tracking; static ring during flight
 - On lock: record `mortarLockedX/Y`, set `mortarInFlight = true`, reset `mortarFlightTimer`
 - On impact: AoE hit all enemies within 50 px (150 px with A2); apply stun if A2; fire 4 offset projectiles if A3; then restart tracking phase
 - Stun: enemies with `stunTimer > 0` skip movement update
+- B passive (wave complete): subtract 1 s from all cooldowns if B1 purchased, another 1 s if B3 purchased; extend active ability durations by 0.5 s if B2 purchased
 - Rush Stack counter in HUD
-- `rushStacks`, `rushDecayTimer`, `mortarLockedX`, `mortarLockedY`, `mortarTrackTimer`, `mortarInFlight`, `mortarFlightTimer` all live on `game`
-- `warbornHpContribution` stored in `apex_faction_capstones` (for future use — no HP exponent effect in current design)
+- `rushStacks`, `rushDecayTimer`, `rushDecayProtected` (bool, wave-start grace), `mortarLockedX`, `mortarLockedY`, `mortarTrackTimer`, `mortarInFlight`, `mortarFlightTimer`, `overdriveCooldown`, `furyCooldown`, `annihilationCooldown`, `overdriveTimer`, `furyTimer` all live on `game`
+- Capstone current-HP removal applied in `_damageEnemy` in `projectile.js` after flat damage; mortar path applies its own removal at impact
 - Ability cooldowns are per-run, not saved
+- `warbornCapstoneRank` read from `apex_faction_capstones` to compute cooldown reduction and HP% values at runtime
 
 ---
 
