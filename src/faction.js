@@ -271,7 +271,7 @@ export const FACTION_NODES = {
       id: 'vanguard_c3', col: 2, tier: 3, prereq: 'vanguard_c2',
       name: 'Iron Will',
       shortName: 'Iron Will',
-      tooltip: 'When the tower would be destroyed, automatically ascend instead (once per run).\nThe faction choice overlay gains a 10-second countdown that re-selects the previous faction.',
+      tooltip: 'When the tower would be destroyed, automatically ascend instead (once per run).\nThe faction choice overlay gains a 10-second countdown that re-selects the previous faction.\nAlso unlocks the Auto-ascend setting in the Ascension tab:\n  Off — manual only\n  On overkill end — ascend when the obliterate wave clears\n  On defeat — ascend automatically on tower destruction',
       cost: 12_500_000,
       apply(game) { game.vanguardIronWill = true; },
     },

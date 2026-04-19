@@ -95,11 +95,13 @@ function patchPrestigeCards() {
     if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
   }
 
-  // Auto-ascension dropdown — show only if ENDLESS WAR capstone rank > 0
+  // Auto-ascension dropdown — show if Iron Will (VANGUARD C3) is purchased,
+  // or if ENDLESS WAR capstone rank > 0 (cross-faction unlock)
   const autoAscRow = document.getElementById('auto-ascension-row');
   const autoAscEl2 = document.getElementById('auto-ascension-select');
   if (autoAscRow && autoAscEl2) {
-    const showAutoAsc = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
+    const showAutoAsc = game.vanguardIronWill
+      || (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
     autoAscRow.classList.toggle('hidden', !showAutoAsc);
     if (showAutoAsc && autoAscEl2.value !== game.autoAscensionMode) {
       autoAscEl2.value = game.autoAscensionMode ?? 'off';
