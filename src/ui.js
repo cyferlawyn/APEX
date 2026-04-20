@@ -933,6 +933,7 @@ window.addEventListener('load', () => {
     buildShopCards();
     buildPrestigeCards();
     wireButtons();
+    applyTabPrefs(loadPrefs()); // restore collapse state after DOM is ready
     patchShopCards();
     patchPrestigeCards();
     patchTraitorPanel();
