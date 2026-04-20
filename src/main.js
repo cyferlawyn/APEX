@@ -252,12 +252,10 @@ function update(dt) {
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
           game.obliterateInFlight = true;
-          console.log(`[obliterate] inFlight=true wave=${game.wave}`);
           setTimeout(() => {
             obliterateWave(game);
             setTimeout(() => {
               obliterateWave(game);
-              console.log(`[obliterate] inFlight=false wave=${game.wave} activeCount=${game.enemyPool.activeCount()} totalSpawned=${game.waveSpawner.totalSpawned}`);
               game.obliterateInFlight = false;
               // Let the game loop's activeCount() === 0 check fire onWaveComplete
               // naturally on the next tick — do NOT call it here to avoid double-advance.
@@ -277,9 +275,9 @@ function update(dt) {
       } else if (!game.obliterateInFlight && game.enemyPool.activeCount() === 0 && game.waveSpawner.totalSpawned > 0) {
         onWaveComplete();
       } else {
-        // ── Wave skip checks ──────────────────────────────────────────────
+        // ── Wave skip checks (suppressed while obliterate kill is in flight) ──
         const total = game.waveSpawner.totalSpawned;
-        if (total > 0) {
+        if (!game.obliterateInFlight && total > 0) {
           const killPct = game.waveKills / total;
 
           // VANGUARD A2: Tide Surge — 50% of wave killed triggers next wave.
@@ -489,7 +487,6 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
 }
 
 function onWaveComplete(keepEnemies = false) {
-  console.log(`[onWaveComplete] wave=${game.wave} keepEnemies=${keepEnemies} obliterateInFlight=${game.obliterateInFlight} activeCount=${game.enemyPool.activeCount()} totalSpawned=${game.waveSpawner.totalSpawned}`, new Error().stack.split('\n')[2]?.trim());
   game.lastWaveEarned = game.waveEarned; // display value only — already credited live
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
