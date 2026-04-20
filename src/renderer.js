@@ -1175,7 +1175,7 @@ export class Renderer {
     ctx.font      = '16px monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = COLORS.text;
-    ctx.fillText(`Wave ${fmt(game.wave)}`, 12, 22);
+    ctx.fillText(`Wave ${game.wave}`, 12, 22);
 
     // Wave cleared progress bar
     const total  = game.waveSpawner ? game.waveSpawner.totalSpawned : 0;
@@ -1378,11 +1378,11 @@ export class Renderer {
 
     ctx.fillStyle = COLORS.text;
     ctx.font      = '23px monospace';
-    ctx.fillText(`Fell on wave ${fmt(game.wave)}`, canvas.width / 2, canvas.height / 2 + 4);
+    ctx.fillText(`Fell on wave ${game.wave}`, canvas.width / 2, canvas.height / 2 + 4);
 
     ctx.fillStyle = COLORS.currency;
     ctx.font      = '18px monospace';
-    ctx.fillText(`Best: wave ${fmt(game.bestWave)}`, canvas.width / 2, canvas.height / 2 + 32);
+    ctx.fillText(`Best: wave ${game.bestWave}`, canvas.width / 2, canvas.height / 2 + 32);
 
     ctx.fillStyle = COLORS.currency;
     ctx.font      = '16px monospace';
@@ -1391,6 +1391,6 @@ export class Renderer {
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font      = '15px monospace';
     const restartWave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
-    ctx.fillText(`upgrades kept — restarting from wave ${fmt(restartWave)}...`, canvas.width / 2, canvas.height / 2 + 80);
+    ctx.fillText(`upgrades kept — restarting from wave ${restartWave}...`, canvas.width / 2, canvas.height / 2 + 80);
   }
 }
