@@ -141,16 +141,13 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'shield',
     name: 'Shield',
-    tooltip: 'Tower gains a shield charge that absorbs one hit per wave,\nthen grants 1.5 s of invulnerability.\nTier 1: 1 charge  Tier 2: 2 charges  Tier 3: 3 charges per wave.',
+    tooltip: '[Disabled] Tower gains a shield charge that absorbs one hit per wave,\nthen grants 1.5 s of invulnerability.\nCurrently disabled — causes permanent invulnerability at high wave speeds.',
     maxTier: 3,
     baseCost: 10,
     costMult: 2.2,
+    disabled: true,
     apply(tower, game, tier) {
-      tower.shieldChargesMax = tier;
-      // Charges are refreshed at wave start in main.js
-      if (tower.shieldCharges === undefined || tower.shieldCharges < tier) {
-        tower.shieldCharges = tier;
-      }
+      // Disabled — no effect applied
     },
   },
   {
@@ -219,8 +216,8 @@ export class PrestigeShop {
   }
 
   purchase(id) {
-    if (this.isMaxed(id) || !this.canAfford(id)) return false;
     const entry = this._entry(id);
+    if (!entry || entry.disabled || this.isMaxed(id) || !this.canAfford(id)) return false;
     this.game.shards -= this.cost(id);
     this.game.prestigeUpgrades[id] = this.tier(id) + 1;
     entry.apply(this.game.tower, this.game, this.game.prestigeUpgrades[id]);

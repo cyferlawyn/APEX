@@ -126,6 +126,16 @@ function patchPrestigeCards() {
     const card = document.querySelector(`.prestige-card[data-upg="${entry.id}"]`);
     if (!card) continue;
 
+    // Disabled upgrades — grey out and block purchase
+    if (entry.disabled) {
+      card.classList.add('is-maxed');
+      const tierEl = card.querySelector('[data-tier]');
+      if (tierEl && tierEl.textContent !== '[OFF]') tierEl.textContent = '[OFF]';
+      const btn = card.querySelector('.prestige-buy-btn');
+      setBtn(btn, 'DISABLED', true, true);
+      continue;
+    }
+
     const tier   = prestigeShop.tier(entry.id);
     const maxed  = prestigeShop.isMaxed(entry.id);
     const cost   = prestigeShop.cost(entry.id);
