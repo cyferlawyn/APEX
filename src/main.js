@@ -252,14 +252,12 @@ function update(dt) {
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
           game.obliterateInFlight = true;
-          // 0.3 s after the blastwave fires, kill everything unconditionally.
-          // Double-pass: the first call kills all enemies including Spawners;
-          // the second call (deferred one tick) catches any children Spawners
-          // emitted in the gap between blastwave trigger and the kill pass.
+          console.log(`[obliterate] inFlight=true wave=${game.wave}`);
           setTimeout(() => {
             obliterateWave(game);
             setTimeout(() => {
               obliterateWave(game);
+              console.log(`[obliterate] inFlight=false wave=${game.wave} activeCount=${game.enemyPool.activeCount()} totalSpawned=${game.waveSpawner.totalSpawned}`);
               game.obliterateInFlight = false;
               // Let the game loop's activeCount() === 0 check fire onWaveComplete
               // naturally on the next tick — do NOT call it here to avoid double-advance.
@@ -491,6 +489,7 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
 }
 
 function onWaveComplete(keepEnemies = false) {
+  console.log(`[onWaveComplete] wave=${game.wave} keepEnemies=${keepEnemies} obliterateInFlight=${game.obliterateInFlight} activeCount=${game.enemyPool.activeCount()} totalSpawned=${game.waveSpawner.totalSpawned}`, new Error().stack.split('\n')[2]?.trim());
   game.lastWaveEarned = game.waveEarned; // display value only — already credited live
   game.lastWave       = game.wave;
   game.waveEarned     = 0;
