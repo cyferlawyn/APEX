@@ -72,6 +72,7 @@ export class Game {
     // ── Shard meta upgrades ─────────────────────────────────────────────────
     this.shardBonusMult      = 1.0; // multiplier on shards awarded (Shard Tithe)
     this.veteranBonusDivisor = 0;   // if > 0: floor(wave / divisor) bonus shards on ascend
+    this.shardCovenantMult   = 0;   // 0 = disabled; coefficient × shards = wave bonus mult
 
     // ── Traitor (pet) system ────────────────────────────────────────────────
     this.traitorSystem              = null; // set in main.js bootstrap

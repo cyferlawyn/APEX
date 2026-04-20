@@ -127,7 +127,17 @@ export class Projectile {
         const dy = this.y - e.y;
         if (dx * dx + dy * dy <= r2) {
           _damageEnemy(e, this.damage * game.tower.splashMult, game, 0, 'projectile');
+          // Detonation Field: apply slow to splash targets
+          if (game.tower.detonationSlow > 0) {
+            e.slowUntil  = (game.elapsed ?? 0) + game.tower.detonationSlow;
+            e.slowFactor = 0.5;
+          }
         }
+      }
+      // Detonation Field: also slow the direct hit target
+      if (game.tower.detonationSlow > 0) {
+        target.slowUntil  = (game.elapsed ?? 0) + game.tower.detonationSlow;
+        target.slowFactor = 0.5;
       }
       // Register explosion flash for renderer — extended lifetime + shrapnel
       game.explosions.push({ x: this.x, y: this.y, r: this.explosiveRadius, t: 0.45, life: 0.45 });
@@ -203,12 +213,20 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
     if (e.poisonTickTimer <= 0) e.poisonTickTimer = 0.1; // ensure next tick fires promptly
   }
 
-  if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)) {
-    const wasExecuted = executeThreshold > 0 && e.hp > 0 && e.hp / e.maxHp < executeThreshold;
+  if (e.hp <= 0 || (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold)
+      || (game.tower.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < game.tower.apexBossExecute)) {
+    const wasExecuted = e.hp > 0 && (
+      (executeThreshold > 0 && e.hp / e.maxHp < executeThreshold) ||
+      (game.tower.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < game.tower.apexBossExecute)
+    );
     e.hp = 0;
 
     if (wasExecuted) {
       game.skullPopups.push({ x: e.x, y: e.y - e.radius - 8, t: 1.0 });
+      // Apex Predator: fire rate burst on execute kill
+      if (game.tower.apexFireRateBurst > 0) {
+        game.tower.apexBurstTimer = game.tower.apexBurstDuration;
+      }
     }
 
     // Bomber detonates on death
@@ -291,7 +309,9 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   _damageEnemy(best, damage, game, 0, 'projectile');
 
   if (jumpsLeft > 1) {
-    _chainFrom(best.x, best.y, best, damage * 0.6, jumpsLeft - 1, game);
+    // Arc Mastery: each jump escalates by arcMasteryDmgMult (default 0.6 falloff, boosted if > 1.0)
+    const jumpMult = game.tower.arcMasteryDmgMult > 1.0 ? game.tower.arcMasteryDmgMult : 0.6;
+    _chainFrom(best.x, best.y, best, damage * jumpMult, jumpsLeft - 1, game);
   }
 }
 

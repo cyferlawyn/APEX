@@ -113,6 +113,12 @@ function beginWave(keepEnemies = false) {
   }
   game.tower.invulnTimer = 0;
   game.tower.overchargeCounter = 0;
+  // Shard Covenant: sample current shard count at wave start to compute bonus multiplier
+  if (game.shardCovenantMult > 0) {
+    game.tower.shardCovenantBonus = 1 + game.shards * game.shardCovenantMult;
+  } else {
+    game.tower.shardCovenantBonus = 1.0;
+  }
   game.waveSpawner.begin(game.wave);
 
   // Check obliterate overkill threshold at wave start.
