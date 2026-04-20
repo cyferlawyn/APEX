@@ -3,19 +3,7 @@
 // The PrestigeShop interface mirrors Shop so ui.js can drive both identically.
 
 const PRESTIGE_UPGRADES = [
-  {
-    id: 'obliterate',
-    name: 'Obliterate',
-    tooltip: 'When your shot damage exceeds 10× the weakest enemy\'s current HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s  Tier 4: 2 s  Tier 5: 1 s countdown.\nCosts: 1k / 5k / 25k / 125k / 625k shards.',
-    maxTier: 5,
-    baseCost: 1000,
-    costMult: 5.0,
-    apply(tower, game, tier) {
-      tower.obliterateDelay = [0, 5, 4, 3, 2, 1][tier];
-    },
-  },
-
-  // ── Quality of Life ──────────────────────────────────────────────────────
+  // baseCost: 2
   {
     id: 'autoBuy',
     name: 'Auto-Buyer',
@@ -28,6 +16,8 @@ const PRESTIGE_UPGRADES = [
       game.autoBuyInterval = intervals[tier] ?? 0;
     },
   },
+
+  // baseCost: 10
   {
     id: 'startCurrency',
     name: 'War Chest',
@@ -53,8 +43,6 @@ const PRESTIGE_UPGRADES = [
       game.currencyMultiplier *= 1.10;
     },
   },
-
-  // ── Damage Scaling ───────────────────────────────────────────────────────
   {
     id: 'critChance',
     name: 'Critical Strike',
@@ -66,6 +54,8 @@ const PRESTIGE_UPGRADES = [
       tower.critChance = Math.min(1.0, tier * 0.10);
     },
   },
+
+  // baseCost: 15
   {
     id: 'critDamage',
     name: 'Critical Power',
@@ -78,43 +68,6 @@ const PRESTIGE_UPGRADES = [
     },
   },
   {
-    id: 'execute',
-    name: 'Execute',
-    tooltip: 'Projectile hits instantly kill enemies below an HP threshold.\nTier 1: 5%  Tier 2: 10%  Tier 3: 15% remaining HP.\nApplies to all enemy types except Bosses (see Apex Predator for bosses).',
-    maxTier: 3,
-    baseCost: 100,
-    costMult: 3.5,
-    apply(tower, game, tier) {
-      tower.executeThreshold = tier * 0.05;
-    },
-  },
-
-  // ── Shot Modifiers ───────────────────────────────────────────────────────
-  {
-    id: 'ricochet',
-    name: 'Ricochet',
-    tooltip: 'Projectiles bounce to an additional enemy after each hit.\nTier 1: 1 bounce  Tier 2: 2 bounces  Tier 3: 3 bounces.\nBounces inherit explosive and chain effects at 75% damage.',
-    maxTier: 3,
-    baseCost: 20,
-    costMult: 2.5,
-    apply(tower, game, tier) {
-      tower.ricochetCount = tier;
-    },
-  },
-  {
-    id: 'poisonTouch',
-    name: 'Poison Touch',
-    tooltip: 'Projectile hits apply a poison that deals bonus damage over 3 seconds in ticks every 0.1s.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison stacks additively and refreshes duration on each new hit.',
-    maxTier: 3,
-    baseCost: 25,
-    costMult: 2.5,
-    apply(tower, game, tier) {
-      tower.poisonFraction = [0, 0.25, 0.40, 0.55][tier];
-    },
-  },
-
-  // ── Utility / CC ─────────────────────────────────────────────────────────
-  {
     id: 'laserSlow',
     name: 'Laser Chill',
     tooltip: 'Laser Burst hits slow enemy movement speed for 2 seconds.\nTier 1: −25%  Tier 2: −40%  Tier 3: −55% speed.',
@@ -124,6 +77,19 @@ const PRESTIGE_UPGRADES = [
     apply(tower, game, tier) {
       tower.laserSlowFactor    = [0, 0.75, 0.60, 0.45][tier];
       tower.laserSlowDuration  = 2.0;
+    },
+  },
+
+  // baseCost: 20
+  {
+    id: 'ricochet',
+    name: 'Ricochet',
+    tooltip: 'Projectiles bounce to an additional enemy after each hit.\nTier 1: 1 bounce  Tier 2: 2 bounces  Tier 3: 3 bounces.\nBounces inherit explosive and chain effects at 75% damage.',
+    maxTier: 3,
+    baseCost: 20,
+    costMult: 2.5,
+    apply(tower, game, tier) {
+      tower.ricochetCount = tier;
     },
   },
   {
@@ -137,30 +103,21 @@ const PRESTIGE_UPGRADES = [
       tower.ringStunDuration = [0, 0.3, 0.5, 0.75][tier];
     },
   },
+
+  // baseCost: 25
   {
-    id: 'resurgence',
-    name: 'Resurgence',
-    tooltip: 'Once per run, when the tower would be destroyed, it survives at reduced HP.\nTier 1: revive at 25% HP  Tier 2: revive at 50% HP.\nGrants 2 s of invulnerability on proc.',
-    maxTier: 2,
-    baseCost: 200,
-    costMult: 4.0,
+    id: 'poisonTouch',
+    name: 'Poison Touch',
+    tooltip: 'Projectile hits apply a poison that deals bonus damage over 3 seconds in ticks every 0.1s.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison stacks additively and refreshes duration on each new hit.',
+    maxTier: 3,
+    baseCost: 25,
+    costMult: 2.5,
     apply(tower, game, tier) {
-      tower.resurgenceHp = [0, 0.25, 0.50][tier];
+      tower.poisonFraction = [0, 0.25, 0.40, 0.55][tier];
     },
   },
 
-  // ── Meta / Shard ─────────────────────────────────────────────────────────
-  {
-    id: 'shardTithe',
-    name: 'Shard Tithe',
-    tooltip: 'Boss kills yield more shards.\nEach tier multiplies shard rewards by ×1.25.\nMax (tier 10): 9.31× shard income.\nCosts: 50 / 150 / 450 / … shards.',
-    maxTier: 10,
-    baseCost: 50,
-    costMult: 3.0,
-    apply(tower, game, tier) {
-      game.shardBonusMult *= 1.25;
-    },
-  },
+  // baseCost: 30
   {
     id: 'veteranBounty',
     name: "Veteran's Bounty",
@@ -173,29 +130,46 @@ const PRESTIGE_UPGRADES = [
     },
   },
 
-  // ── High-End Talents (100k – 10M shard range) ────────────────────────────
+  // baseCost: 50
   {
-    id: 'voidSurge',
-    name: 'Void Surge',
-    tooltip: 'Permanently multiplies ALL damage output by ×1.20 per tier.\nAffects main gun, laser, orbital ring, explosions, chain lightning, and poison.\nTier 1: ×1.20  Tier 2: ×1.44  Tier 3: ×1.73  Tier 4: ×2.07  Tier 5: ×2.49.\nCosts: 2k / 8k / 32k / 128k / 512k shards.',
-    maxTier: 5,
-    baseCost: 2000,
-    costMult: 4.0,
+    id: 'shardTithe',
+    name: 'Shard Tithe',
+    tooltip: 'Boss kills yield more shards.\nEach tier multiplies shard rewards by ×1.25.\nMax (tier 10): 9.31× shard income.\nCosts: 50 / 150 / 450 / … shards.',
+    maxTier: 10,
+    baseCost: 50,
+    costMult: 3.0,
     apply(tower, game, tier) {
-      tower.voidSurgeMult *= 1.20;
+      game.shardBonusMult *= 1.25;
     },
   },
+
+  // baseCost: 100
   {
-    id: 'forgeEternal',
-    name: 'Forge Eternal',
-    tooltip: 'Permanently adds flat bonus damage applied before all multipliers.\n+50 damage per tier, stacking across ascensions.\nTier 5: +250 base damage (stacks with Damage shop upgrade).\nCosts: 5k / 20k / 80k / 320k / 1.28M shards.',
-    maxTier: 5,
-    baseCost: 5000,
-    costMult: 4.0,
+    id: 'execute',
+    name: 'Execute',
+    tooltip: 'Projectile hits instantly kill enemies below an HP threshold.\nTier 1: 5%  Tier 2: 10%  Tier 3: 15% remaining HP.\nApplies to all enemy types except Bosses (see Apex Predator for bosses).',
+    maxTier: 3,
+    baseCost: 100,
+    costMult: 3.5,
     apply(tower, game, tier) {
-      tower.forgeDmg += 50;
+      tower.executeThreshold = tier * 0.05;
     },
   },
+
+  // baseCost: 200
+  {
+    id: 'resurgence',
+    name: 'Resurgence',
+    tooltip: 'Once per run, when the tower would be destroyed, it survives at reduced HP.\nTier 1: revive at 25% HP  Tier 2: revive at 50% HP.\nGrants 2 s of invulnerability on proc.',
+    maxTier: 2,
+    baseCost: 200,
+    costMult: 4.0,
+    apply(tower, game, tier) {
+      tower.resurgenceHp = [0, 0.25, 0.50][tier];
+    },
+  },
+
+  // baseCost: 500
   {
     id: 'overchargeAmp',
     name: 'Overcharge Amplifier',
@@ -207,38 +181,17 @@ const PRESTIGE_UPGRADES = [
       tower.overchargeAmp += 0.5;
     },
   },
+
+  // baseCost: 1000
   {
-    id: 'echoShot',
-    name: 'Echo Shot',
-    tooltip: 'After a multi-shot volley fires, a chance to instantly fire a free extra volley.\nRequires Multi-Shot shop upgrade.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75% chance.\nCosts: 3k / 12k / 48k / 192k / 768k shards.',
+    id: 'obliterate',
+    name: 'Obliterate',
+    tooltip: 'When your shot damage exceeds 10× the weakest enemy\'s current HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s  Tier 4: 2 s  Tier 5: 1 s countdown.\nCosts: 1k / 5k / 25k / 125k / 625k shards.',
     maxTier: 5,
-    baseCost: 3000,
-    costMult: 4.0,
-    apply(tower, game, tier) {
-      tower.echoShotChance = tier * 0.15;
-    },
-  },
-  {
-    id: 'shardCovenant',
-    name: 'Shard Covenant',
-    tooltip: 'At the start of each wave, your shard balance is converted into a bonus damage multiplier.\nTier 1: ×(1 + shards × 0.01%)  Tier 2: ×(1 + shards × 0.02%)  Tier 3: ×(1 + shards × 0.04%).\nExample at tier 1 with 10k shards: ×2.0 bonus.\nCosts: 10k / 50k / 250k shards.',
-    maxTier: 3,
-    baseCost: 10000,
+    baseCost: 1000,
     costMult: 5.0,
     apply(tower, game, tier) {
-      game.shardCovenantMult = [0, 0.0001, 0.0002, 0.0004][tier];
-    },
-  },
-  {
-    id: 'arcMastery',
-    name: 'Arc Mastery',
-    tooltip: 'Chain Lightning jumps an additional time per tier.\nEach jump deals ×1.20 the previous jump\'s damage (escalating rather than decaying).\nTier 1: +1 jump  Tier 2: +2 jumps  Tier 3: +3 extra jumps.\nRequires Chain Lightning shop upgrade.\nCosts: 5k / 25k / 125k shards.',
-    maxTier: 3,
-    baseCost: 5000,
-    costMult: 5.0,
-    apply(tower, game, tier) {
-      tower.arcMasteryJumps = tier;
-      tower.arcMasteryDmgMult = tier > 0 ? 1.20 : 1.0;
+      tower.obliterateDelay = [0, 5, 4, 3, 2, 1][tier];
     },
   },
   {
@@ -253,6 +206,59 @@ const PRESTIGE_UPGRADES = [
       tower.detonationSlow = tier > 0 ? 1.0 : 0;
     },
   },
+
+  // baseCost: 2000
+  {
+    id: 'voidSurge',
+    name: 'Void Surge',
+    tooltip: 'Permanently multiplies ALL damage output by ×1.20 per tier.\nAffects main gun, laser, orbital ring, explosions, chain lightning, and poison.\nTier 1: ×1.20  Tier 2: ×1.44  Tier 3: ×1.73  Tier 4: ×2.07  Tier 5: ×2.49.\nCosts: 2k / 8k / 32k / 128k / 512k shards.',
+    maxTier: 5,
+    baseCost: 2000,
+    costMult: 4.0,
+    apply(tower, game, tier) {
+      tower.voidSurgeMult *= 1.20;
+    },
+  },
+
+  // baseCost: 3000
+  {
+    id: 'echoShot',
+    name: 'Echo Shot',
+    tooltip: 'After a multi-shot volley fires, a chance to instantly fire a free extra volley.\nRequires Multi-Shot shop upgrade.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75% chance.\nCosts: 3k / 12k / 48k / 192k / 768k shards.',
+    maxTier: 5,
+    baseCost: 3000,
+    costMult: 4.0,
+    apply(tower, game, tier) {
+      tower.echoShotChance = tier * 0.15;
+    },
+  },
+
+  // baseCost: 5000
+  {
+    id: 'forgeEternal',
+    name: 'Forge Eternal',
+    tooltip: 'Permanently adds flat bonus damage applied before all multipliers.\n+50 damage per tier, stacking across ascensions.\nTier 5: +250 base damage (stacks with Damage shop upgrade).\nCosts: 5k / 20k / 80k / 320k / 1.28M shards.',
+    maxTier: 5,
+    baseCost: 5000,
+    costMult: 4.0,
+    apply(tower, game, tier) {
+      tower.forgeDmg += 50;
+    },
+  },
+  {
+    id: 'arcMastery',
+    name: 'Arc Mastery',
+    tooltip: 'Chain Lightning jumps an additional time per tier.\nEach jump deals ×1.20 the previous jump\'s damage (escalating rather than decaying).\nTier 1: +1 jump  Tier 2: +2 jumps  Tier 3: +3 extra jumps.\nRequires Chain Lightning shop upgrade.\nCosts: 5k / 25k / 125k shards.',
+    maxTier: 3,
+    baseCost: 5000,
+    costMult: 5.0,
+    apply(tower, game, tier) {
+      tower.arcMasteryJumps = tier;
+      tower.arcMasteryDmgMult = tier > 0 ? 1.20 : 1.0;
+    },
+  },
+
+  // baseCost: 8000
   {
     id: 'eternalArsenal',
     name: 'Eternal Arsenal',
@@ -265,6 +271,21 @@ const PRESTIGE_UPGRADES = [
       tower.arsenalProjBonus     = tier;
     },
   },
+
+  // baseCost: 10000
+  {
+    id: 'shardCovenant',
+    name: 'Shard Covenant',
+    tooltip: 'At the start of each wave, your shard balance is converted into a bonus damage multiplier.\nTier 1: ×(1 + shards × 0.01%)  Tier 2: ×(1 + shards × 0.02%)  Tier 3: ×(1 + shards × 0.04%).\nExample at tier 1 with 10k shards: ×2.0 bonus.\nCosts: 10k / 50k / 250k shards.',
+    maxTier: 3,
+    baseCost: 10000,
+    costMult: 5.0,
+    apply(tower, game, tier) {
+      game.shardCovenantMult = [0, 0.0001, 0.0002, 0.0004][tier];
+    },
+  },
+
+  // baseCost: 50000
   {
     id: 'apexPredator',
     name: 'Apex Predator',
