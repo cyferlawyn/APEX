@@ -29,7 +29,6 @@ export class WaveSpawner {
 
     const entries     = merged ? buildMergedWave(waveNumber, bossWave) : buildWave(waveNumber);
     const rollovers   = this.game.enemyPool.activeCount();
-    this.totalSpawned = entries.length + rollovers;
     this.done         = true;
 
     const bounds = this.game.projectilePool._bounds;
@@ -39,6 +38,7 @@ export class WaveSpawner {
     // Max push-back so enemies are just off-screen, not hundreds of px away.
     const MAX_PUSHBACK = margin + 60;
 
+    let spawned = 0;
     for (const entry of entries) {
       // Radial spawn: pick a random angle from canvas centre → perimeter point.
       // Swarm clusters share one angle (entry.angle pre-assigned in buildWave).
@@ -52,9 +52,11 @@ export class WaveSpawner {
       const y = pt.y + perpY * jitter;
 
       const e = this.game.enemyPool.spawn(entry.type, entry.wave ?? this.game.wave, x, y, this.game);
+      if (!e) continue; // pool exhausted — don't count unspawned entries
+      spawned++;
 
       // Push enemy further back along spawn angle, capped so it stays near-screen.
-      if (e && entry.delay > 0) {
+      if (entry.delay > 0) {
         const extra = Math.min(entry.delay * e.baseSpeed, MAX_PUSHBACK);
         const cos   = Math.cos(angle), sin = Math.sin(angle);
         e.x += cos * extra;
@@ -66,6 +68,9 @@ export class WaveSpawner {
         audio.bossArrival();
       }
     }
+
+    // totalSpawned = only enemies that actually made it into the pool
+    this.totalSpawned = spawned + rollovers;
   }
 }
 
