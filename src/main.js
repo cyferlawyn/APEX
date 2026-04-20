@@ -250,14 +250,14 @@ function update(dt) {
           const speed = maxR / 0.35; // full visual sweep in 0.35 s
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
-          // 0.5 s after the blastwave fires, kill everything unconditionally.
+          // 0.3 s after the blastwave fires, kill everything unconditionally.
           // Double-pass: the first call kills all enemies including Spawners;
           // the second call (deferred one tick) catches any children Spawners
           // emitted in the gap between blastwave trigger and the kill pass.
           setTimeout(() => {
             obliterateWave(game);
             setTimeout(() => obliterateWave(game), 50);
-          }, 500);
+          }, 300);
         }
       }
 
