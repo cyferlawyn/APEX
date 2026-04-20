@@ -224,6 +224,9 @@ function tickAutoBuy(dt) {
 }
 
 function update(dt) {
+  // Pause everything while the faction choice overlay is open
+  if (game.pendingFactionChoice) return;
+
   switch (game.state) {
     case State.COMBAT:
       game.elapsed = (game.elapsed ?? 0) + dt;
