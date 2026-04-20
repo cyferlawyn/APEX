@@ -271,7 +271,7 @@ export const FACTION_NODES = {
       id: 'vanguard_c3', col: 2, tier: 3, prereq: 'vanguard_c2',
       name: 'Iron Will',
       shortName: 'Iron Will',
-      tooltip: 'When the tower would be destroyed, automatically ascend instead (once per run).\nThe faction choice overlay gains a 10-second countdown that re-selects the previous faction.\nAlso unlocks the Auto-ascend setting in the Ascension tab:\n  Off — manual only\n  On overkill end — ascend when the obliterate wave clears\n  On defeat — ascend automatically on tower destruction',
+      tooltip: 'When the tower would be destroyed, automatically ascend instead (once per run).\nThe faction choice overlay gains a 10-second countdown that re-selects the previous faction.\n(Countdown also active for all factions once Endless War capstone is unlocked.)\nAlso unlocks the Auto-ascend setting in the Ascension tab:\n  Off — manual only\n  On overkill end — ascend when the obliterate wave clears\n  On defeat — ascend automatically on tower destruction',
       cost: 12_500_000,
       apply(game) { game.vanguardIronWill = true; },
     },
@@ -298,7 +298,7 @@ export const FACTION_CAPSTONES = {
   vanguard: {
     id:       'vanguard_cs',
     name:     'ENDLESS WAR',
-    tooltip:  'All factions: once 75% of a wave is killed, the next wave triggers (boss not required; VANGUARD keeps 50% + boss-dead).\nAll factions: auto-ascension dropdown on the ascension overlay — Off / On overkill end / On defeat.\nEach rank: the obliterate overkill check treats your shot as ×(1 + rank × 0.25) stronger — does NOT change actual damage.',
+    tooltip:  'All factions: once 75% of a wave is killed, the next wave triggers (boss not required; VANGUARD keeps 50% + boss-dead).\nAll factions: auto-ascension dropdown on the ascension overlay — Off / On overkill end / On defeat.\nAll factions: faction choice overlay gains a 10-second countdown that re-selects the previous faction.\nEach rank: the obliterate overkill check treats your shot as ×(1 + rank × 0.25) stronger — does NOT change actual damage.',
     baseCost: 1_000_000,
     costMult: 1.30,
   },

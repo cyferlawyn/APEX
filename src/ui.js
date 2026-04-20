@@ -628,14 +628,17 @@ function patchFactionTab() {
   }
 }
 
-// Faction choice overlay countdown (Iron Will C3 / VANGUARD)
+// Faction choice overlay countdown (Iron Will C3 / VANGUARD, or Endless War capstone)
 let _factionChoiceCountdown   = null; // setInterval handle
 let _factionChoiceCountSecs   = 0;
 
 function _startFactionChoiceCountdown(fs) {
   _clearFactionChoiceCountdown();
-  // Only start countdown if Iron Will is active (VANGUARD C3 purchased)
-  if (!getApex()?.game?.vanguardIronWill) return;
+  // Start countdown if Iron Will (VANGUARD C3) is active OR Endless War capstone is unlocked
+  const game = getApex()?.game;
+  const ironWill   = game?.vanguardIronWill === true;
+  const endlessWar = (game?.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
+  if (!ironWill && !endlessWar) return;
 
   const prevFaction = fs.activeFaction;
   if (!prevFaction) return;
