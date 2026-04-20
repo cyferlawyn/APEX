@@ -522,9 +522,9 @@ function onWaveComplete(keepEnemies = false) {
     setTimeout(() => { game.rushDecayProtected = false; }, 10_000);
   }
 
-  // VANGUARD A1: Advance Guard — accumulate +2% per wave cleared (×10 when Tidal Convergence merges a decade)
+  // VANGUARD A1: Advance Guard — accumulate +2% per wave cleared
   if (game.vanguardAdvanceGuard) {
-    game.vanguardSpeedBonus += game.vanguardTidalConvergence ? 0.20 : 0.02;
+    game.vanguardSpeedBonus += 0.02;
   }
 
   // VANGUARD A3: Spoils of War — if this was an early switch, count survivors
