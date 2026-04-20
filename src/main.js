@@ -111,10 +111,6 @@ function beginWave(keepEnemies = false) {
       game.tower.maxHp
     );
   }
-  // Refresh shield charges at wave start
-  if (game.tower.shieldChargesMax > 0) {
-    game.tower.shieldCharges = game.tower.shieldChargesMax;
-  }
   game.tower.invulnTimer = 0;
   game.tower.overchargeCounter = 0;
   game.waveSpawner.begin(game.wave);

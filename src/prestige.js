@@ -139,18 +139,6 @@ const PRESTIGE_UPGRADES = [
     },
   },
   {
-    id: 'shield',
-    name: 'Shield',
-    tooltip: '[Disabled] Tower gains a shield charge that absorbs one hit per wave,\nthen grants 1.5 s of invulnerability.\nCurrently disabled — causes permanent invulnerability at high wave speeds.',
-    maxTier: 3,
-    baseCost: 10,
-    costMult: 2.2,
-    disabled: true,
-    apply(tower, game, tier) {
-      // Disabled — no effect applied
-    },
-  },
-  {
     id: 'resurgence',
     name: 'Resurgence',
     tooltip: 'Once per run, when the tower would be destroyed, it survives at reduced HP.\nTier 1: revive at 25% HP  Tier 2: revive at 50% HP.\nGrants 2 s of invulnerability on proc.',
@@ -246,8 +234,6 @@ export class PrestigeShop {
     this.game.tower.laserSlowFactor     = 1.0;  // 1.0 = no slow
     this.game.tower.laserSlowDuration   = 0;
     this.game.tower.ringStunDuration    = 0;
-    this.game.tower.shieldChargesMax    = 0;
-    this.game.tower.shieldCharges       = 0;
     this.game.tower.invulnTimer         = 0;
     this.game.tower.ricochetCount       = 0;
     this.game.tower.poisonFraction      = 0;

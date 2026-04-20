@@ -223,7 +223,7 @@ export class Renderer {
     ctx.fill();
     ctx.restore();
 
-    // Shield / invuln visuals
+    // Invuln ring (Resurgence proc)
     if (t.invulnTimer > 0) {
       // Pulsing gold invulnerability ring — drawn outside the hex
       const invR   = r + 10;
@@ -237,22 +237,6 @@ export class Renderer {
       ctx.beginPath();
       ctx.arc(cx, cy, invR, 0, Math.PI * 2);
       ctx.stroke();
-      ctx.restore();
-    } else if ((t.shieldCharges ?? 0) > 0) {
-      // Shield charge pips — small gold dots arranged around the tower
-      const pipR = r + 8;
-      ctx.save();
-      for (let i = 0; i < t.shieldCharges; i++) {
-        const angle = (Math.PI * 2 / t.shieldChargesMax) * i - Math.PI / 2;
-        const px = cx + pipR * Math.cos(angle);
-        const py = cy + pipR * Math.sin(angle);
-        ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
-        ctx.fillStyle   = '#ffd600';
-        ctx.shadowBlur  = 8;
-        ctx.shadowColor = '#ffd600';
-        ctx.fill();
-      }
       ctx.restore();
     }
   }

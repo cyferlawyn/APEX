@@ -50,10 +50,7 @@ export class Tower {
     // Prestige: ring stun
     this.ringStunDuration  = 0;   // seconds
 
-    // Prestige: shield
-    this.shieldChargesMax  = 0;
-    this.shieldCharges     = 0;
-    this.invulnTimer       = 0;   // seconds of invulnerability remaining
+    this.invulnTimer       = 0;   // seconds of invulnerability remaining (Resurgence)
 
     // Shop late-game upgrades
     this.overchargeN       = 0;     // 0 = not unlocked; otherwise every Nth shot deals ×4 dmg
@@ -88,18 +85,8 @@ export class Tower {
 
   // Called by enemy when it reaches the tower
   takeDamage(amount, game) {
-    // Invulnerability window (from shield proc)
+    // Invulnerability window (Resurgence proc)
     if (this.invulnTimer > 0) return;
-
-    // Shield absorbs the hit and grants invulnerability
-    if (this.shieldCharges > 0) {
-      this.shieldCharges -= 1;
-      this.invulnTimer    = 1.5;
-      this.hitFlash       = 0.25;
-      audio.towerHit();
-      if (game && game.particles && game.quality !== 'low') game.particles.emitTowerHit(this.x, this.y);
-      return;
-    }
 
     this.hp       -= amount;
 
