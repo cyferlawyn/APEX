@@ -118,7 +118,7 @@ function patchPrestigeCards() {
   // Passive line — based on totalShardsEarned (spending shards never reduces the bonus)
   const passiveLine = document.getElementById('prestige-passive-line');
   const totalShards = game.totalShardsEarned;
-  const mult = game.shardDmgMult().toFixed(1);
+  const mult = fmt(game.shardDmgMult());
   const passiveText = `Shard bonus: ×${mult} dmg (${fmt(totalShards)} total ◆)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
 
