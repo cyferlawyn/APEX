@@ -269,11 +269,11 @@ export const FACTION_NODES = {
     },
     {
       id: 'vanguard_c3', col: 2, tier: 3, prereq: 'vanguard_c2',
-      name: 'Iron Will',
-      shortName: 'Iron Will',
-      tooltip: 'When the tower would be destroyed, automatically ascend instead (once per run).\nThe faction choice overlay gains a 10-second countdown that re-selects the previous faction.\n(Countdown also active for all factions once Endless War capstone is unlocked.)\nAlso unlocks the Auto-ascend setting in the Ascension tab:\n  Off — manual only\n  On overkill end — ascend when the obliterate wave clears\n  On defeat — ascend automatically on tower destruction',
+      name: 'Tidal Convergence',
+      shortName: 'Tidal Conv.',
+      tooltip: 'Merges every 10-wave decade into one gigantic wave.\nWaves 1–10 become one wave; 11–20 become one; and so on.\nThe merged wave always includes a boss scaled to the boss-wave HP of that decade.\nClearing the merged wave advances the wave counter by 10.\nMakes VANGUARD the fastest faction for wave-per-second progression.',
       cost: 12_500_000,
-      apply(game) { game.vanguardIronWill = true; },
+      apply(game) { game.vanguardTidalConvergence = true; },
     },
   ],
 };
@@ -441,7 +441,8 @@ export class FactionSystem {
     game.vanguardIronVault      = false;
     game.vanguardBattleHardened = false;
     game.vanguardMomentum       = false;
-    game.vanguardIronWill       = false;
+    game.vanguardIronWill          = false; // legacy — kept so old saves don't crash
+    game.vanguardTidalConvergence  = false;
 
     // Restore permanent neural stacks
     game.permanentNeuralStacks = this.permanent.nexus?.permanentNeuralStacks ?? 0;

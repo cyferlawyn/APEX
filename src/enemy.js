@@ -269,3 +269,8 @@ const BASE_STATS = {
 export function droneHp(wave) {
   return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.07, wave - 1));
 }
+
+// Returns the scaled max-HP of a Boss at a given wave — used by Tidal Convergence.
+export function bossWaveHp(wave) {
+  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.07, wave - 1));
+}

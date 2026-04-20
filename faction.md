@@ -167,32 +167,33 @@ Wave-farming path. Rewards speed-running the wave ladder. Primary damage scaling
 | B3 | *Iron Vault* | Gain 1% of current shards (rounded down, minimum 1) as bonus shards on every ascension |
 | C1 | *Battle Hardened* | ×1.5 to the shard passive bonus coefficient (`1 + shards × 0.15` instead of default `0.10`) |
 | C2 | *Momentum* | Shards awarded on ascension are multiplied by `1 + 0.1 × ascensionCount` |
-| C3 | *Iron Will* | When the tower would be destroyed, automatically ascend instead (once per run). The faction choice overlay gains a 10-second countdown that re-selects the previously active faction automatically — helps idle/AFK players loop VANGUARD |
+| C3 | *Tidal Convergence* | Merges every 10-wave decade into one gigantic wave. Waves 1–10 become one wave; 11–20 become one; and so on. The merged wave always contains a boss scaled to the boss-wave HP of that decade, plus all regular enemies from the 9 non-boss waves. Clearing the merged wave advances the wave counter by 10. Makes VANGUARD the fastest faction for wave-per-second progression. |
 
 ### Capstone — ENDLESS WAR
 
 - `baseCost: 1,000,000`, `costMult: 1.30`, unlimited rank
-- **All factions (rank 1+):** Wave-skip threshold is set to 75% for all non-VANGUARD factions (half-strength Tide Surge; VANGUARD always keeps 50%)
-- **All factions (rank 1+):** Auto-ascension dropdown added to the ascension confirmation overlay — options: *Off*, *On overkill end*, *On defeat*
+- **All factions (rank 1+):** Wave-skip threshold is set to 75% for all non-VANGUARD factions (half-strength Tide Surge; VANGUARD always keeps 50%). Merged Tidal Convergence waves always require boss-dead before Tide Surge can fire.
+- **All factions (rank 1+):** Auto-ascension dropdown added to the Ascension tab — options: *Off*, *On overkill end*, *On defeat*
+- **All factions (rank 1+):** Faction choice overlay gains a 10-second countdown that re-selects the previously active faction automatically
 - **Per rank:** The normalised damage value used for the obliterate overkill *check* is multiplied by `1 + rank × 0.25` — makes the tower appear stronger to the trigger formula so obliterate fires more frequently at high ranks. Does **not** change actual damage dealt.
 
-### Implementation Notes (pre-build)
+### Implementation Notes
 
-- Wave Rush prestige upgrade must be removed; on load, detect prior purchases and credit shards back
+- Wave Rush prestige upgrade removed; on load, detect prior purchases and credit shards back
 - `vanguardSpeedBonus` — accumulated speed ramp, resets on ascension
 - `vanguardSpoilsStacks` — current A3 additive stack count; reset to 0 at each early-switch, then recalculated from carryover enemy count
 - `ascensionCount` — incremented in `beginAscend()`; used by B1 (bonus shards) and C2 (shard multiplier)
-- Tide Surge trigger: at 50% of wave total killed, fire wave transition and carry survivors; on boss waves also requires boss to be dead
+- Tide Surge trigger: at 50% of wave total killed, fire wave transition and carry survivors; boss waves (and Tidal Convergence merged waves) require boss dead first
 - A3 wired into both damage multiplier and crit damage multiplier in `normalizedShotDamage()` / crit path
-- C3 Iron Will: intercept tower-death path in `main.js`, trigger `beginAscend()` instead; set `ironWillUsed = true` for the run; faction choice overlay timeout uses `setInterval` countdown displayed in overlay
+- C3 Tidal Convergence: `game.vanguardTidalConvergence = true`; `waveSpawner.begin()` calls `buildMergedWave(firstWave, bossWave)`; `onWaveComplete` advances `game.wave` by 10 instead of 1; merged wave uses `entry.wave` per-enemy for correct HP scaling; boss tagged with `bossWave` number
 - Auto-ascension logic (capstone): `autoAscensionMode ∈ {off, overkill, defeat}` stored in `apex_prefs`; checked after overkill-end and after defeat events
-- Obliterate check in `projectile.js` `_damageEnemy()`: multiply `normShot` by `1 + vanguardCapstoneRank × 0.25` for the check only
+- Obliterate check in `checkObliterateAtWaveStart()` in `projectile.js`: multiply `normShot` by `1 + vanguardCapstoneRank × 0.25` for the check only
 - Shard passive formula reference:
   - Default:         `1 + shards × 0.10`
   - C1 only:         `1 + shards × 0.15`
   - B2 only:         `1 + shards × 0.20`
   - C1 + B2:         `1 + shards × 0.30`
-- `vanguardCapstoneRank` stored in `apex_faction_capstones` alongside `warbornCapstoneRank` and `conclaveCapstoneRank`
+- `vanguardCapstoneRank` stored in `apex_faction_capstones` alongside `warbornCapstoneRank`
 
 ---
 

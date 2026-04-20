@@ -147,12 +147,12 @@ export class Game {
     this.vanguardIronVault     = false; // B3
     this.vanguardBattleHardened = false;// C1
     this.vanguardMomentum      = false; // C2
-    this.vanguardIronWill      = false; // C3
+    this.vanguardTidalConvergence = false; // C3
+    this.vanguardIronWill      = false; // C3 legacy alias (old saves) — no longer functional
 
     // Per-run VANGUARD state (reset on ascension)
     this.vanguardSpeedBonus    = 0;     // accumulated +2%/wave (applied multiplicatively in enemy.js)
     this.vanguardSpoilsStacks  = 0;     // current A3 additive stack count
-    this.vanguardIronWillUsed  = false; // C3 one-time per run
     this.vanguardBossKilledThisWave = false; // track boss death for Tide Surge trigger
 
     // Cross-faction capstone rank

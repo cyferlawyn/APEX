@@ -9,8 +9,14 @@ export class WaveSpawner {
   }
 
   begin(waveNumber) {
-    const entries = buildWave(waveNumber);
-    const rollovers   = this.game.enemyPool.activeCount();
+    // VANGUARD C3: Tidal Convergence — merge a full decade into one gigantic wave.
+    // game.wave is always the first wave of the decade (1, 11, 21, …).
+    // The boss is scaled to the decade's boss wave (10, 20, 30, …).
+    const merged = this.game.vanguardTidalConvergence;
+    const bossWave = merged ? waveNumber + 9 : waveNumber; // decade boss wave number
+
+    const entries   = merged ? buildMergedWave(waveNumber, bossWave) : buildWave(waveNumber);
+    const rollovers = this.game.enemyPool.activeCount();
     this.totalSpawned = entries.length + rollovers;
     this.done         = true;   // all enemies exist in the pool from frame 1
 
@@ -23,7 +29,6 @@ export class WaveSpawner {
       const edge   = entry.edge ?? Math.floor(Math.random() * 4);
       const jitter = entry.type === EnemyType.SWARM ? 20 : 0;
 
-      // Base spawn position on the canvas edge
       let x, y;
       switch (edge) {
         case 0: x = Math.random() * w;  y = -margin + (Math.random() - 0.5) * jitter; break;
@@ -32,10 +37,8 @@ export class WaveSpawner {
         case 3: x = w + margin + (Math.random() - 0.5) * jitter; y = Math.random() * h; break;
       }
 
-      const e = this.game.enemyPool.spawn(entry.type, this.game.wave, x, y, this.game);
+      const e = this.game.enemyPool.spawn(entry.type, entry.wave ?? this.game.wave, x, y, this.game);
 
-      // Push the enemy further outside by delay × its own speed so it arrives
-      // at the canvas edge at roughly the same time it would have been spawned.
       if (e && entry.delay > 0) {
         const extra = entry.delay * e.baseSpeed;
         switch (edge) {
@@ -98,7 +101,41 @@ function buildWave(wave) {
   return entries;
 }
 
-function pickType(wave) {
+// Tidal Convergence: merge all 10 waves of the decade into one gigantic wave.
+// firstWave = start of decade (1, 11, 21, …); bossWave = firstWave + 9.
+// Each enemy is tagged with its own wave number so HP scales correctly.
+// The boss uses bossWave HP — matching the normal boss-wave baseline used by
+// checkObliterateAtWaveStart, so obliterate calculations remain consistent.
+function buildMergedWave(firstWave, bossWave) {
+  const entries = [];
+
+  // Boss (scaled to boss-wave of this decade)
+  entries.push({ type: EnemyType.BOSS, wave: bossWave, delay: 0, edge: null });
+
+  // Colossus escort (same logic as regular boss wave)
+  const colossusCount = bossWave >= 20 ? Math.min(Math.floor((bossWave - 10) / 20) + 1, 5) : 0;
+  for (let i = 0; i < colossusCount; i++) {
+    entries.push({ type: EnemyType.COLOSSUS, wave: bossWave, delay: 1.5 + i * 1.5, edge: null });
+  }
+
+  // Brute wave-crashers (same logic as regular boss wave)
+  const bruteCount = bossWave >= 50 ? Math.min(Math.floor((bossWave - 50) / 25) * 2 + 4, 12) : 0;
+  for (let i = 0; i < bruteCount; i++) {
+    entries.push({ type: EnemyType.BRUTE, wave: bossWave, delay: 0.5 + i * 0.4, edge: null });
+  }
+
+  // Regular enemies: build each of the 10 non-boss waves and tag them
+  for (let w = firstWave; w < bossWave; w++) {
+    const waveEntries = buildWave(w);
+    for (const e of waveEntries) {
+      entries.push({ ...e, wave: w });
+    }
+  }
+
+  return entries;
+}
+
+
   const pool = [EnemyType.DRONE];
 
   if (wave >= 4)  pool.push(EnemyType.DASHER, EnemyType.DASHER);

@@ -78,7 +78,6 @@ function bootstrap() {
     // VANGUARD per-run state
     game.vanguardSpeedBonus   = saved.vanguardSpeedBonus   ?? 0;
     game.vanguardSpoilsStacks = saved.vanguardSpoilsStacks ?? 0;
-    game.vanguardIronWillUsed = saved.vanguardIronWillUsed ?? false;
     shop.reapplyAll(game.upgrades);
     // Re-apply prestige after run upgrades (prestige is additive on top)
     prestigeShop.reapplyAll(game.prestigeUpgrades);
@@ -281,15 +280,15 @@ function update(dt) {
           const killPct = game.waveKills / total;
 
           // VANGUARD A2: Tide Surge — 50% of wave killed triggers next wave.
-          // On boss waves the boss must also be dead first.
+          // On boss waves (or Tidal Convergence merged waves) the boss must die first.
           if (game.vanguardTideSurge && killPct >= 0.50) {
-            const bossWave = game.wave % 10 === 0;
-            if (!bossWave || game.vanguardBossKilledThisWave) {
+            const hasBoss = game.wave % 10 === 0 || game.vanguardTidalConvergence;
+            if (!hasBoss || game.vanguardBossKilledThisWave) {
               onWaveComplete(true);
             }
           }
-          // ENDLESS WAR capstone: all factions get 75% threshold (non-boss waves)
-          else if (game.vanguardCapstoneRank > 0 && game.wave % 10 !== 0) {
+          // ENDLESS WAR capstone: all factions get 75% threshold (non-boss, non-merged waves)
+          else if (game.vanguardCapstoneRank > 0 && game.wave % 10 !== 0 && !game.vanguardTidalConvergence) {
             if (killPct >= 0.75) {
               onWaveComplete(true);
             }
@@ -536,7 +535,7 @@ function onWaveComplete(keepEnemies = false) {
     game.vanguardSpoilsStacks = 0;
   }
 
-  game.wave += 1;
+  game.wave += game.vanguardTidalConvergence ? 10 : 1;
   if (game.wave - 1 > game.bestWave) game.bestWave = game.wave - 1;
 
   saveGame();
@@ -548,14 +547,6 @@ function onWaveComplete(keepEnemies = false) {
 }
 
 function onDefeated() {
-  // VANGUARD C3: Iron Will — auto-ascend instead of dying (once per run)
-  if (game.vanguardIronWill && !game.vanguardIronWillUsed) {
-    game.vanguardIronWillUsed = true;
-    game.tower.hp = 1; // keep tower alive with 1 HP
-    beginAscend();
-    return;
-  }
-
   game.waveEarned = 0;
 
   if (game.wave > game.bestWave) game.bestWave = game.wave;
@@ -577,7 +568,6 @@ function resetToWaveOne() {
   // Fall back to the last x1 wave (e.g. die on 38 → restart at 31, die on 93 → restart at 91)
   game.wave = Math.max(1, Math.floor((game.wave - 1) / 10) * 10 + 1);
   // Reset VANGUARD per-run state (but keep speed bonus — earned via waves)
-  game.vanguardIronWillUsed       = false;
   game.vanguardBossKilledThisWave = false;
   // Upgrades and currency are kept — tower is rebuilt from upgrades
   shop.reapplyAll(game.upgrades);
@@ -596,7 +586,6 @@ function saveGame() {
     // VANGUARD per-run state
     vanguardSpeedBonus:  game.vanguardSpeedBonus,
     vanguardSpoilsStacks: game.vanguardSpoilsStacks,
-    vanguardIronWillUsed: game.vanguardIronWillUsed,
   });
   _savePrestigeState();
   saveTraitors(game.traitorSystem.serialize());
@@ -630,7 +619,6 @@ export function newGame(confirmed) {
   // Reset VANGUARD per-run state
   game.vanguardSpeedBonus           = 0;
   game.vanguardSpoilsStacks         = 0;
-  game.vanguardIronWillUsed         = false;
   game.vanguardBossKilledThisWave   = false;
   game.tower              = new Tower();
   shop.reapplyAll({});
@@ -706,7 +694,6 @@ export function completeAscend(factionId) {
   // Reset VANGUARD per-run state
   game.vanguardSpeedBonus           = 0;
   game.vanguardSpoilsStacks         = 0;
-  game.vanguardIronWillUsed         = false;
   game.vanguardBossKilledThisWave   = false;
   shop.reapplyAll({});
   prestigeShop.reapplyAll(game.prestigeUpgrades);

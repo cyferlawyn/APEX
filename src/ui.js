@@ -95,15 +95,13 @@ function patchPrestigeCards() {
     if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
   }
 
-  // Auto-ascension dropdown — show if Iron Will (VANGUARD C3) is purchased this run,
-  // or if ENDLESS WAR capstone rank > 0 (cross-faction permanent unlock).
-  // Also requires at least one prior ascension (no point showing it otherwise).
+  // Auto-ascension dropdown — show if ENDLESS WAR capstone rank > 0 (cross-faction permanent unlock).
+  // Requires at least one prior ascension (no point showing it otherwise).
   const autoAscRow = document.getElementById('auto-ascension-row');
   const autoAscEl2 = document.getElementById('auto-ascension-select');
   if (autoAscRow && autoAscEl2) {
-    const ironWill    = game.vanguardIronWill === true;
     const endlessWar  = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
-    const showAutoAsc = showPrestige && (ironWill || endlessWar);
+    const showAutoAsc = showPrestige && endlessWar;
     autoAscRow.classList.toggle('hidden', !showAutoAsc);
     if (showAutoAsc && autoAscEl2.value !== (game.autoAscensionMode ?? 'off')) {
       autoAscEl2.value = game.autoAscensionMode ?? 'off';
@@ -628,17 +626,16 @@ function patchFactionTab() {
   }
 }
 
-// Faction choice overlay countdown (Iron Will C3 / VANGUARD, or Endless War capstone)
+// Faction choice overlay countdown (Endless War capstone — all factions)
 let _factionChoiceCountdown   = null; // setInterval handle
 let _factionChoiceCountSecs   = 0;
 
 function _startFactionChoiceCountdown(fs) {
   _clearFactionChoiceCountdown();
-  // Start countdown if Iron Will (VANGUARD C3) is active OR Endless War capstone is unlocked
+  // Start countdown if Endless War capstone is unlocked (covers all factions)
   const game = getApex()?.game;
-  const ironWill   = game?.vanguardIronWill === true;
   const endlessWar = (game?.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
-  if (!ironWill && !endlessWar) return;
+  if (!endlessWar) return;
 
   const prevFaction = fs.activeFaction;
   if (!prevFaction) return;
