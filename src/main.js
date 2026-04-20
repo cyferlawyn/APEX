@@ -261,7 +261,8 @@ function update(dt) {
             setTimeout(() => {
               obliterateWave(game);
               game.obliterateInFlight = false;
-              onWaveComplete();
+              // Let the game loop's activeCount() === 0 check fire onWaveComplete
+              // naturally on the next tick — do NOT call it here to avoid double-advance.
             }, 50);
           }, 300);
         }
