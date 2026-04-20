@@ -101,6 +101,7 @@ function beginWave(keepEnemies = false) {
   // Mark any in-flight blastwaves as kill-done so they don't kill new-wave enemies.
   for (const w of game.blastwaves) w.killDone = true;
   game.obliterateTimer    = -1;
+  game.obliterateInFlight = false;
   game.obliterateOverkill = 0;
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
   // Apply regen between waves; full heal only on wave 1 (fresh start)
@@ -250,13 +251,18 @@ function update(dt) {
           const speed = maxR / 0.35; // full visual sweep in 0.35 s
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
+          game.obliterateInFlight = true;
           // 0.3 s after the blastwave fires, kill everything unconditionally.
           // Double-pass: the first call kills all enemies including Spawners;
           // the second call (deferred one tick) catches any children Spawners
           // emitted in the gap between blastwave trigger and the kill pass.
           setTimeout(() => {
             obliterateWave(game);
-            setTimeout(() => obliterateWave(game), 50);
+            setTimeout(() => {
+              obliterateWave(game);
+              game.obliterateInFlight = false;
+              onWaveComplete();
+            }, 50);
           }, 300);
         }
       }
@@ -269,7 +275,7 @@ function update(dt) {
 
       if (game.tower.hp <= 0) {
         onDefeated();
-      } else if (game.enemyPool.activeCount() === 0) {
+      } else if (!game.obliterateInFlight && game.enemyPool.activeCount() === 0) {
         onWaveComplete();
       } else {
         // ── Wave skip checks ──────────────────────────────────────────────

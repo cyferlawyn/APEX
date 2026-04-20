@@ -32,9 +32,10 @@ export class Game {
     this.edgeFlash     = 0;  // seconds remaining for boss screen-edge flash
     this.currencyPopups = []; // { amount, x, y, t } — +$N floaters above killed enemies
     this.skullPopups    = []; // { x, y, t } — skull floaters on execute kills
-    this.obliterateTimer  = -1;  // countdown in seconds; -1 = inactive
-    this.obliterateOverkill = 0; // overkill multiplier that triggered this round
-    this.blastwaves        = []; // { x, y, r, maxR, t, life } — obliterate shockwave rings
+    this.obliterateTimer    = -1;   // countdown in seconds; -1 = inactive
+    this.obliterateOverkill = 0;   // overkill multiplier that triggered this round
+    this.obliterateInFlight = false; // true while blastwave kill setTimeout is pending
+    this.blastwaves         = []; // { x, y, r, maxR, t, life } — obliterate shockwave rings
 
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;
