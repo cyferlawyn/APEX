@@ -135,7 +135,7 @@ function buildMergedWave(firstWave, bossWave) {
   return entries;
 }
 
-
+function pickType(wave) {
   const pool = [EnemyType.DRONE];
 
   if (wave >= 4)  pool.push(EnemyType.DASHER, EnemyType.DASHER);
