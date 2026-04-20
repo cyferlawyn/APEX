@@ -275,7 +275,7 @@ function update(dt) {
 
       if (game.tower.hp <= 0) {
         onDefeated();
-      } else if (!game.obliterateInFlight && game.enemyPool.activeCount() === 0) {
+      } else if (!game.obliterateInFlight && game.enemyPool.activeCount() === 0 && game.waveSpawner.totalSpawned > 0) {
         onWaveComplete();
       } else {
         // ── Wave skip checks ──────────────────────────────────────────────
