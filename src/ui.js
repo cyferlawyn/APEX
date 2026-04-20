@@ -112,13 +112,14 @@ function patchPrestigeCards() {
 
   // Shard balance
   const shardEl = document.getElementById('prestige-shard-value');
-  if (shardEl.textContent !== String(game.shards)) shardEl.textContent = fmt(game.shards);
+  const shardText = fmt(game.shards);
+  if (shardEl.textContent !== shardText) shardEl.textContent = shardText;
 
   // Passive line — based on totalShardsEarned (spending shards never reduces the bonus)
   const passiveLine = document.getElementById('prestige-passive-line');
   const totalShards = game.totalShardsEarned;
   const mult = game.shardDmgMult().toFixed(1);
-  const passiveText = `Shard bonus: ×${mult} dmg (${totalShards} total ◆)`;
+  const passiveText = `Shard bonus: ×${mult} dmg (${fmt(totalShards)} total ◆)`;
   if (passiveLine.textContent !== passiveText) passiveLine.textContent = passiveText;
 
   // Prestige upgrade cards
@@ -848,7 +849,7 @@ function wireButtons() {
     if (game.vanguardShardMastery)   shardCoeff *= 2;
     const multAfter  = (1 + (game.totalShardsEarned + game.pendingShards) * shardCoeff).toFixed(1);
     document.getElementById('ascend-confirm-sub').textContent =
-      `+${game.pendingShards} ◆  →  ${totalAfter} ◆ spendable  →  ×${multAfter} shard damage`;
+      `+${fmt(game.pendingShards)} ◆  →  ${fmt(totalAfter)} ◆ spendable  →  ×${multAfter} shard damage`;
     document.getElementById('ascend-overlay').classList.remove('hidden');
   });
 
