@@ -133,7 +133,7 @@ const UPGRADES = [
   {
     id: 'chainLightning',
     name: 'Chain Lightning',
-    tooltip: 'On hit, lightning jumps to a nearby enemy dealing full damage.\nEach tier adds one additional jump.\nMax (tier 5): 5 chain jumps per projectile.',
+    tooltip: 'On hit, lightning jumps to nearby enemies, dealing 60% of the previous jump\'s damage.\nEach tier adds one additional jump.\nMax (tier 5): 5 chain jumps per projectile.',
     maxTier: 5,
     baseCost: 12000,
     costMult: 2.0,

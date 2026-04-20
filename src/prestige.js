@@ -6,7 +6,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'obliterate',
     name: 'Obliterate',
-    tooltip: 'When a direct shot overkills an enemy by 10× its max HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s  Tier 4: 2 s  Tier 5: 1 s countdown.\nCosts: 1k / 5k / 25k / 125k / 625k shards.',
+    tooltip: 'When your shot damage exceeds 10× the weakest enemy\'s current HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s  Tier 4: 2 s  Tier 5: 1 s countdown.\nCosts: 1k / 5k / 25k / 125k / 625k shards.',
     maxTier: 5,
     baseCost: 1000,
     costMult: 5.0,
@@ -153,7 +153,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'shardTithe',
     name: 'Shard Tithe',
-    tooltip: 'Boss kills yield more shards.\nEach tier multiplies shard rewards by ×1.25.\nMax (tier 10): ×9.31× shard income.\nCosts: 50 / 150 / 450 / … shards.',
+    tooltip: 'Boss kills yield more shards.\nEach tier multiplies shard rewards by ×1.25.\nMax (tier 10): 9.31× shard income.\nCosts: 50 / 150 / 450 / … shards.',
     maxTier: 10,
     baseCost: 50,
     costMult: 3.0,
@@ -221,7 +221,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'shardCovenant',
     name: 'Shard Covenant',
-    tooltip: 'At the start of each wave, converts a fraction of your shard count\ninto a bonus flat damage multiplier for that wave.\nTier 1: ×(1 + shards×0.0001)  Tier 2: ×(1 + shards×0.0002)  Tier 3: ×(1 + shards×0.0004).\nCosts: 10k / 50k / 250k shards.',
+    tooltip: 'At the start of each wave, your shard balance is converted into a bonus damage multiplier.\nTier 1: ×(1 + shards × 0.01%)  Tier 2: ×(1 + shards × 0.02%)  Tier 3: ×(1 + shards × 0.04%).\nExample at tier 1 with 10k shards: ×2.0 bonus.\nCosts: 10k / 50k / 250k shards.',
     maxTier: 3,
     baseCost: 10000,
     costMult: 5.0,
@@ -232,7 +232,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'arcMastery',
     name: 'Arc Mastery',
-    tooltip: 'Chain Lightning jumps an additional time per tier.\nEach jump deals ×1.20 more damage than the previous jump.\nTier 1: +1 jump  Tier 2: +2 jumps  Tier 3: +3 extra jumps.\nRequires Chain Lightning shop upgrade.\nCosts: 5k / 25k / 125k shards.',
+    tooltip: 'Chain Lightning jumps an additional time per tier.\nEach jump deals ×1.20 the previous jump\'s damage (escalating rather than decaying).\nTier 1: +1 jump  Tier 2: +2 jumps  Tier 3: +3 extra jumps.\nRequires Chain Lightning shop upgrade.\nCosts: 5k / 25k / 125k shards.',
     maxTier: 3,
     baseCost: 5000,
     costMult: 5.0,
@@ -244,7 +244,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'detonationField',
     name: 'Detonation Field',
-    tooltip: 'Explosive radius is permanently increased and each explosion applies a 1s slow.\n+15% radius per tier beyond the shop cap.\nTier 1: +15%  Tier 2: +30%  Tier 3: +45%  Tier 4: +60% extra radius.\nRequires Explosive Rounds shop upgrade.\nCosts: 1k / 5k / 25k / 125k shards.',
+    tooltip: 'Multiplies total explosion radius and applies a 1s slow to all enemies caught in the blast.\n+15% total radius per tier.\nTier 1: ×1.15  Tier 2: ×1.30  Tier 3: ×1.45  Tier 4: ×1.60 total radius.\nRequires Explosive Rounds shop upgrade.\nCosts: 1k / 5k / 25k / 125k shards.',
     maxTier: 4,
     baseCost: 1000,
     costMult: 5.0,
@@ -256,7 +256,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'eternalArsenal',
     name: 'Eternal Arsenal',
-    tooltip: 'Permanently extends the fire-rate cap and adds +1 max simultaneous target per tier.\n+5% fire rate cap and +1 projectile target per tier (4 tiers).\nStacks with and extends shop upgrade limits.\nCosts: 8k / 40k / 200k / 1M shards.',
+    tooltip: 'Permanently grants bonus fire rate and an extra simultaneous target per tier.\n+5% fire rate and +1 target per tier, stacking on top of shop upgrades.\nTier 4: +20% fire rate and 4 extra targets.\nCosts: 8k / 40k / 200k / 1M shards.',
     maxTier: 4,
     baseCost: 8000,
     costMult: 5.0,
