@@ -1285,26 +1285,8 @@ export class Renderer {
       : `${fps} fps`;
     ctx.fillText(fpsLabel, canvas.width - 12, 22);
 
-    // Currency popups — +$N floaters above the killed enemy that drift up and fade
-    const DT = 1 / 60;
-    game.currencyPopups = game.currencyPopups.filter(p => {
-      p.t -= DT;
-      if (p.t <= 0) return false;
-      p.y -= 40 * DT; // drift upward
-      const alpha = Math.min(1, p.t / 0.3); // fade out over last 0.3s
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle   = COLORS.currency;
-      ctx.shadowBlur  = game.quality === 'high' ? 6 : 0;
-      ctx.shadowColor = COLORS.currency;
-      ctx.font        = '14px monospace';
-      ctx.textAlign   = 'center';
-      ctx.fillText(`+$${fmt(p.amount)}`, p.x, p.y);
-      ctx.restore();
-      return true;
-    });
-
     // Skull popups — execute kills float a skull upward and fade
+    const DT = 1 / 60;
     if (game.quality === 'low') { game.skullPopups = []; } else game.skullPopups = game.skullPopups.filter(p => {
       p.t -= DT;
       if (p.t <= 0) return false;

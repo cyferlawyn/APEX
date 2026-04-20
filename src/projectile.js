@@ -263,7 +263,7 @@ function _releaseColossusSpawn(colossus, game) {
 }
 
 function _spawnCurrencyPopup(amount, game, x, y) {
-  game.currencyPopups.push({ amount, x, y, t: 0.9 });
+  // Currency popups removed — no-op kept so call sites compile without changes
 }
 
 function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {

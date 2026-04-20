@@ -464,7 +464,6 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
         game.waveEarned += earned;
         game.waveKills  += 1;
         game.logEarned(earned);
-        game.currencyPopups.push({ amount: earned, x: e.x, y: e.y, t: 0.9 });
         if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
         game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
         e.active = false;
