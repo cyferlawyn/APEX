@@ -442,6 +442,12 @@ function _towerKillEnemy(e, game) {
 // Returns the expected (normalized) damage of a single regular shot, factoring in:
 // base damage (incl. Damage upgrade), shard multiplier, traitor bonus, faction stacks,
 // WARBORN rush/fury, and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
+// Returns the expected (normalized) damage of a single shot event against a single target, factoring in:
+// base damage (incl. Damage upgrade + forgeDmg), shard multiplier, traitor bonus, faction stacks,
+// WARBORN rush/fury, VANGUARD spoils, voidSurgeMult, shardCovenantBonus, crit (chance × mult),
+// overcharge expected factor, execute HP skip factor, spread pellet count, and echo shot chance.
+// NOTE: WARBORN capstone HP%-removal is NOT included here — it is added at the call site in
+// checkObliterateAtWaveStart() because it scales with enemy HP, not a flat dmg multiplier.
 export function normalizedShotDamage(tower, game) {
   const dmgMult        = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
                          * (game.rushDmgMult?.() ?? 1.0)
@@ -459,5 +465,11 @@ export function normalizedShotDamage(tower, game) {
   const executeFactor  = tower.executeThreshold > 0 ? 1 / (1 - tower.executeThreshold) : 1;
   // forgeDmg: flat bonus before multipliers
   const baseDmg        = tower.damage + tower.forgeDmg;
-  return baseDmg * dmgMult * critFactor * overchargeFactor * executeFactor;
+  // Spread shot: all pellets hit the same primary target simultaneously — multiply by pellet count
+  const spreadFactor   = tower.spreadShot ? tower.spreadPellets : 1;
+  // Echo Shot: expected extra volley factor when multi-shot is active
+  const echoFactor     = (tower.echoShotChance > 0 && tower.multiShotCount > 1)
+                         ? (1 + tower.echoShotChance) : 1;
+
+  return baseDmg * dmgMult * critFactor * overchargeFactor * executeFactor * spreadFactor * echoFactor;
 }
