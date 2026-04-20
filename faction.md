@@ -159,7 +159,7 @@ Wave-farming path. Rewards speed-running the wave ladder. Primary damage scaling
 
 | Node | Name | Effect |
 |---|---|---|
-| A1 | *Advance Guard* | Enemies gain +2% movement speed per wave cleared (stacks within run, resets on ascension) |
+| A1 | *Advance Guard* | Enemies gain +2% movement speed AND +2% damage per wave cleared (stacks within run, resets on ascension) |
 | A2 | *Tide Surge* | Killing 50% of a wave immediately triggers the next wave, carrying survivors over. On boss waves the boss must die first. Replaces the Wave Rush prestige upgrade entirely (Wave Rush is removed from the prestige shop; existing purchases are refunded in shards) |
 | A3 | *Spoils of War* | When a wave switches early via Tide Surge, each enemy alive at the moment of switch grants +5% damage and +5% crit damage until the *next* early switch. Stacks additive, resets to zero at each switch |
 | B1 | *Eternal Tithe* | Each ascension grants bonus shards equal to the current ascension count (e.g. 3rd ascension = +3 bonus shards on top of normal award) |

@@ -205,7 +205,7 @@ export const FACTION_NODES = {
       id: 'vanguard_a1', col: 0, tier: 1, prereq: null,
       name: 'Advance Guard',
       shortName: 'Adv. Guard',
-      tooltip: 'Enemies gain +2% movement speed per wave cleared (stacks within run, resets on ascension).\nWave 10: +20% speed. Wave 50: +100% speed. High risk, high reward.',
+      tooltip: 'Enemies gain +2% movement speed AND +2% damage per wave cleared (stacks within run, resets on ascension).\nWave 10: +20% speed/dmg. Wave 50: +100% speed/dmg. High risk, high reward.',
       cost: 500_000,
       apply(game) { game.vanguardAdvanceGuard = true; },
     },

@@ -226,11 +226,12 @@ export class EnemyPool {
     const e = this.acquire();
     if (e) {
       e.init(type, wave, x, y);
-      // VANGUARD A1: Advance Guard — +2% speed per wave cleared (stacks within run)
+      // VANGUARD A1: Advance Guard — +2% speed and +2% damage per wave cleared (stacks within run)
       if (game && game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0) {
         const mult = 1 + game.vanguardSpeedBonus;
         e.speed     *= mult;
         e.baseSpeed *= mult;
+        e.damage    *= mult;
       }
     }
     return e;
