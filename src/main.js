@@ -31,9 +31,9 @@ function bootstrap() {
 
   game.tower          = new Tower();
   game.enemyPool      = new EnemyPool(2048);
-  game.projectilePool = new ProjectilePool(8192);
+  game.projectilePool = new ProjectilePool(1024);
   game.waveSpawner    = new WaveSpawner(game);
-  game.particles      = new ParticleSystem(8192);
+  game.particles      = new ParticleSystem(1024);
   game.traitorSystem  = new TraitorSystem();
   game.factionSystem  = new FactionSystem();
 
