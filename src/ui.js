@@ -91,7 +91,7 @@ function patchPrestigeCards() {
   if (showAscend) {
     const active = game.pendingShards > 0;
     ascendBtn.disabled = !active;
-    const label = active ? `ASCEND (+${game.pendingShards} ◆)` : 'ASCEND (no ◆ yet)';
+    const label = active ? `ASCEND (+${fmt(game.pendingShards)} ◆)` : 'ASCEND (no ◆ yet)';
     if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
   }
 

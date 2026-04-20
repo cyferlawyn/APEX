@@ -497,8 +497,10 @@ function onWaveComplete(keepEnemies = false) {
   if (game.dataHarvest) {
     let stacks = 1;
     if (game.recursiveGrowth) {
-      const filled = game.traitorSystem
-        ? game.traitorSystem.slots.filter(Boolean).length
+      const ts = game.traitorSystem;
+      // Count filled slots up to slotCount (covers 4th slot when Singularity rank ≥ 1)
+      const filled = ts
+        ? ts.slots.slice(0, ts.slotCount).filter(Boolean).length
         : 0;
       stacks = Math.max(1, filled);
     }
