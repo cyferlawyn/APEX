@@ -60,8 +60,8 @@ export class Enemy {
   init(type, wave, x, y) {
     const def = BASE_STATS[type];
     const hpScale    = type === EnemyType.COLOSSUS
-      ? Math.pow(1.1376, wave - 1)
-      : Math.pow(1.1614, wave - 1);
+      ? Math.pow(1.0917, wave - 1)
+      : Math.pow(1.1155, wave - 1);
 
     this.active      = true;
     this.atTower     = false;
@@ -308,25 +308,25 @@ export class EnemyPool {
 }
 
 const BASE_STATS = {
-  [EnemyType.DRONE]:    { hp: 60,   speed: 156, radius: 11, color: '#00e5ff', shape: 'circle',   reward: 12,  damage: 15  },
-  [EnemyType.SWARM]:    { hp: 20,   speed: 120, radius: 8,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
-  [EnemyType.BRUTE]:    { hp: 300,  speed: 78,  radius: 16, color: '#ff9100', shape: 'square',   reward: 50,  damage: 50  },
-  [EnemyType.ELITE]:    { hp: 150,  speed: 129, radius: 11, color: '#ea00ff', shape: 'triangle', reward: 30,  damage: 30  },
-  [EnemyType.BOSS]:     { hp: 5000, speed: 80,  radius: 28, color: '#ff1744', shape: 'star8',   reward: 300, damage: 250 },
+  [EnemyType.DRONE]:    { hp: 500,   speed: 156, radius: 11, color: '#00e5ff', shape: 'circle',   reward: 12,  damage: 15  },
+  [EnemyType.SWARM]:    { hp: 167,   speed: 120, radius: 8,  color: '#69ff47', shape: 'circle',   reward: 4,   damage: 5   },
+  [EnemyType.BRUTE]:    { hp: 2500,  speed: 78,  radius: 16, color: '#ff9100', shape: 'square',   reward: 50,  damage: 50  },
+  [EnemyType.ELITE]:    { hp: 1250,  speed: 129, radius: 11, color: '#ea00ff', shape: 'triangle', reward: 30,  damage: 30  },
+  [EnemyType.BOSS]:     { hp: 41667, speed: 80,  radius: 28, color: '#ff1744', shape: 'star8',    reward: 300, damage: 250 },
   // New types
-  [EnemyType.DASHER]:   { hp: 45,   speed: 164, radius: 9,  color: '#00e676', shape: 'circle',   reward: 18,  damage: 20  },
-  [EnemyType.BOMBER]:   { hp: 120,  speed: 112, radius: 13, color: '#ff6d00', shape: 'circle',   reward: 35,  damage: 60  },
-  [EnemyType.SPAWNER]:  { hp: 500,  speed: 38,  radius: 18, color: '#ffd600', shape: 'square',   reward: 80,  damage: 20  },
-  [EnemyType.PHANTOM]:  { hp: 130,  speed: 138, radius: 11, color: '#b388ff', shape: 'triangle', reward: 28,  damage: 25  },
-  [EnemyType.COLOSSUS]: { hp: 1200, speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 100 },
+  [EnemyType.DASHER]:   { hp: 375,   speed: 164, radius: 9,  color: '#00e676', shape: 'circle',   reward: 18,  damage: 20  },
+  [EnemyType.BOMBER]:   { hp: 1000,  speed: 112, radius: 13, color: '#ff6d00', shape: 'circle',   reward: 35,  damage: 60  },
+  [EnemyType.SPAWNER]:  { hp: 4167,  speed: 38,  radius: 18, color: '#ffd600', shape: 'square',   reward: 80,  damage: 20  },
+  [EnemyType.PHANTOM]:  { hp: 1083,  speed: 138, radius: 11, color: '#b388ff', shape: 'triangle', reward: 28,  damage: 25  },
+  [EnemyType.COLOSSUS]: { hp: 10000, speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 100 },
 };
 
 // Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
 export function droneHp(wave) {
-  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.1614, wave - 1));
+  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.1155, wave - 1));
 }
 
 // Returns the scaled max-HP of a Boss at a given wave — used by Tidal Convergence.
 export function bossWaveHp(wave) {
-  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.1614, wave - 1));
+  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.1155, wave - 1));
 }
