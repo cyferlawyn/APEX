@@ -57,8 +57,8 @@ export class Enemy {
   init(type, wave, x, y) {
     const def = BASE_STATS[type];
     const hpScale    = type === EnemyType.COLOSSUS
-      ? Math.pow(1.06, wave - 1)
-      : Math.pow(1.07, wave - 1);
+      ? Math.pow(1.0267, wave - 1)
+      : Math.pow(1.0311, wave - 1);
 
     this.active      = true;
     this.atTower     = false;
@@ -268,10 +268,10 @@ const BASE_STATS = {
 
 // Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
 export function droneHp(wave) {
-  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.07, wave - 1));
+  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.0311, wave - 1));
 }
 
 // Returns the scaled max-HP of a Boss at a given wave — used by Tidal Convergence.
 export function bossWaveHp(wave) {
-  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.07, wave - 1));
+  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.0311, wave - 1));
 }
