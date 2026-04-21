@@ -8,8 +8,8 @@ const UPGRADES = [
   {
     id: 'projectileSpeed',
     name: 'Projectile Speed',
-    tooltip: 'Multiplies projectile velocity by ×1.12 per tier.\nBase: 400 px/s → max (tier 8): ~990 px/s.\nFaster projectiles reach distant enemies before they close in.',
-    maxTier: 8,
+    tooltip: 'Multiplies projectile velocity by ×1.12 per tier.\nBase: 400 px/s → max (tier 10): ~1241 px/s.\nFaster projectiles reach distant enemies before they close in.',
+    maxTier: 10,
     baseCost: 40,
     costMult: 1.85,
     apply(tower, game, tier) {
