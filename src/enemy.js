@@ -59,9 +59,7 @@ export class Enemy {
 
   init(type, wave, x, y) {
     const def = BASE_STATS[type];
-    const hpScale    = type === EnemyType.COLOSSUS
-      ? Math.pow(1.0917, wave - 1)
-      : Math.pow(1.1155, wave - 1);
+    const hpScale = Math.pow(1.1155, wave - 1);
 
     this.active      = true;
     this.atTower     = false;
