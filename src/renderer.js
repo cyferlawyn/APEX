@@ -837,6 +837,7 @@ export class Renderer {
       if (e.intangible) this._drawPhantomGhost(e);
       if (e.type === 'BOMBER') this._drawBomberWarning(e);
       if (e.type === 'COLOSSUS') this._drawColossusArmor(e);
+      if (e.type === 'BOSS') this._drawBossOverlay(e);
     }
   }
 
@@ -857,6 +858,21 @@ export class Renderer {
         const r = e.radius * 1.3;
         for (let i = 0; i < 3; i++) {
           const a = (Math.PI * 2 / 3) * i - Math.PI / 2;
+          const x = e.x + r * Math.cos(a);
+          const y = e.y + r * Math.sin(a);
+          i === 0 ? this.ctx.moveTo(x, y) : this.ctx.lineTo(x, y);
+        }
+        this.ctx.closePath();
+        break;
+      }
+      case 'star8': {
+        // 8-pointed star: alternate outer (r) and inner (r×0.45) vertices
+        const ro = e.radius * 1.35;
+        const ri = e.radius * 0.52;
+        const pts = 8;
+        for (let i = 0; i < pts * 2; i++) {
+          const a = (Math.PI / pts) * i - Math.PI / 2;
+          const r = i % 2 === 0 ? ro : ri;
           const x = e.x + r * Math.cos(a);
           const y = e.y + r * Math.sin(a);
           i === 0 ? this.ctx.moveTo(x, y) : this.ctx.lineTo(x, y);
@@ -960,6 +976,61 @@ export class Renderer {
       ctx.fill();
     }
     ctx.restore();
+  }
+
+  _drawBossOverlay(e) {
+    if (this.game.quality === 'low') return;
+    const ctx  = this.ctx;
+    const now  = Date.now();
+
+    // Pulsing inner core
+    const pulse = 0.55 + Math.sin(now / 180) * 0.25;
+    ctx.save();
+    ctx.globalAlpha = pulse * 0.75;
+    ctx.fillStyle   = '#ff1744';
+    ctx.shadowBlur  = 18;
+    ctx.shadowColor = '#ff1744';
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius * 0.38, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Slowly rotating outer spike glow ring (matches the 8 star points)
+    const rot = (now / 3200) * Math.PI * 2;
+    ctx.save();
+    ctx.globalAlpha = 0.22 + Math.sin(now / 260) * 0.08;
+    ctx.strokeStyle = '#ff6d00';
+    ctx.lineWidth   = 1.5;
+    ctx.shadowBlur  = 12;
+    ctx.shadowColor = '#ff6d00';
+    const ro = e.radius * 1.35;
+    const ri = e.radius * 0.52;
+    ctx.beginPath();
+    for (let i = 0; i < 16; i++) {
+      const a = (Math.PI / 8) * i - Math.PI / 2 + rot;
+      const r = i % 2 === 0 ? ro : ri;
+      const x = e.x + r * Math.cos(a);
+      const y = e.y + r * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+
+    // Enrage flare — bright orange halo when below 40% HP
+    if (e.enraged) {
+      const flare = 0.4 + Math.sin(now / 80) * 0.3;
+      ctx.save();
+      ctx.globalAlpha = flare * 0.5;
+      ctx.strokeStyle = '#ff9100';
+      ctx.lineWidth   = 3;
+      ctx.shadowBlur  = 24;
+      ctx.shadowColor = '#ff9100';
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, e.radius * 1.5, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   _drawHpBar(e) {
