@@ -31,6 +31,7 @@ export class Tower {
     // Orbital Death Ring
     this.ringTier        = 0;     // 0 = not unlocked
     this.ringPhase       = 0;     // ever-increasing angle driving the Archimedean spiral
+    this.ringDestroyChance = 0;   // 0.0–0.75 chance to destroy enemy projectiles on hammer hit
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -296,6 +297,27 @@ export class Tower {
         }
         break;
       }
+    }
+
+    // Enemy-projectile interception — Hammer Guard prestige upgrade
+    if (this.ringDestroyChance > 0 && game.enemyProjectiles?.length) {
+      const ep = game.enemyProjectiles;
+      let wi = 0;
+      for (let ri = 0; ri < ep.length; ri++) {
+        const p = ep[ri];
+        let destroyed = false;
+        for (const h of hammers) {
+          const dx = p.x - h.x, dy = p.y - h.y;
+          if (dx * dx + dy * dy <= HIT_R2 && Math.random() < this.ringDestroyChance) {
+            destroyed = true;
+            if (game.particles && game.quality !== 'low')
+              game.particles.emitHit(p.x, p.y, '#ff6d00');
+            break;
+          }
+        }
+        if (!destroyed) ep[wi++] = p;
+      }
+      ep.length = wi;
     }
   }
 
