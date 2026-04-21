@@ -319,7 +319,7 @@ const BASE_STATS = {
   [EnemyType.BOMBER]:   { hp: 1000,  speed: 112, radius: 13, color: '#ff6d00', shape: 'circle',   reward: 35,  damage: 60  },
   [EnemyType.SPAWNER]:  { hp: 4167,  speed: 38,  radius: 18, color: '#ffd600', shape: 'square',   reward: 80,  damage: 20  },
   [EnemyType.PHANTOM]:  { hp: 1083,  speed: 138, radius: 11, color: '#b388ff', shape: 'triangle', reward: 28,  damage: 25  },
-  [EnemyType.COLOSSUS]: { hp: 10000, speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 100 },
+  [EnemyType.COLOSSUS]: { hp: 10000, speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 200, damage: 75  },
 };
 
 // Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
