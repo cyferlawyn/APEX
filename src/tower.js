@@ -273,6 +273,8 @@ export class Tower {
     this.hammers = hammers;
 
     // Damage check
+    const HIT_R  = 18;
+    const HIT_R2 = HIT_R * HIT_R;
     for (const e of game.enemyPool.pool) {
       if (!e.active) continue;
       for (const h of hammers) {
