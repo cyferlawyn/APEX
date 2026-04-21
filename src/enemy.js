@@ -161,6 +161,8 @@ export class Enemy {
             damage: dmg,
             type: this.type,
             t: 4.0,
+            sourceEnemy: this,
+            deflected: false,
           });
         }
       }

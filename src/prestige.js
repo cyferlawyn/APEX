@@ -185,7 +185,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'hammerGuard',
     name: 'Hammer Guard',
-    tooltip: 'Orbital Death Ring hammers have a chance to destroy enemy projectiles on contact.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75%\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
+    tooltip: 'Orbital Death Ring hammers deflect enemy projectiles back at the shooter, dealing the tower\'s normal shot damage.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75% deflect chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
     maxTier: 5,
     baseCost: 500,
     costMult: 4.0,

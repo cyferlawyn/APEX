@@ -299,25 +299,35 @@ export class Tower {
       }
     }
 
-    // Enemy-projectile interception — Hammer Guard prestige upgrade
+    // Enemy-projectile deflection — Hammer Guard prestige upgrade
     if (this.ringDestroyChance > 0 && game.enemyProjectiles?.length) {
-      const ep = game.enemyProjectiles;
-      let wi = 0;
-      for (let ri = 0; ri < ep.length; ri++) {
-        const p = ep[ri];
-        let destroyed = false;
+      const deflectDmg = Math.round(this.damage * this._dmgMult);
+      for (const p of game.enemyProjectiles) {
+        if (p.deflected) continue;
         for (const h of hammers) {
           const dx = p.x - h.x, dy = p.y - h.y;
           if (dx * dx + dy * dy <= HIT_R2 && Math.random() < this.ringDestroyChance) {
-            destroyed = true;
+            // Redirect velocity toward the source enemy (if still active), else reverse
+            const src = p.sourceEnemy;
+            if (src?.active) {
+              const ex = src.x - p.x, ey = src.y - p.y;
+              const len = Math.sqrt(ex * ex + ey * ey) || 1;
+              const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+              p.vx = (ex / len) * spd;
+              p.vy = (ey / len) * spd;
+            } else {
+              p.vx = -p.vx;
+              p.vy = -p.vy;
+            }
+            p.deflected     = true;
+            p.deflectDamage = deflectDmg;
+            p.t             = 4.0; // reset lifetime for return trip
             if (game.particles && game.quality !== 'low')
               game.particles.emitHit(p.x, p.y, '#ff6d00');
             break;
           }
         }
-        if (!destroyed) ep[wi++] = p;
       }
-      ep.length = wi;
     }
   }
 
