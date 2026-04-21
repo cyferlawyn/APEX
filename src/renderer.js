@@ -123,7 +123,7 @@ export class Renderer {
     if (t.ringTier > 0) {
       const arcDeg  = t.ringTier === 1 ? 30 : t.ringTier === 2 ? 45 : t.ringTier === 3 ? 45 : t.ringTier === 4 ? 60 : 75;
       const arcRad  = arcDeg * (Math.PI / 180);
-      const orbitR  = t.ringRadius || (r + 16); // fallback before first update tick      const rings   = t.ringTier >= 3
+      const rings   = t.ringTier >= 3
         ? [{ angle: t.ringAngle, ccw: false, r: t.ringRadius || (r + 16) }, { angle: t.ringAngle2, ccw: true, r: t.ringRadius2 || (r + 16) }]
         : [{ angle: t.ringAngle, ccw: false, r: t.ringRadius || (r + 16) }];
 
