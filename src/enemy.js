@@ -59,7 +59,7 @@ export class Enemy {
 
   init(type, wave, x, y) {
     const def = BASE_STATS[type];
-    const hpScale = Math.pow(1.1155, wave - 1);
+    const hpScale = Math.pow(1.1, wave - 1);
     // Early-wave relief: divide HP by a factor that decays linearly from ×20 at
     // wave 1 down to ×1 at wave 51. Wave 51+ uses the raw growth formula.
     const earlyFactor = wave <= 50 ? 20 - (wave - 1) * (19 / 50) : 1;
@@ -325,10 +325,10 @@ const BASE_STATS = {
 // Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
 export function droneHp(wave) {
   const earlyFactor = wave <= 50 ? 20 - (wave - 1) * (19 / 50) : 1;
-  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.1155, wave - 1) / earlyFactor);
+  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.1, wave - 1) / earlyFactor);
 }
 
 // Returns the scaled max-HP of a Boss at a given wave — used by Tidal Convergence.
 export function bossWaveHp(wave) {
-  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.1155, wave - 1));
+  return Math.floor(BASE_STATS[EnemyType.BOSS].hp * Math.pow(1.1, wave - 1));
 }
