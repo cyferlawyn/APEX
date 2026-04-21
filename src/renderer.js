@@ -45,7 +45,7 @@ export class Renderer {
 
   render() {
     const { ctx, canvas, game } = this;
-    this._now = this._now; // single timestamp for the entire render pass
+    this._now = Date.now(); // single timestamp for the entire render pass
 
     if (game.tower) {
       game.tower.x = canvas.width  / 2;
