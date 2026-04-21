@@ -61,6 +61,12 @@ function bootstrap() {
   // Restore faction capstones (permanent) then run state
   game.factionSystem.deserializeCapstones(loadFactionCapstones());
   game.factionSystem.deserializeRun(loadFaction());
+
+  // Guard: autoAscensionMode requires the Vanguard capstone. If it was loaded from
+  // prefs but the capstone is no longer owned, reset to 'off'.
+  if ((game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) === 0) {
+    game.autoAscensionMode = 'off';
+  }
   // Sync cross-faction capstone ranks into game state
   game.warbornCapstoneRank  = game.factionSystem.permanent.warborn?.capstoneRank  ?? 0;
   game.vanguardCapstoneRank = game.factionSystem.permanent.vanguard?.capstoneRank ?? 0;
