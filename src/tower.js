@@ -240,7 +240,7 @@ export class Tower {
 
   _updateRings(dt, game) {
     const t        = this.ringTier;
-    const rotSpeed = t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150); // °/s
+    const rotSpeed = (t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150)) * 3; // °/s
     const DPS      = this.damage * this.fireRate * 8.0 * this._dmgMult * this.ringDpsMult;
 
     // Spiral geometry — 3 full rotations to sweep from MIN to MAX
