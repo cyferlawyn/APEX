@@ -52,8 +52,8 @@ const UPGRADES = [
   {
     id: 'maxHp',
     name: 'Max HP',
-    tooltip: 'Adds 20% of current max HP per tier.\nBase: 1000 HP → max (tier 8): ~4300 HP.\nThe bonus is added to current HP immediately.',
-    maxTier: 8,
+    tooltip: 'Adds 20% of current max HP per tier.\nBase: 1000 HP → max (tier 10): ~6190 HP.\nThe bonus is added to current HP immediately.',
+    maxTier: 10,
     baseCost: 70,
     costMult: 1.85,
     apply(tower, game, tier) {
