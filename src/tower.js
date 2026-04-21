@@ -30,12 +30,7 @@ export class Tower {
 
     // Orbital Death Ring
     this.ringTier        = 0;     // 0 = not unlocked
-    this.ringAngle       = 0;     // angle of ring 1 (radians)
-    this.ringAngle2      = 0;     // angle of ring 2 (counter-rotating, tier 3+)
-    this.ringRadius      = 0;     // current spiral radius for ring 1 (set on first _updateRings call)
-    this.ringRadiusDir   = 1;     // +1 = expanding, -1 = contracting
-    this.ringRadius2     = 0;     // radius for ring 2 (starts at opposite phase)
-    this.ringRadiusDir2  = -1;
+    this.ringPhase       = 0;     // ever-increasing angle driving the Archimedean spiral
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -239,84 +234,66 @@ export class Tower {
   }
 
   // ── Orbital Death Ring ──────────────────────────────────────────────────────
+  // Two hammer-like energy points trace an Archimedean spiral outward from the
+  // tower, 180° apart.  When a point reaches ORBIT_MAX it snaps back to ORBIT_MIN
+  // and begins the next outward sweep.  Rotation speed scales with tier.
 
   _updateRings(dt, game) {
-    // Tier 1: 1 ring, 30° arc, 90°/s
-    // Tier 2: 1 ring, 45° arc, 110°/s
-    // Tier 3: 2 rings (counter-rotating), 45° arc each, 110°/s
-    // Tier 4: 2 rings (counter-rotating), 60° arc each, 130°/s
-    // Tier 5: 2 rings (counter-rotating), 75° arc each, 150°/s
     const t        = this.ringTier;
-    const rotSpeed = t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150);
-    const arcDeg   = t === 1 ? 30 : t === 2 ? 45 : t === 3 ? 45 : t === 4 ? 60 : 75;
-    const arcRad   = arcDeg * (Math.PI / 180);
+    const rotSpeed = t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150); // °/s
     const DPS      = this.damage * this.fireRate * 8.0 * this._dmgMult * this.ringDpsMult;
-    const rotRad   = rotSpeed * (Math.PI / 180) * dt;
 
-    this.ringAngle  = (this.ringAngle  + rotRad)                      % (Math.PI * 2);
-    this.ringAngle2 = (this.ringAngle2 - rotRad * 0.7 + Math.PI * 2)  % (Math.PI * 2);
+    // Spiral geometry — 3 full rotations to sweep from MIN to MAX
+    const ORBIT_MIN   = this.radius + 20;
+    const ORBIT_MAX   = this.radius + 220;
+    const N_TURNS     = 3;                          // rotations per outward sweep
+    const WRAP        = N_TURNS * Math.PI * 2;      // phase range for one sweep
 
-    // Spiral: each ring oscillates between ORBIT_MIN and ORBIT_MAX.
-    // Period = time for 1 full rotation at this tier's rotSpeed (5× faster than before).
-    const ORBIT_MIN    = this.radius + 16;
-    const ORBIT_MAX    = this.radius + 220;
-    const secsPerRot   = 360 / rotSpeed;           // seconds per full rotation
-    const halfPeriod   = secsPerRot;               // 1 rotation = one grow or shrink phase
-    const SPIRAL_SPEED = (ORBIT_MAX - ORBIT_MIN) / halfPeriod;
+    this.ringPhase += rotSpeed * (Math.PI / 180) * dt;
 
-    // Initialise radii on first call: ring 1 starts close, ring 2 starts far (opposite phase)
-    if (this.ringRadius  === 0) { this.ringRadius  = ORBIT_MIN; this.ringRadiusDir  =  1; }
-    if (this.ringRadius2 === 0) { this.ringRadius2 = ORBIT_MAX; this.ringRadiusDir2 = -1; }
+    // Helper: compute (x,y,r) for a hammer given its phase offset
+    const hammerPos = (phaseOffset) => {
+      const phase = (this.ringPhase + phaseOffset) % (Math.PI * 2 * 1e6); // prevent float drift
+      const t01   = (phase % WRAP) / WRAP;          // 0→1 within current sweep
+      const orbitR = ORBIT_MIN + t01 * (ORBIT_MAX - ORBIT_MIN);
+      const angle  = phase;
+      return { x: this.x + Math.cos(angle) * orbitR,
+               y: this.y + Math.sin(angle) * orbitR,
+               r: orbitR, angle };
+    };
 
-    this.ringRadius  += this.ringRadiusDir  * SPIRAL_SPEED * dt;
-    this.ringRadius2 += this.ringRadiusDir2 * SPIRAL_SPEED * dt;
-    if (this.ringRadius  >= ORBIT_MAX) { this.ringRadius  = ORBIT_MAX; this.ringRadiusDir  = -1; }
-    if (this.ringRadius  <= ORBIT_MIN) { this.ringRadius  = ORBIT_MIN; this.ringRadiusDir  =  1; }
-    if (this.ringRadius2 >= ORBIT_MAX) { this.ringRadius2 = ORBIT_MAX; this.ringRadiusDir2 = -1; }
-    if (this.ringRadius2 <= ORBIT_MIN) { this.ringRadius2 = ORBIT_MIN; this.ringRadiusDir2 =  1; }
+    const h1 = hammerPos(0);
+    const h2 = hammerPos(Math.PI);  // 180° offset
 
-    // Ring definitions — each carries its own radius
-    const rings = t >= 3
-      ? [{ angle: this.ringAngle, r: this.ringRadius }, { angle: this.ringAngle2, r: this.ringRadius2 }]
-      : [{ angle: this.ringAngle, r: this.ringRadius }];
+    // Store on tower for renderer
+    this.hammer1 = h1;
+    this.hammer2 = t >= 3 ? h2 : null;
+
+    // Damage: enemy within HIT_R px of a hammer tip takes DPS
+    const HIT_R = 18;
+    const HIT_R2 = HIT_R * HIT_R;
+    const hammers = this.hammer2 ? [h1, h2] : [h1];
 
     for (const e of game.enemyPool.pool) {
       if (!e.active) continue;
-      const dx = e.x - this.x;
-      const dy = e.y - this.y;
-      const d2 = dx * dx + dy * dy;
-
-      for (const ring of rings) {
-        const lo = ring.r - e.radius;
-        const hi = ring.r + e.radius;
-        if (d2 < lo * lo || d2 > hi * hi) continue;
-
-        const eAngle = Math.atan2(dy, dx);
-        let dAngle = Math.abs(eAngle - ring.angle) % (Math.PI * 2);
-        if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
-        if (dAngle < arcRad / 2) {
-          // Colossus armor: absorb first ring tick per wave
-          if (e.type === EnemyType.COLOSSUS && !e.armorRing) {
-            e.armorRing = true;
-            break;
-          }
-          e.hp -= DPS * dt;
-          if (game.particles && game.quality !== 'low' && Math.random() < 0.3) {
-            game.particles.emitHit(e.x, e.y, '#ff6d00');
-          }
-          // Ring stun (prestige)
-          if (this.ringStunDuration > 0) {
-            e.stunUntil = (game.elapsed ?? 0) + this.ringStunDuration;
-          }
-          if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
-              || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
-            const wasExecute = e.hp > 0;
-            e.hp = 0;
-            if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
-            _towerKillEnemy(e, game);
-          }
-          break;
+      for (const h of hammers) {
+        const dx = e.x - h.x, dy = e.y - h.y;
+        if (dx * dx + dy * dy > HIT_R2) continue;
+        // Colossus armor: absorb first ring tick per wave
+        if (e.type === EnemyType.COLOSSUS && !e.armorRing) { e.armorRing = true; break; }
+        e.hp -= DPS * dt;
+        if (game.particles && game.quality !== 'low' && Math.random() < 0.3)
+          game.particles.emitHit(e.x, e.y, '#ff6d00');
+        if (this.ringStunDuration > 0)
+          e.stunUntil = (game.elapsed ?? 0) + this.ringStunDuration;
+        if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
+            || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
+          const wasExecute = e.hp > 0;
+          e.hp = 0;
+          if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
+          _towerKillEnemy(e, game);
         }
+        break;
       }
     }
   }

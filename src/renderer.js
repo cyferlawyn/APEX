@@ -119,80 +119,69 @@ export class Renderer {
       glowColor = COLORS.laser;
     }
 
-    // Orbital Death Ring (drawn behind tower hex)
-    if (t.ringTier > 0) {
-      const arcDeg  = t.ringTier === 1 ? 30 : t.ringTier === 2 ? 45 : t.ringTier === 3 ? 45 : t.ringTier === 4 ? 60 : 75;
-      const arcRad  = arcDeg * (Math.PI / 180);
-      const rings   = t.ringTier >= 3
-        ? [{ angle: t.ringAngle, ccw: false, r: t.ringRadius || (r + 16) }, { angle: t.ringAngle2, ccw: true, r: t.ringRadius2 || (r + 16) }]
-        : [{ angle: t.ringAngle, ccw: false, r: t.ringRadius || (r + 16) }];
+    // Orbital Death Ring — Archimedean spiral hammers (drawn behind tower hex)
+    if (t.ringTier > 0 && t.hammer1) {
+      const ORBIT_MIN  = t.radius + 20;
+      const ORBIT_MAX  = t.radius + 220;
+      const N_TURNS    = 3;
+      const WRAP       = N_TURNS * Math.PI * 2;
+      const dotR       = 5 + t.ringTier * 1.5;
+      const glowBlur   = 18 + t.ringTier * 6;
+      // Trail: step back along the spiral in small angular increments
+      const TRAIL_STEPS = 18;
+      const TRAIL_DANGLE = 0.18; // radians per step back
 
-      // Scale visuals with tier
-      const coreWidth  = 2 + t.ringTier * 1.2;
-      const glowWidth  = coreWidth * 3;
-      const bloomWidth = coreWidth * 7;
-      const glowBlur   = 16 + t.ringTier * 8;
-
-      for (const ring of rings) {
-        const startA = ring.angle - arcRad / 2;
-        const endA   = ring.angle + arcRad / 2;
-        // Leading edge: endA for cw ring, startA for ccw ring
-        const leadA  = ring.ccw ? startA : endA;
-
+      const hammers = t.hammer2 ? [t.hammer1, t.hammer2] : [t.hammer1];
+      for (const h of hammers) {
         ctx.save();
 
-        // Pass 1 — wide soft bloom
-        ctx.globalAlpha = 0.15;
-        ctx.strokeStyle = '#ff6d00';
-        ctx.shadowBlur  = 0;
-        ctx.lineWidth   = bloomWidth;
-        ctx.lineCap     = 'round';
-        ctx.beginPath();
-        ctx.arc(cx, cy, ring.r, startA, endA);
-        ctx.stroke();
+        // Trail — polyline of fading points stepping back along the spiral
+        const phase = t.ringPhase + (h === t.hammer2 ? Math.PI : 0);
+        for (let i = 1; i <= TRAIL_STEPS; i++) {
+          const pa    = phase - i * TRAIL_DANGLE;
+          const t01   = ((pa % WRAP) + WRAP) % WRAP / WRAP;
+          const tR    = ORBIT_MIN + t01 * (ORBIT_MAX - ORBIT_MIN);
+          const tx    = cx + Math.cos(pa) * tR;
+          const ty    = cy + Math.sin(pa) * tR;
+          const alpha = (1 - i / TRAIL_STEPS) * 0.7;
+          const size  = dotR * (1 - i / TRAIL_STEPS * 0.7);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle   = i < TRAIL_STEPS * 0.4 ? '#ffffff' : '#ff6d00';
+          ctx.shadowBlur  = game.quality === 'high' ? glowBlur * (1 - i / TRAIL_STEPS) : 0;
+          ctx.shadowColor = '#ff6d00';
+          ctx.beginPath();
+          ctx.arc(tx, ty, Math.max(0.5, size), 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-        // Pass 2 — colored glow
-        ctx.globalAlpha = 0.85;
-        ctx.strokeStyle = '#ff6d00';
-        ctx.shadowBlur  = glowBlur;
-        ctx.shadowColor = '#ff6d00';
-        ctx.lineWidth   = glowWidth;
-        ctx.beginPath();
-        ctx.arc(cx, cy, ring.r, startA, endA);
-        ctx.stroke();
-
-        // Pass 3 — white hot core
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = '#ffffff';
-        ctx.shadowBlur  = 8;
-        ctx.shadowColor = '#ff6d00';
-        ctx.lineWidth   = coreWidth;
-        ctx.beginPath();
-        ctx.arc(cx, cy, ring.r, startA, endA);
-        ctx.stroke();
-
-        // Bright leading-edge dot — punchy focal point
-        const tipX = cx + Math.cos(leadA) * ring.r;
-        const tipY = cy + Math.sin(leadA) * ring.r;
+        // Hammer head — bright glowing dot at tip
         ctx.globalAlpha = 1;
         ctx.fillStyle   = '#ffffff';
-        ctx.shadowBlur  = glowBlur;
+        ctx.shadowBlur  = game.quality !== 'low' ? glowBlur : 0;
         ctx.shadowColor = '#ff6d00';
         ctx.beginPath();
-        ctx.arc(tipX, tipY, coreWidth * 1.8, 0, Math.PI * 2);
+        ctx.arc(h.x, h.y, dotR, 0, Math.PI * 2);
         ctx.fill();
 
-        // Emit a trailing spark from the tip — fixed speed opposite to travel direction
-        if (game.quality === 'high' && game.particles && Math.random() < 0.4) {
-          // Tangent direction of travel: CW ring moves at leadA+π/2, CCW at leadA-π/2
-          const trailAngle = ring.ccw ? leadA + Math.PI / 2 : leadA - Math.PI / 2;
-          const trailSpeed = 120 + Math.random() * 60;
+        // Bloom halo
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle   = '#ff6d00';
+        ctx.shadowBlur  = 0;
+        ctx.beginPath();
+        ctx.arc(h.x, h.y, dotR * 2.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Emit a trailing particle spark each frame (high quality)
+        if (game.quality === 'high' && game.particles && Math.random() < 0.5) {
+          // Direction: backward along tangent
+          const trailAngle = h.angle + Math.PI / 2 + Math.PI; // behind the tip
+          const spd = 80 + Math.random() * 60;
           game.particles._emit(
-            tipX, tipY,
-            Math.cos(trailAngle) * trailSpeed + (Math.random() - 0.5) * 30,
-            Math.sin(trailAngle) * trailSpeed + (Math.random() - 0.5) * 30,
-            0.15 + Math.random() * 0.1,
-            1.5 + Math.random() * 1.5,
+            h.x, h.y,
+            Math.cos(trailAngle) * spd + (Math.random() - 0.5) * 40,
+            Math.sin(trailAngle) * spd + (Math.random() - 0.5) * 40,
+            0.12 + Math.random() * 0.1,
+            1.2 + Math.random() * 1.2,
             Math.random() < 0.5 ? '#ff6d00' : '#ffffff',
           );
         }
