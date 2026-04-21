@@ -126,7 +126,8 @@ function beginWave(keepEnemies = false) {
   // If not and auto-ascension is set to 'overkill', this is the signal to ascend.
   if (game.tower.obliterateDelay > 0) {
     const fires = checkObliterateAtWaveStart(game);
-    if (!fires && game.autoAscensionMode === 'overkill' && game.pendingShards > 0) {
+    const vanguardOwned = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
+    if (!fires && game.autoAscensionMode === 'overkill' && game.pendingShards > 0 && vanguardOwned) {
       setTimeout(() => beginAscend(), 400);
     }
   }
@@ -562,7 +563,8 @@ function onDefeated() {
   game.transition(State.DEFEATED);
 
   // ENDLESS WAR capstone: auto-ascension on defeat
-  if (game.autoAscensionMode === 'defeat' && game.pendingShards > 0) {
+  const vanguardOwned = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
+  if (vanguardOwned && game.autoAscensionMode === 'defeat' && game.pendingShards > 0) {
     setTimeout(() => {
       if (game.state === State.DEFEATED) beginAscend();
     }, 500);

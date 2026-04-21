@@ -108,7 +108,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'poisonTouch',
     name: 'Poison Touch',
-    tooltip: 'Projectile hits apply a poison that deals bonus damage over 3 seconds in ticks every 0.1s.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison stacks additively and refreshes duration on each new hit.',
+    tooltip: '[Temporarily disabled] Projectile hits apply a poison that deals bonus damage over 3 seconds in ticks every 0.1s.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison stacks additively and refreshes duration on each new hit.',
     maxTier: 3,
     baseCost: 25,
     costMult: 2.5,
@@ -186,12 +186,12 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'obliterate',
     name: 'Obliterate',
-    tooltip: 'When your shot damage exceeds 10× the weakest enemy\'s current HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s  Tier 4: 2 s  Tier 5: 1 s countdown.\nCosts: 1k / 5k / 25k / 125k / 625k shards.',
+    tooltip: 'When your shot damage exceeds 10× the weakest enemy\'s current HP,\na countdown begins — then the entire wave is wiped instantly.\nTier 1: 3 s  Tier 2: 2.5 s  Tier 3: 2 s  Tier 4: 1.5 s  Tier 5: 1 s countdown.\nCosts: 1k / 5k / 25k / 125k / 625k shards.',
     maxTier: 5,
     baseCost: 1000,
     costMult: 5.0,
     apply(tower, game, tier) {
-      tower.obliterateDelay = [0, 5, 4, 3, 2, 1][tier];
+      tower.obliterateDelay = [0, 3, 2.5, 2, 1.5, 1][tier];
     },
   },
   {
