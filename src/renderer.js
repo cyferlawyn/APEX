@@ -1225,7 +1225,7 @@ export class Renderer {
     const barW  = 200;
     const barH  = 12;
     const barX  = canvas.width / 2 - barW / 2;
-    const barY  = 10;
+    const barY  = 15;
     const hpPct = Math.max(0, t.hp / t.maxHp);
 
     ctx.fillStyle = COLORS.hpBarBg;
