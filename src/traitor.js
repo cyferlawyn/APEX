@@ -55,8 +55,7 @@ export const TYPE_BONUS_MULT = {
 // Weighted rarity roll — weights sum to 100 (natural rarities only; merge-only tiers excluded)
 const RARITY_WEIGHTS = [60, 25, 10, 4, 1];
 
-// Capture chance scales from 0.01% at wave 1 to 0.1% at wave 100+
-const CHANCE_MIN  = 0.0001;
+// Flat capture chance (0.1% per kill, all waves)
 const CHANCE_MAX  = 0.001;
 
 function rollRarity() {
@@ -86,7 +85,7 @@ export class TraitorSystem {
   // game is optional; when provided, NEXUS bonuses (A1, B1) are applied.
   tryCapture(enemy, wave, game) {
     // No roster cap — merging to apex requires far more than any previous limit.
-    let chance = CHANCE_MIN + (CHANCE_MAX - CHANCE_MIN) * Math.min(wave, 100) / 100;
+    let chance = CHANCE_MAX;
 
     // NEXUS B1: Signal Harvest — double global capture chance
     if (game?.signalHarvest) chance *= 2;
