@@ -42,8 +42,8 @@ export class WaveSpawner {
     for (const entry of entries) {
       // Radial spawn: pick a random angle from canvas centre → perimeter point.
       // Swarm clusters share one angle (entry.angle pre-assigned in buildWave).
-      const angle  = entry.angle ?? (Math.random() * Math.PI * 2);
-      const jitter = entry.type === EnemyType.SWARM ? (Math.random() - 0.5) * 24 : 0;
+      const jitter = entry.type === EnemyType.SWARM ? (Math.random() - 0.5) * 80 : 0;
+      const angle  = (entry.angle ?? (Math.random() * Math.PI * 2)) + (entry.type === EnemyType.SWARM ? (Math.random() - 0.5) * 0.25 : 0);
       const pt     = perimeterPoint(angle, w, h, margin);
 
       // Apply jitter perpendicular to the spawn direction
