@@ -182,12 +182,15 @@ export class Renderer {
         ctx.arc(tipX, tipY, coreWidth * 1.8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Emit a trailing spark from the tip each frame (high quality only)
+        // Emit a trailing spark from the tip — fixed speed opposite to travel direction
         if (game.quality === 'high' && game.particles && Math.random() < 0.4) {
+          // Tangent direction of travel: CW ring moves at leadA+π/2, CCW at leadA-π/2
+          const trailAngle = ring.ccw ? leadA + Math.PI / 2 : leadA - Math.PI / 2;
+          const trailSpeed = 120 + Math.random() * 60;
           game.particles._emit(
             tipX, tipY,
-            (Math.random() - 0.5) * 60,
-            (Math.random() - 0.5) * 60,
+            Math.cos(trailAngle) * trailSpeed + (Math.random() - 0.5) * 30,
+            Math.sin(trailAngle) * trailSpeed + (Math.random() - 0.5) * 30,
             0.15 + Math.random() * 0.1,
             1.5 + Math.random() * 1.5,
             Math.random() < 0.5 ? '#ff6d00' : '#ffffff',

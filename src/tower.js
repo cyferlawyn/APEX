@@ -257,11 +257,11 @@ export class Tower {
     this.ringAngle2 = (this.ringAngle2 - rotRad * 0.7 + Math.PI * 2)  % (Math.PI * 2);
 
     // Spiral: each ring oscillates between ORBIT_MIN and ORBIT_MAX.
-    // Period = time for 5 full rotations at this tier's rotSpeed.
+    // Period = time for 1 full rotation at this tier's rotSpeed (5× faster than before).
     const ORBIT_MIN    = this.radius + 16;
     const ORBIT_MAX    = this.radius + 220;
     const secsPerRot   = 360 / rotSpeed;           // seconds per full rotation
-    const halfPeriod   = 5 * secsPerRot;           // 5 rotations = one grow or shrink phase
+    const halfPeriod   = secsPerRot;               // 1 rotation = one grow or shrink phase
     const SPIRAL_SPEED = (ORBIT_MAX - ORBIT_MIN) / halfPeriod;
 
     // Initialise radii on first call: ring 1 starts close, ring 2 starts far (opposite phase)
