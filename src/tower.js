@@ -262,18 +262,17 @@ export class Tower {
                r: orbitR, angle };
     };
 
-    const h1 = hammerPos(0);
-    const h2 = hammerPos(Math.PI);  // 180° offset
+    // One hammer per tier, evenly spaced around the spiral
+    const hammerCount = t;
+    const hammers = [];
+    for (let i = 0; i < hammerCount; i++) {
+      hammers.push(hammerPos(i * (Math.PI * 2 / hammerCount)));
+    }
 
     // Store on tower for renderer
-    this.hammer1 = h1;
-    this.hammer2 = t >= 3 ? h2 : null;
+    this.hammers = hammers;
 
-    // Damage: enemy within HIT_R px of a hammer tip takes DPS
-    const HIT_R = 18;
-    const HIT_R2 = HIT_R * HIT_R;
-    const hammers = this.hammer2 ? [h1, h2] : [h1];
-
+    // Damage check
     for (const e of game.enemyPool.pool) {
       if (!e.active) continue;
       for (const h of hammers) {

@@ -120,23 +120,24 @@ export class Renderer {
     }
 
     // Orbital Death Ring — Archimedean spiral hammers (drawn behind tower hex)
-    if (t.ringTier > 0 && t.hammer1) {
+    if (t.ringTier > 0 && t.hammers?.length) {
       const ORBIT_MIN  = t.radius + 20;
       const ORBIT_MAX  = t.radius + 220;
       const N_TURNS    = 3;
       const WRAP       = N_TURNS * Math.PI * 2;
       const dotR       = 5 + t.ringTier * 1.5;
       const glowBlur   = 18 + t.ringTier * 6;
-      // Trail: step back along the spiral in small angular increments
-      const TRAIL_STEPS = 18;
-      const TRAIL_DANGLE = 0.18; // radians per step back
+      const TRAIL_STEPS  = 18;
+      const TRAIL_DANGLE = 0.18;
+      const hammerCount  = t.hammers.length;
 
-      const hammers = t.hammer2 ? [t.hammer1, t.hammer2] : [t.hammer1];
-      for (const h of hammers) {
+      for (let hi = 0; hi < hammerCount; hi++) {
+        const h           = t.hammers[hi];
+        const phaseOffset = hi * (Math.PI * 2 / hammerCount);
         ctx.save();
 
-        // Trail — polyline of fading points stepping back along the spiral
-        const phase = t.ringPhase + (h === t.hammer2 ? Math.PI : 0);
+        // Trail — polyline stepping back along the spiral
+        const phase = t.ringPhase + phaseOffset;
         for (let i = 1; i <= TRAIL_STEPS; i++) {
           const pa    = phase - i * TRAIL_DANGLE;
           const t01   = ((pa % WRAP) + WRAP) % WRAP / WRAP;
@@ -154,7 +155,7 @@ export class Renderer {
           ctx.fill();
         }
 
-        // Hammer head — bright glowing dot at tip
+        // Hammer head
         ctx.globalAlpha = 1;
         ctx.fillStyle   = '#ffffff';
         ctx.shadowBlur  = game.quality !== 'low' ? glowBlur : 0;
@@ -171,10 +172,9 @@ export class Renderer {
         ctx.arc(h.x, h.y, dotR * 2.8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Emit a trailing particle spark each frame (high quality)
+        // Particle spark
         if (game.quality === 'high' && game.particles && Math.random() < 0.5) {
-          // Direction: backward along tangent
-          const trailAngle = h.angle + Math.PI / 2 + Math.PI; // behind the tip
+          const trailAngle = h.angle + Math.PI / 2 + Math.PI;
           const spd = 80 + Math.random() * 60;
           game.particles._emit(
             h.x, h.y,
