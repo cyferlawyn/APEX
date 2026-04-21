@@ -191,12 +191,12 @@ export class Game {
     this.recentEarned += amount;
   }
 
-  // Award pending shards for killing a boss on wave >= 100.
-  // Formula: floor(1 + (wave-100)/10) × milestone multiplier
+  // Award pending shards for killing a boss on wave >= 50.
+  // Formula: floor(1 + (wave-50)/10) × milestone multiplier
   // Milestone ×3 at x00 waves, ×10 at x000 waves.
   awardShards(wave) {
-    if (wave < 100) return;
-    const base = Math.floor(1 + (wave - 100) / 10);
+    if (wave < 50) return;
+    const base = Math.floor(1 + (wave - 50) / 10);
     const mult = wave % 1000 === 0 ? 10
                : wave % 100  === 0 ? 3
                : 1;

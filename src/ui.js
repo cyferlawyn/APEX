@@ -81,15 +81,15 @@ function patchPrestigeCards() {
     tabPrestige.classList.toggle('hidden', !showPrestige);
   }
 
-  // Ascend button — teaser from wave 30 (greyed), active once pendingShards > 0;
+  // Ascend button — teaser from wave 50 (greyed), active once wave >= 100 and pendingShards > 0;
   // permanently visible once ascensionCount > 0
   const ascendBtn = document.getElementById('ascend-btn');
-  const showAscend = game.wave >= 30 || game.ascensionCount > 0;
+  const showAscend = game.wave >= 50 || game.ascensionCount > 0;
   if (ascendBtn.classList.contains('hidden') === showAscend) {
     ascendBtn.classList.toggle('hidden', !showAscend);
   }
   if (showAscend) {
-    const active = game.pendingShards > 0;
+    const active = game.pendingShards > 0 && game.wave >= 100;
     ascendBtn.disabled = !active;
     const label = active ? `ASCEND (+${fmt(game.pendingShards)} ◆)` : 'ASCEND (clear wave 100)';
     if (ascendBtn.textContent !== label) ascendBtn.textContent = label;
