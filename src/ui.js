@@ -74,9 +74,9 @@ function patchPrestigeCards() {
 
   const { prestigeShop, game } = apex;
 
-  // Show/hide Ascension tab — hidden until the player earns their first shard
+  // Show/hide Ascension tab — teaser from wave 50, fully active once shards are earned
   const tabPrestige = document.getElementById('tab-prestige');
-  const showPrestige = game.ascensionCount > 0 || game.pendingShards > 0 || game.totalShardsEarned > 0;
+  const showPrestige = game.wave >= 50 || game.ascensionCount > 0 || game.pendingShards > 0 || game.totalShardsEarned > 0;
   if (tabPrestige.classList.contains('hidden') === showPrestige) {
     tabPrestige.classList.toggle('hidden', !showPrestige);
   }
