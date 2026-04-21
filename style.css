@@ -1220,6 +1220,10 @@ html, body {
   color: rgba(255,255,255,0.55);
 }
 
+#auto-ascension-row.hidden {
+  display: none;
+}
+
 #auto-ascension-row label {
   white-space: nowrap;
 }
