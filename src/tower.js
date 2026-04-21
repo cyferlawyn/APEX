@@ -32,8 +32,10 @@ export class Tower {
     this.ringTier        = 0;     // 0 = not unlocked
     this.ringAngle       = 0;     // angle of ring 1 (radians)
     this.ringAngle2      = 0;     // angle of ring 2 (counter-rotating, tier 3+)
-    this.ringRadius      = 0;     // current spiral radius (set on first _updateRings call)
+    this.ringRadius      = 0;     // current spiral radius for ring 1 (set on first _updateRings call)
     this.ringRadiusDir   = 1;     // +1 = expanding, -1 = contracting
+    this.ringRadius2     = 0;     // radius for ring 2 (starts at opposite phase)
+    this.ringRadiusDir2  = -1;
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -251,39 +253,46 @@ export class Tower {
     const DPS      = this.damage * this.fireRate * 8.0 * this._dmgMult * this.ringDpsMult;
     const rotRad   = rotSpeed * (Math.PI / 180) * dt;
 
-    // Spiral: oscillate radius between ORBIT_MIN (close) and ORBIT_MAX (far).
-    // One full out-and-back cycle takes SPIRAL_PERIOD seconds.
+    this.ringAngle  = (this.ringAngle  + rotRad)                      % (Math.PI * 2);
+    this.ringAngle2 = (this.ringAngle2 - rotRad * 0.7 + Math.PI * 2)  % (Math.PI * 2);
+
+    // Spiral: each ring oscillates between ORBIT_MIN and ORBIT_MAX.
+    // Period = time for 5 full rotations at this tier's rotSpeed.
     const ORBIT_MIN    = this.radius + 16;
-    const ORBIT_MAX    = this.radius + 200 + t * 30; // farther at higher tiers
-    const SPIRAL_PERIOD = 2.5;  // seconds for one out-and-back
-    const SPIRAL_SPEED  = (ORBIT_MAX - ORBIT_MIN) / (SPIRAL_PERIOD / 2);
+    const ORBIT_MAX    = this.radius + 220;
+    const secsPerRot   = 360 / rotSpeed;           // seconds per full rotation
+    const halfPeriod   = 5 * secsPerRot;           // 5 rotations = one grow or shrink phase
+    const SPIRAL_SPEED = (ORBIT_MAX - ORBIT_MIN) / halfPeriod;
 
-    // Initialise radius on first call
-    if (this.ringRadius === 0) this.ringRadius = ORBIT_MIN;
+    // Initialise radii on first call: ring 1 starts close, ring 2 starts far (opposite phase)
+    if (this.ringRadius  === 0) { this.ringRadius  = ORBIT_MIN; this.ringRadiusDir  =  1; }
+    if (this.ringRadius2 === 0) { this.ringRadius2 = ORBIT_MAX; this.ringRadiusDir2 = -1; }
 
-    this.ringRadius += this.ringRadiusDir * SPIRAL_SPEED * dt;
-    if (this.ringRadius >= ORBIT_MAX) { this.ringRadius = ORBIT_MAX; this.ringRadiusDir = -1; }
-    if (this.ringRadius <= ORBIT_MIN) { this.ringRadius = ORBIT_MIN; this.ringRadiusDir =  1; }
+    this.ringRadius  += this.ringRadiusDir  * SPIRAL_SPEED * dt;
+    this.ringRadius2 += this.ringRadiusDir2 * SPIRAL_SPEED * dt;
+    if (this.ringRadius  >= ORBIT_MAX) { this.ringRadius  = ORBIT_MAX; this.ringRadiusDir  = -1; }
+    if (this.ringRadius  <= ORBIT_MIN) { this.ringRadius  = ORBIT_MIN; this.ringRadiusDir  =  1; }
+    if (this.ringRadius2 >= ORBIT_MAX) { this.ringRadius2 = ORBIT_MAX; this.ringRadiusDir2 = -1; }
+    if (this.ringRadius2 <= ORBIT_MIN) { this.ringRadius2 = ORBIT_MIN; this.ringRadiusDir2 =  1; }
 
-    this.ringAngle  = (this.ringAngle  + rotRad)                    % (Math.PI * 2);
-    this.ringAngle2 = (this.ringAngle2 - rotRad * 0.7 + Math.PI * 2) % (Math.PI * 2);
-
-    const rings  = t >= 3 ? [this.ringAngle, this.ringAngle2] : [this.ringAngle];
-    const orbitR = this.ringRadius;
+    // Ring definitions — each carries its own radius
+    const rings = t >= 3
+      ? [{ angle: this.ringAngle, r: this.ringRadius }, { angle: this.ringAngle2, r: this.ringRadius2 }]
+      : [{ angle: this.ringAngle, r: this.ringRadius }];
 
     for (const e of game.enemyPool.pool) {
       if (!e.active) continue;
       const dx = e.x - this.x;
       const dy = e.y - this.y;
       const d2 = dx * dx + dy * dy;
-      const lo = orbitR - e.radius;
-      const hi = orbitR + e.radius;
-      if (d2 < lo * lo || d2 > hi * hi) continue;
 
-      const eAngle = Math.atan2(dy, dx);
+      for (const ring of rings) {
+        const lo = ring.r - e.radius;
+        const hi = ring.r + e.radius;
+        if (d2 < lo * lo || d2 > hi * hi) continue;
 
-      for (const rAngle of rings) {
-        let dAngle = Math.abs(eAngle - rAngle) % (Math.PI * 2);
+        const eAngle = Math.atan2(dy, dx);
+        let dAngle = Math.abs(eAngle - ring.angle) % (Math.PI * 2);
         if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
         if (dAngle < arcRad / 2) {
           // Colossus armor: absorb first ring tick per wave

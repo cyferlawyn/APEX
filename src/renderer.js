@@ -123,10 +123,9 @@ export class Renderer {
     if (t.ringTier > 0) {
       const arcDeg  = t.ringTier === 1 ? 30 : t.ringTier === 2 ? 45 : t.ringTier === 3 ? 45 : t.ringTier === 4 ? 60 : 75;
       const arcRad  = arcDeg * (Math.PI / 180);
-      const orbitR  = t.ringRadius || (r + 16); // fallback before first update tick
-      const rings   = t.ringTier >= 3
-        ? [{ angle: t.ringAngle, ccw: false }, { angle: t.ringAngle2, ccw: true }]
-        : [{ angle: t.ringAngle, ccw: false }];
+      const orbitR  = t.ringRadius || (r + 16); // fallback before first update tick      const rings   = t.ringTier >= 3
+        ? [{ angle: t.ringAngle, ccw: false, r: t.ringRadius || (r + 16) }, { angle: t.ringAngle2, ccw: true, r: t.ringRadius2 || (r + 16) }]
+        : [{ angle: t.ringAngle, ccw: false, r: t.ringRadius || (r + 16) }];
 
       // Scale visuals with tier
       const coreWidth  = 2 + t.ringTier * 1.2;
@@ -149,7 +148,7 @@ export class Renderer {
         ctx.lineWidth   = bloomWidth;
         ctx.lineCap     = 'round';
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.arc(cx, cy, ring.r, startA, endA);
         ctx.stroke();
 
         // Pass 2 — colored glow
@@ -159,7 +158,7 @@ export class Renderer {
         ctx.shadowColor = '#ff6d00';
         ctx.lineWidth   = glowWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.arc(cx, cy, ring.r, startA, endA);
         ctx.stroke();
 
         // Pass 3 — white hot core
@@ -169,12 +168,12 @@ export class Renderer {
         ctx.shadowColor = '#ff6d00';
         ctx.lineWidth   = coreWidth;
         ctx.beginPath();
-        ctx.arc(cx, cy, orbitR, startA, endA);
+        ctx.arc(cx, cy, ring.r, startA, endA);
         ctx.stroke();
 
         // Bright leading-edge dot — punchy focal point
-        const tipX = cx + Math.cos(leadA) * orbitR;
-        const tipY = cy + Math.sin(leadA) * orbitR;
+        const tipX = cx + Math.cos(leadA) * ring.r;
+        const tipY = cy + Math.sin(leadA) * ring.r;
         ctx.globalAlpha = 1;
         ctx.fillStyle   = '#ffffff';
         ctx.shadowBlur  = glowBlur;
