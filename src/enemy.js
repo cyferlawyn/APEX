@@ -1,3 +1,9 @@
+// Early-wave relief factor: reduces enemy count and HP for waves 1-50,
+// decaying linearly from ×20 at wave 1 to ×1 at wave 51.
+export function earlyWaveFactor(wave) {
+  return wave <= 50 ? 20 - (wave - 1) * (19 / 50) : 1;
+}
+
 export const EnemyType = Object.freeze({
   DRONE:    'DRONE',
   SWARM:    'SWARM',
@@ -60,9 +66,7 @@ export class Enemy {
   init(type, wave, x, y) {
     const def = BASE_STATS[type];
     const hpScale = Math.pow(1.1, wave - 1);
-    // Early-wave relief: divide HP by a factor that decays linearly from ×20 at
-    // wave 1 down to ×1 at wave 51. Wave 51+ uses the raw growth formula.
-    const earlyFactor = wave <= 50 ? 20 - (wave - 1) * (19 / 50) : 1;
+    const earlyFactor = earlyWaveFactor(wave);
 
     this.active      = true;
     this.atTower     = false;
@@ -78,7 +82,7 @@ export class Enemy {
     this.radius      = def.radius;
     this.color       = def.color;
     this.shape       = def.shape;
-    this.reward      = Math.floor(def.reward * (1 + 0.02 * wave));
+    this.reward      = Math.floor(def.reward * (1 + 0.02 * wave) * earlyFactor);
 
     // Status effects
     this.slowUntil   = 0;

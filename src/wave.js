@@ -1,4 +1,4 @@
-import { EnemyType } from './enemy.js';
+import { EnemyType, earlyWaveFactor } from './enemy.js';
 import { audio }     from './audio.js';
 
 // Returns a spawn point on the canvas perimeter at a given angle (radians),
@@ -96,7 +96,8 @@ function buildWave(wave) {
     return entries;
   }
 
-  const count    = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
+  const rawCount = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
+  const count    = Math.max(1, Math.round(rawCount / earlyWaveFactor(wave)));
   const interval = 0.2;
 
   let t = 0;
