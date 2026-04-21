@@ -65,12 +65,12 @@ const UPGRADES = [
   {
     id: 'hpRegen',
     name: 'HP Regen',
-    tooltip: 'Heals tier × 3% of max HP at the end of each wave.\nTier 1: 3% — tier 6: 18% — max (tier 12): 36% per wave.',
-    maxTier: 12,
+    tooltip: 'Heals tier × 10% of max HP at the end of each wave.\nTier 1: 10% — max (tier 10): full heal per wave.',
+    maxTier: 10,
     baseCost: 80,
     costMult: 1.65,
     apply(tower, game, tier) {
-      tower.regenFraction = tier * 0.03;
+      tower.regenFraction = tier * 0.10;
     },
   },
   {
