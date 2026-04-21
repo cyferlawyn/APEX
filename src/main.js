@@ -95,6 +95,7 @@ function bootstrap() {
 function beginWave(keepEnemies = false) {
   if (!keepEnemies) game.enemyPool.reset();
   game.projectilePool.reset();
+  game.enemyProjectiles = [];
   // Do NOT clear particle/FX arrays — let active animations finish naturally.
   // Mark any in-flight blastwaves as kill-done so they don't kill new-wave enemies.
   for (const w of game.blastwaves) w.killDone = true;
@@ -235,6 +236,25 @@ function update(dt) {
       game.enemyPool.update(dt, game);
       game.projectilePool.update(dt, game);
       game.tower.update(dt, game);
+
+      // ── Enemy projectiles (boss / colossus ranged shots) ─────────────────
+      if (game.enemyProjectiles.length) {
+        const tw = game.tower;
+        const tr2 = tw.radius * tw.radius;
+        game.enemyProjectiles = game.enemyProjectiles.filter(p => {
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.t -= dt;
+          if (p.t <= 0) return false;
+          // Hit tower
+          const dx = p.x - tw.x, dy = p.y - tw.y;
+          if (dx * dx + dy * dy <= tr2) {
+            tw.takeDamage(p.damage, game);
+            return false;
+          }
+          return true;
+        });
+      }
       if (game.particles) game.particles.update(dt);
       if (game.resultsTimer > 0) game.resultsTimer -= dt;
       game.tickEarnLog(dt);

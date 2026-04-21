@@ -36,6 +36,7 @@ export class Game {
     this.obliterateOverkill = 0;   // overkill multiplier that triggered this round
     this.obliterateInFlight = false; // true while blastwave kill setTimeout is pending
     this.blastwaves         = []; // { x, y, r, maxR, t, life } — obliterate shockwave rings
+    this.enemyProjectiles   = []; // { x, y, vx, vy, damage, type, t } — boss/colossus shots
 
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;

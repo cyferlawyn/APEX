@@ -48,6 +48,9 @@ export class Enemy {
     // Boss enrage state
     this.enraged      = false;
 
+    // Ranged attack timer (BOSS + COLOSSUS)
+    this.shootTimer   = 0;
+
     // Poison DoT state
     this.poisonDps      = 0;   // damage per second from poison
     this.poisonTimer    = 0;   // seconds of poison remaining
@@ -90,6 +93,10 @@ export class Enemy {
     this.armorProjectile = false;
     this.armorRing       = false;
     this.armorLaser      = false;
+    // Stagger first shot by up to half the interval so waves don't all volley together
+    if (type === EnemyType.BOSS)     this.shootTimer = 0.5 + Math.random() * 0.75;
+    else if (type === EnemyType.COLOSSUS) this.shootTimer = 1.0 + Math.random() * 1.5;
+    else                             this.shootTimer = 0;
     this.poisonDps       = 0;
     this.poisonTimer     = 0;
     this.poisonTickTimer = 0;
@@ -127,6 +134,32 @@ export class Enemy {
     }
 
     this.atTower = false;
+
+    // ── Ranged attack: BOSS fires every 1.5 s, COLOSSUS every 3 s ───────────
+    if (this.type === EnemyType.BOSS || this.type === EnemyType.COLOSSUS) {
+      this.shootTimer -= dt;
+      if (this.shootTimer <= 0) {
+        const isBoss   = this.type === EnemyType.BOSS;
+        this.shootTimer = isBoss ? 1.5 : 3.0;
+        const tx  = game.tower.x;
+        const ty  = game.tower.y;
+        const dx  = tx - this.x;
+        const dy  = ty - this.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len > 0) {
+          const spd    = isBoss ? 380 : 260;
+          const dmg    = this.damage * (isBoss ? 0.6 : 0.8);
+          game.enemyProjectiles.push({
+            x: this.x, y: this.y,
+            vx: (dx / len) * spd,
+            vy: (dy / len) * spd,
+            damage: dmg,
+            type: this.type,
+            t: 4.0,
+          });
+        }
+      }
+    }
 
     // ── Boss enrage (below 40% HP) ───────────────────────────────────────────
     if (this.type === EnemyType.BOSS && !this.enraged && this.hp / this.maxHp < 0.40) {

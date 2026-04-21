@@ -59,6 +59,7 @@ export class Renderer {
     this._drawExplosions();
     this._drawDeathRings();
     this._drawEnemies();
+    this._drawEnemyProjectiles();
     this._drawProjectiles();
     this._drawLightningArcs();
     this._drawRicochetLines();
@@ -976,6 +977,33 @@ export class Renderer {
   }
 
   // ── projectiles ───────────────────────────────────────────────────────────────
+
+  _drawEnemyProjectiles() {
+    const { ctx, game } = this;
+    if (!game.enemyProjectiles?.length) return;
+
+    for (const p of game.enemyProjectiles) {
+      const isBoss = p.type === 'BOSS';
+      const color  = isBoss ? '#ff1744' : '#ff4081';
+      const radius = isBoss ? 5 : 4;
+
+      if (game.quality !== 'low') {
+        ctx.save();
+        ctx.shadowBlur  = isBoss ? 14 : 10;
+        ctx.shadowColor = color;
+        ctx.fillStyle   = color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      } else {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius - 1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
 
   _drawProjectiles() {
     const { ctx, canvas, game } = this;
