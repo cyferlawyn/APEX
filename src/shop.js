@@ -191,13 +191,13 @@ const UPGRADES = [
   {
     id: 'ringDps',
     name: 'Ring of Annihilation',
-    tooltip: 'Multiplies the Orbital Death Ring\'s DPS output.\nTier 1: ×1.5  Tier 2: ×2.0  Tier 3: ×2.75\nTier 4: ×3.5  Tier 5: ×5.0.\nRequires Orbital Death Ring to be unlocked.',
+    tooltip: 'Multiplies the Orbital Death Ring\'s DPS output.\nTier 1: ×2.0  Tier 2: ×3.5  Tier 3: ×5.0\nTier 4: ×6.0  Tier 5: ×7.5.\nRequires Orbital Death Ring to be unlocked.',
     maxTier: 5,
     baseCost: 180000,
     costMult: 2.0,
     apply(tower, game, tier) {
-      const mults = [1.0, 1.5, 2.0, 2.75, 3.5, 5.0];
-      tower.ringDpsMult = mults[tier] ?? 5.0;
+      const mults = [1.0, 2.0, 3.5, 5.0, 6.0, 7.5];
+      tower.ringDpsMult = mults[tier] ?? 7.5;
     },
   },
   {
