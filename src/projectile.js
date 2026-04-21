@@ -43,10 +43,27 @@ class SpatialGrid {
     }
     return results;
   }
+
+  // Fill `out` array (cleared first) with enemies in cells overlapping (x,y,r).
+  queryInto(x, y, r, out) {
+    out.length = 0;
+    const cs    = this.cellSize;
+    const minCx = Math.floor((x - r) / cs);
+    const maxCx = Math.floor((x + r) / cs);
+    const minCy = Math.floor((y - r) / cs);
+    const maxCy = Math.floor((y + r) / cs);
+    for (let cx = minCx; cx <= maxCx; cx++) {
+      for (let cy = minCy; cy <= maxCy; cy++) {
+        const arr = this.cells.get(this._key(cx, cy));
+        if (arr) for (const e of arr) out.push(e);
+      }
+    }
+  }
 }
 
 // Module-level grid; rebuilt every update call from the current enemy pool.
-const _grid = new SpatialGrid(64);
+const _grid        = new SpatialGrid(64);
+const _gridScratch = [];  // reusable result buffer — avoids per-query allocation
 
 export class Projectile {
   constructor() {
@@ -94,7 +111,8 @@ export class Projectile {
 
     // Collision vs enemies — query grid instead of full pool scan
     const QUERY_R = 32;
-    for (const e of _grid.query(this.x, this.y, QUERY_R)) {
+    _grid.queryInto(this.x, this.y, QUERY_R, _gridScratch);
+    for (const e of _gridScratch) {
       if (!e.active) continue;
       // Phantom: projectiles pass through while intangible
       if (e.intangible) continue;
@@ -121,7 +139,8 @@ export class Projectile {
     // Explosive splash
     if (this.explosiveRadius > 0) {
       const r2 = this.explosiveRadius * this.explosiveRadius;
-      for (const e of game.enemyPool.pool) {
+      _grid.queryInto(this.x, this.y, this.explosiveRadius, _gridScratch);
+      for (const e of _gridScratch) {
         if (!e.active || e === target) continue;
         const dx = this.x - e.x;
         const dy = this.y - e.y;
@@ -238,7 +257,7 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
     }
 
     _awardKill(e, game);
-    e.active = false;
+    game.enemyPool.deactivate(e);
   }
 }
 
@@ -290,7 +309,8 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
 
   // Find nearest active enemy not already hit in this chain
   let best = null, bestD2 = Infinity;
-  for (const e of game.enemyPool.pool) {
+  _grid.queryInto(x, y, CHAIN_RANGE, _gridScratch);
+  for (const e of _gridScratch) {
     if (!e.active || e === lastHit) continue;
     const dx = x - e.x, dy = y - e.y;
     const d2 = dx * dx + dy * dy;
@@ -320,7 +340,8 @@ function _ricochetFrom(x, y, lastHit, damage, bouncesLeft, explosiveRadius, chai
   const r2 = RICOCHET_RANGE * RICOCHET_RANGE;
 
   let best = null, bestD2 = Infinity;
-  for (const e of game.enemyPool.pool) {
+  _grid.queryInto(x, y, RICOCHET_RANGE, _gridScratch);
+  for (const e of _gridScratch) {
     if (!e.active || e === lastHit) continue;
     const dx = x - e.x, dy = y - e.y;
     const d2 = dx * dx + dy * dy;
@@ -337,7 +358,8 @@ function _ricochetFrom(x, y, lastHit, damage, bouncesLeft, explosiveRadius, chai
   // Explosive splash on ricochet hit
   if (explosiveRadius > 0) {
     const er2 = explosiveRadius * explosiveRadius;
-    for (const e of game.enemyPool.pool) {
+    _grid.queryInto(best.x, best.y, explosiveRadius, _gridScratch);
+    for (const e of _gridScratch) {
       if (!e.active || e === best) continue;
       const dx = best.x - e.x, dy = best.y - e.y;
       if (dx * dx + dy * dy <= er2) {
@@ -404,9 +426,9 @@ export class ProjectilePool {
 export function killEnemy(e, game) {
   if (!e.active) return;
   e.hp          = 0;
-  e.active      = false;
   e.poisonDps   = 0;
   e.poisonTimer = 0;
+  game.enemyPool.deactivate(e);
   _awardKill(e, game);
 }
 

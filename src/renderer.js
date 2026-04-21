@@ -45,6 +45,7 @@ export class Renderer {
 
   render() {
     const { ctx, canvas, game } = this;
+    this._now = this._now; // single timestamp for the entire render pass
 
     if (game.tower) {
       game.tower.x = canvas.width  / 2;
@@ -212,13 +213,13 @@ export class Renderer {
 
     // Core dot — pulses when laser active, breathes otherwise
     const pulse = t.laserActive
-      ? r * 0.25 + Math.sin(Date.now() / 60) * r * 0.08
-      : r * 0.18 + Math.sin(Date.now() / 600) * r * 0.06; // gentle idle breath
+      ? r * 0.25 + Math.sin(this._now / 60) * r * 0.08
+      : r * 0.18 + Math.sin(this._now / 600) * r * 0.06; // gentle idle breath
     ctx.save();
     ctx.shadowBlur  = t.laserActive ? 20 : 10;
     ctx.shadowColor = glowColor;
     ctx.fillStyle   = glowColor;
-    ctx.globalAlpha = t.laserActive ? 1 : 0.75 + Math.sin(Date.now() / 600) * 0.15;
+    ctx.globalAlpha = t.laserActive ? 1 : 0.75 + Math.sin(this._now / 600) * 0.15;
     ctx.beginPath();
     ctx.arc(cx, cy, pulse, 0, Math.PI * 2);
     ctx.fill();
@@ -228,7 +229,7 @@ export class Renderer {
     if (t.invulnTimer > 0) {
       // Pulsing gold invulnerability ring — drawn outside the hex
       const invR   = r + 10;
-      const alpha  = 0.5 + Math.sin(Date.now() / 80) * 0.35;
+      const alpha  = 0.5 + Math.sin(this._now / 80) * 0.35;
       ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
       ctx.strokeStyle = '#ffd600';
@@ -897,7 +898,7 @@ export class Renderer {
   _drawPhantomGhost(e) {
     // Pulsing translucent ring to show intangibility
     const ctx   = this.ctx;
-    const pulse = 0.35 + Math.sin(Date.now() / 80) * 0.2;
+    const pulse = 0.35 + Math.sin(this._now / 80) * 0.2;
     ctx.save();
     ctx.globalAlpha = pulse;
     ctx.strokeStyle = '#b388ff';
@@ -918,12 +919,12 @@ export class Renderer {
     const dx   = tx - e.x, dy = ty - e.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     const proximity = Math.max(0, 1 - dist / 300);
-    const pulse = 0.5 + Math.sin(Date.now() / (120 - proximity * 80)) * 0.35;
+    const pulse = 0.5 + Math.sin(this._now / (120 - proximity * 80)) * 0.35;
 
     ctx.save();
 
     // Blast radius aura — soft filled circle showing the danger zone
-    const auraAlpha = Math.max(0, Math.min(1, 0.04 + proximity * 0.08 + Math.sin(Date.now() / 200) * 0.02));
+    const auraAlpha = Math.max(0, Math.min(1, 0.04 + proximity * 0.08 + Math.sin(this._now / 200) * 0.02));
     ctx.globalAlpha = auraAlpha;
     ctx.fillStyle   = '#ff6d00';
     ctx.shadowBlur  = 0;
@@ -948,7 +949,7 @@ export class Renderer {
     ctx.shadowColor = '#ff6d00';
     ctx.lineWidth   = 1.5;
     ctx.beginPath();
-    ctx.arc(e.x, e.y, e.radius + 4 + Math.sin(Date.now() / 100) * 3, 0, Math.PI * 2);
+    ctx.arc(e.x, e.y, e.radius + 4 + Math.sin(this._now / 100) * 3, 0, Math.PI * 2);
     ctx.stroke();
 
     ctx.restore();
@@ -981,7 +982,7 @@ export class Renderer {
   _drawBossOverlay(e) {
     if (this.game.quality === 'low') return;
     const ctx  = this.ctx;
-    const now  = Date.now();
+    const now  = this._now;
 
     // Pulsing inner core
     const pulse = 0.55 + Math.sin(now / 180) * 0.25;

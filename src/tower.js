@@ -257,10 +257,12 @@ export class Tower {
 
     for (const e of game.enemyPool.pool) {
       if (!e.active) continue;
-      const dx   = e.x - this.x;
-      const dy   = e.y - this.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist > ORBIT_R + e.radius || dist < ORBIT_R - e.radius) continue;
+      const dx = e.x - this.x;
+      const dy = e.y - this.y;
+      const d2   = dx * dx + dy * dy;
+      const lo   = ORBIT_R - e.radius;
+      const hi   = ORBIT_R + e.radius;
+      if (d2 < lo * lo || d2 > hi * hi) continue;
 
       const eAngle = Math.atan2(dy, dx);
 
@@ -310,12 +312,12 @@ export class Tower {
       this.laserTimer -= dt;
       this.laserAngle += SWEEP_SPEED * dt;
 
+      const laserR2 = this.laserRange * this.laserRange;
       for (const e of game.enemyPool.pool) {
         if (!e.active) continue;
-        const dx   = e.x - this.x;
-        const dy   = e.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist > this.laserRange) continue;
+        const dx = e.x - this.x;
+        const dy = e.y - this.y;
+        if (dx * dx + dy * dy > laserR2) continue;
 
         const eAngle = Math.atan2(dy, dx);
         let dAngle   = Math.abs(eAngle - (this.laserAngle % (Math.PI * 2)));
@@ -373,16 +375,24 @@ export class Tower {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function _nearestEnemies(pool, origin, count, maxR2 = Infinity) {
-  return pool
-    .filter(e => e.active && _dist2(e, origin) <= maxR2)
-    .sort((a, b) => _dist2(a, origin) - _dist2(b, origin))
-    .slice(0, count);
-}
-
-function _dist2(a, b) {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  return dx * dx + dy * dy;
+  // Single-pass insertion into a fixed-size scratch array — no alloc, no full sort.
+  const best   = [];   // sorted ascending by d2, length <= count
+  const bestD2 = [];
+  for (const e of pool) {
+    if (!e.active) continue;
+    const dx = e.x - origin.x, dy = e.y - origin.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 > maxR2) continue;
+    // Find insertion point
+    let pos = best.length;
+    while (pos > 0 && bestD2[pos - 1] > d2) pos--;
+    if (pos < count) {
+      best.splice(pos, 0, e);
+      bestD2.splice(pos, 0, d2);
+      if (best.length > count) { best.pop(); bestD2.pop(); }
+    }
+  }
+  return best;
 }
 
 function _spawnCurrencyPopup(amount, game, x, y) {
@@ -436,7 +446,7 @@ function _towerKillEnemy(e, game) {
   } else {
     audio.deathSmall();
   }
-  e.active = false;
+  game.enemyPool.deactivate(e);
 }
 
 // Returns the expected (normalized) damage of a single regular shot, factoring in:

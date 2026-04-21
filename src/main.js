@@ -245,21 +245,25 @@ function update(dt) {
 
       // ── Enemy projectiles (boss / colossus ranged shots) ─────────────────
       if (game.enemyProjectiles.length) {
-        const tw = game.tower;
+        const tw  = game.tower;
         const tr2 = tw.radius * tw.radius;
-        game.enemyProjectiles = game.enemyProjectiles.filter(p => {
+        const ep  = game.enemyProjectiles;
+        let   wi  = 0;
+        for (let ri = 0; ri < ep.length; ri++) {
+          const p = ep[ri];
           p.x += p.vx * dt;
           p.y += p.vy * dt;
           p.t -= dt;
-          if (p.t <= 0) return false;
+          if (p.t <= 0) continue;
           // Hit tower
           const dx = p.x - tw.x, dy = p.y - tw.y;
           if (dx * dx + dy * dy <= tr2) {
             tw.takeDamage(p.damage, game);
-            return false;
+            continue;
           }
-          return true;
-        });
+          ep[wi++] = p;
+        }
+        ep.length = wi;
       }
       if (game.particles) game.particles.update(dt);
       if (game.resultsTimer > 0) game.resultsTimer -= dt;
@@ -495,7 +499,7 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
         game.logEarned(earned);
         if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
         game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-        e.active = false;
+        game.enemyPool.deactivate(e);
       }
     }
   }

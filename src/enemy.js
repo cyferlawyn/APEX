@@ -243,22 +243,34 @@ export function _bomberDetonate(bomber, game, damagesTower = false) {
     if (ddx * ddx + ddy * ddy <= r2) e.hp -= BLAST_DMG * 0.5;
   }
   game.explosions.push({ x: bomber.x, y: bomber.y, r: BLAST_R, t: 0.55, life: 0.55 });
-  bomber.active = false;
+  if (game.enemyPool) game.enemyPool.deactivate(bomber); else bomber.active = false;
 }
 
 export class EnemyPool {
   constructor(size) {
     this.pool = Array.from({ length: size }, () => new Enemy());
+    this._activeCount = 0;
+    this._cursor = 0; // eviction cursor for acquire
   }
 
   acquire() {
-    return this.pool.find(e => !e.active) ?? null;
+    // Fast path: scan from cursor to find an inactive slot
+    const len = this.pool.length;
+    for (let i = 0; i < len; i++) {
+      const idx = (this._cursor + i) % len;
+      if (!this.pool[idx].active) {
+        this._cursor = (idx + 1) % len;
+        return this.pool[idx];
+      }
+    }
+    return null;
   }
 
   spawn(type, wave, x, y, game = null) {
     const e = this.acquire();
     if (e) {
       e.init(type, wave, x, y);
+      this._activeCount++;
       // VANGUARD A1: Advance Guard — +2% speed and +2% damage per wave cleared (stacks within run)
       if (game && game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0) {
         const mult = 1 + game.vanguardSpeedBonus;
@@ -277,11 +289,21 @@ export class EnemyPool {
   }
 
   activeCount() {
-    return this.pool.filter(e => e.active).length;
+    return this._activeCount;
   }
 
   reset() {
     for (const e of this.pool) e.active = false;
+    this._activeCount = 0;
+    this._cursor = 0;
+  }
+
+  // Call this instead of setting e.active = false directly, to keep the counter accurate.
+  deactivate(e) {
+    if (e.active) {
+      e.active = false;
+      this._activeCount--;
+    }
   }
 }
 

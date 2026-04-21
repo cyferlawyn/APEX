@@ -45,11 +45,7 @@ export class ParticleSystem {
   }
 
   _acquire() {
-    // Find an inactive slot first
-    for (let i = 0; i < this.pool.length; i++) {
-      if (!this.pool[i].active) return this.pool[i];
-    }
-    // Pool full — evict oldest (cursor)
+    // Direct cursor eviction — O(1), always succeeds.
     const p = this.pool[this.cursor];
     this.cursor = (this.cursor + 1) % this.pool.length;
     return p;
@@ -158,25 +154,46 @@ export class ParticleSystem {
   // ── update & draw ────────────────────────────────────────────────────────────
 
   update(dt) {
+    // Precompute friction scalar for the two common friction values used by emitters.
+    // Per-particle friction is stored; we compute pow(f, dt*60) here and cache
+    // the two most common values (0.88 and 0.97) to avoid repeated Math.pow calls.
+    const _frictionCache = new Map();
+    const frictionScale = f => {
+      let s = _frictionCache.get(f);
+      if (s === undefined) { s = Math.pow(f, dt * 60); _frictionCache.set(f, s); }
+      return s;
+    };
     for (const p of this.pool) {
-      if (p.active) p.update(dt);
+      if (!p.active) continue;
+      p.x    += p.vx * dt;
+      p.y    += p.vy * dt;
+      const fs = frictionScale(p.friction);
+      p.vx   *= fs;
+      p.vy   *= fs;
+      p.life -= dt;
+      if (p.life <= 0) p.active = false;
     }
   }
 
   draw(ctx, quality = 'high') {
+    const useShadow = quality === 'high';
+    ctx.save();
     for (const p of this.pool) {
       if (!p.active) continue;
       const alpha = p.life / p.maxLife;
-      ctx.save();
-      ctx.globalAlpha  = alpha;
-      ctx.shadowBlur   = quality === 'high' ? 6 : 0;
-      ctx.shadowColor  = p.color;
-      ctx.fillStyle    = p.color;
+      ctx.globalAlpha = alpha;
+      if (useShadow) {
+        ctx.shadowBlur  = 6;
+        ctx.shadowColor = p.color;
+      }
+      ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
+    ctx.restore();
+    // Reset shadow after the batch so subsequent draw calls are unaffected
+    if (useShadow) { ctx.shadowBlur = 0; }
   }
 
   reset() {
