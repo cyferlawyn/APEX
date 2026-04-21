@@ -7,12 +7,12 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'autoBuy',
     name: 'Auto-Buyer',
-    tooltip: 'Automatically purchases the cheapest available upgrade every N seconds.\nTier 1: 30 s  Tier 2: 24 s  Tier 3: 18 s\nTier 4: 12 s  Tier 5: 6 s  Tier 6: instant (every tick)',
+    tooltip: 'Automatically purchases the cheapest available upgrade every N seconds.\nTier 1: 5 s  Tier 2: 4 s  Tier 3: 3 s\nTier 4: 2 s  Tier 5: 1 s  Tier 6: instant (every tick)',
     maxTier: 6,
     baseCost: 2,
     costMult: 2.5,
     apply(tower, game, tier) {
-      const intervals = [0, 30, 24, 18, 12, 6, 0];
+      const intervals = [0, 5, 4, 3, 2, 1, 0];
       game.autoBuyInterval = intervals[tier] ?? 0;
     },
   },
