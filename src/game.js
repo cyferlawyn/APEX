@@ -100,6 +100,7 @@ export class Game {
     // Neural Stack counters
     this.neuralStacks         = 0;      // total stacks active this run (permanent + run-earned)
     this.permanentNeuralStacks = 0;     // preserved stacks from Singularity (loaded from capstone save)
+    this.bestRunWave          = 0;      // highest wave cleared this run — Data Harvest only awards stacks on first clear
     // Lure Protocols — which enemy type has 3× capture this wave (set each wave start)
     this.lureType             = null;
 
@@ -242,7 +243,7 @@ export class Game {
   // Multiplicative currency bonus from Neural Stacks (NEXUS C1: Data Harvest).
   factionCurrencyMult() {
     if (!this.dataHarvest) return 1.0;
-    return 1 + this.neuralStacks * 0.003;
+    return 1 + this.neuralStacks * 0.008;
   }
 
   // WARBORN: maximum Rush Stacks (base 1000, +25 per Eternal Warrior rank)

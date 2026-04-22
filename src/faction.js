@@ -178,7 +178,7 @@ export const FACTION_NODES = {
       id: 'nexus_c1', col: 2, tier: 1, prereq: null,
       name: 'Data Harvest',
       shortName: 'Data',
-      tooltip: '+1 Neural Stack per wave cleared. Stacks persist the run.\nEach stack grants +0.3% currency multiplier.\nAmplified by Stack Amplifier and Recursive Growth.',
+      tooltip: '+1 Neural Stack per wave cleared. Stacks persist the run.\nEach stack grants +0.8% currency multiplier.\nAmplified by Stack Amplifier and Recursive Growth.',
       cost: 500_000,
       apply(game) { game.dataHarvest = true; },
     },

@@ -81,6 +81,7 @@ function bootstrap() {
     game.currency           = saved.currency           ?? 0;
     game.upgrades           = saved.upgrades           ?? {};
     game.bestWave           = saved.bestWave           ?? 1;
+    game.bestRunWave        = saved.bestRunWave        ?? saved.wave ?? 1;
     game.currencyMultiplier = saved.currencyMultiplier ?? 1.0;
     // VANGUARD per-run state
     game.vanguardSpeedBonus   = saved.vanguardSpeedBonus   ?? 0;
@@ -550,7 +551,8 @@ function onWaveComplete(keepEnemies = false) {
   game.waveEarned     = 0;
 
   // NEXUS C1: Data Harvest — +1 neural stack per wave (× filled slots if C3 active)
-  if (game.dataHarvest) {
+  // Only award on the first clear of each wave this run (no bonus for re-clearing after death)
+  if (game.dataHarvest && game.wave > game.bestRunWave) {
     let stacks = 1;
     if (game.recursiveGrowth) {
       const ts = game.traitorSystem;
@@ -562,6 +564,7 @@ function onWaveComplete(keepEnemies = false) {
     }
     game.neuralStacks += stacks;
   }
+  if (game.wave > game.bestRunWave) game.bestRunWave = game.wave;
 
   // WARBORN B1 passive: each wave clear removes 1s from all cooldowns
   if (game.warbornRallyCry) {
@@ -644,6 +647,7 @@ function saveGame() {
     towerHP:            game.tower.hp,
     upgrades:           game.upgrades,
     bestWave:           game.bestWave,
+    bestRunWave:        game.bestRunWave,
     currencyMultiplier: game.currencyMultiplier,
     // VANGUARD per-run state
     vanguardSpeedBonus:  game.vanguardSpeedBonus,
@@ -687,6 +691,7 @@ export function newGame(confirmed) {
   game.currencyMultiplier = 1.0;
   game.bestWave           = 1;
   game.resultsTimer       = 0;
+  game.bestRunWave        = 0;
   game.pendingFactionChoice = false;
   // Reset VANGUARD per-run state
   game.vanguardSpeedBonus           = 0;
@@ -760,6 +765,7 @@ export function completeAscend(factionId) {
   game.upgrades           = {};
   game.currencyMultiplier = 1.0;
   game.resultsTimer       = 0;
+  game.bestRunWave        = 0;
   game.tower              = new Tower();
   // Reset VANGUARD per-run state
   game.vanguardSpeedBonus           = 0;
