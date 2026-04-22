@@ -135,3 +135,24 @@ function pickType(wave) {
 
   return pool[Math.floor(Math.random() * pool.length)];
 }
+
+// Returns the deduplicated set of enemy types that can appear on a given wave number.
+export function availableEnemyTypes(wave) {
+  const set = new Set();
+  if (wave % 10 === 0) {
+    set.add(EnemyType.BOSS);
+    if (wave >= 20) set.add(EnemyType.COLOSSUS);
+    if (wave >= 50) set.add(EnemyType.BRUTE);
+  } else {
+    set.add(EnemyType.DRONE);
+    if (wave >= 4)  set.add(EnemyType.DASHER);
+    if (wave >= 5)  set.add(EnemyType.ELITE);
+    if (wave >= 7)  set.add(EnemyType.BOMBER);
+    if (wave >= 8)  set.add(EnemyType.BRUTE);
+    if (wave >= 11) set.add(EnemyType.SWARM);
+    if (wave >= 14) set.add(EnemyType.PHANTOM);
+    if (wave >= 18) set.add(EnemyType.SPAWNER);
+    if (wave >= 20) set.add(EnemyType.COLOSSUS);
+  }
+  return [...set];
+}

@@ -3,7 +3,7 @@ import { Tower }           from './tower.js';
 import { EnemyType, EnemyPool } from './enemy.js';
 import { ProjectilePool, killEnemy, obliterateWave, checkObliterateAtWaveStart } from './projectile.js';
 import { normalizedShotDamage } from './tower.js';
-import { WaveSpawner }     from './wave.js';
+import { WaveSpawner, availableEnemyTypes } from './wave.js';
 import { Renderer }        from './renderer.js';
 import { Shop }            from './shop.js';
 import { PrestigeShop }    from './prestige.js';
@@ -144,7 +144,7 @@ function beginWave(keepEnemies = false) {
   game.waveKills  = 0;
   // NEXUS A1: pick a random lure type for this wave
   if (game.lureProtocols) {
-    const types = Object.values(EnemyType);
+    const types = availableEnemyTypes(game.wave);
     game.lureType = types[Math.floor(Math.random() * types.length)];
   } else {
     game.lureType = null;
