@@ -194,7 +194,6 @@ export class Game {
     this._transmissionSeen.add(key);
     this.transmissions.push({ lines, timer: 15 });
   }
-  }
 
   // Record a kill reward in the rolling window.
   logEarned(amount) {
