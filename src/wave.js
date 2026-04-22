@@ -93,18 +93,24 @@ function buildWave(wave) {
   }
 
   const rawCount = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
-  const count    = Math.max(1, Math.round(rawCount / earlyWaveFactor(wave)));
+  const afterEarly = Math.max(1, Math.round(rawCount / earlyWaveFactor(wave)));
+  // Slot cap ramps from 1 to 150 over waves 1-500, then holds at 150.
+  const slotCap = Math.round(1 + (Math.min(wave, 500) - 1) * (149 / 499));
+  const count   = Math.min(afterEarly, slotCap);
   const interval = 0.2;
 
+  const MAX_SWARMS = 10;
+  const SWARM_SIZE = 10;
+  let swarmCount = 0;
   let t = 0;
   for (let i = 0; i < count; i++) {
-    // 15% chance per slot (wave 11+) to replace with a swarm cluster
-    if (wave >= 11 && Math.random() < 0.15) {
-      const clusterSize  = 10 + Math.floor(Math.random() * 11);
-      const clusterAngle = Math.random() * Math.PI * 2; // shared angle for tight cluster
-      for (let s = 0; s < clusterSize; s++) {
+    // 15% chance per slot (wave 11+) to replace with a swarm cluster, capped at 10 clusters
+    if (wave >= 11 && swarmCount < MAX_SWARMS && Math.random() < 0.15) {
+      const clusterAngle = Math.random() * Math.PI * 2;
+      for (let s = 0; s < SWARM_SIZE; s++) {
         entries.push({ type: EnemyType.SWARM, delay: t + s * 0.03, angle: clusterAngle });
       }
+      swarmCount++;
       t += interval;
     } else {
       entries.push({ type: pickType(wave), delay: t });
