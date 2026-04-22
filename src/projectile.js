@@ -291,10 +291,33 @@ function _awardKill(e, game) {
   if (pet) {
     game.pendingTraitorAnnouncements.push(pet);
     game.traitorSystem.optimizeForNexus(game);
+    if (game.traitorSystem.roster.length === 1)
+      game.transmit('traitor_first', [
+        '☠ TRAITOR CAPTURED',
+        'An enemy has defected. Check the Traitors tab to equip your new ally.',
+        'Merge duplicates to increase rarity and unlock stronger bonuses.',
+      ]);
   }
   if (game.particles && game.quality !== 'low') game.particles.emitDeath(e.x, e.y, e.color);
   game.deathRings.push({ x: e.x, y: e.y, r: e.radius * 2.5, t: 0.35, color: e.color });
-  if      (e.type === EnemyType.BOSS)     { audio.deathBoss();   game.edgeFlash = 0.5; game.awardShards(game.wave); game.vanguardBossKilledThisWave = true; }
+  if      (e.type === EnemyType.BOSS) {
+    audio.deathBoss();
+    game.edgeFlash = 0.5;
+    game.awardShards(game.wave);
+    game.vanguardBossKilledThisWave = true;
+    if (game.wave === 50)
+      game.transmit('first_shard', [
+        '◆ SHARD DETECTED',
+        'A crystalline fragment has been recovered from the boss.',
+        'Shards accumulate until you Ascend — check the Ascension tab.',
+      ]);
+    if (game.wave === 100)
+      game.transmit('ascension_unlock', [
+        '⬆ ASCENSION UNLOCKED',
+        'You have proven your dominance. Press ASCEND to reset with permanent power.',
+        'Spend shards on Ascension upgrades that persist across all future runs.',
+      ]);
+  }
   else if (e.type === EnemyType.COLOSSUS) { audio.deathBoss(); _releaseColossusSpawn(e, game); }
   else if (e.type === EnemyType.BRUTE || e.type === EnemyType.SPAWNER) audio.deathLarge();
   else if (e.type === EnemyType.ELITE || e.type === EnemyType.PHANTOM) audio.deathMedium();

@@ -506,6 +506,12 @@ function _towerKillEnemy(e, game) {
   if (pet) {
     game.pendingTraitorAnnouncements.push(pet);
     game.traitorSystem.optimizeForNexus(game);
+    if (game.traitorSystem.roster.length === 1)
+      game.transmit('traitor_first', [
+        '☠ TRAITOR CAPTURED',
+        'An enemy has defected. Check the Traitors tab to equip your new ally.',
+        'Merge duplicates to increase rarity and unlock stronger bonuses.',
+      ]);
   }
   // Leech: restore HP on kill
   if (game.tower.leechHp > 0) {

@@ -38,6 +38,11 @@ export class Game {
     this.blastwaves         = []; // { x, y, r, maxR, t, life } — obliterate shockwave rings
     this.enemyProjectiles   = []; // { x, y, vx, vy, damage, type, t } — boss/colossus shots
 
+    // ── Transmissions ───────────────────────────────────────────────────────
+    // Queue of { lines: string[], timer: number } broadcasts shown centre-top.
+    this.transmissions      = [];
+    this._transmissionSeen  = new Set(); // dedup keys so each fires only once per session
+
     // Particle system — initialized in main.js after bootstrap
     this.particles = null;
 
@@ -179,11 +184,16 @@ export class Game {
   tickEarnLog(dt) {
     const WINDOW = 60; // seconds
     for (const e of this._earnLog) e.age += dt;
-    const before = this._earnLog.length;
     this._earnLog = this._earnLog.filter(e => e.age < WINDOW);
-    if (this._earnLog.length !== before) {
-      this.recentEarned = this._earnLog.reduce((s, e) => s + e.amount, 0);
-    }
+    this.recentEarned = this._earnLog.reduce((s, e) => s + e.amount, 0);
+  }
+
+  // Queue a transmission broadcast. `key` is a dedup identifier — each key fires once per session.
+  transmit(key, lines) {
+    if (this._transmissionSeen.has(key)) return;
+    this._transmissionSeen.add(key);
+    this.transmissions.push({ lines, timer: 15 });
+  }
   }
 
   // Record a kill reward in the rolling window.

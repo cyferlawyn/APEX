@@ -286,6 +286,11 @@ function update(dt) {
       if (game.particles) game.particles.update(dt);
       if (game.resultsTimer > 0) game.resultsTimer -= dt;
       game.tickEarnLog(dt);
+      // Tick transmission timers
+      if (game.transmissions.length) {
+        for (const tx of game.transmissions) tx.timer -= dt;
+        game.transmissions = game.transmissions.filter(tx => tx.timer > 0);
+      }
       tickAutoBuy(dt);
       tickWarborn(dt);
 
@@ -761,6 +766,14 @@ export function completeAscend(factionId) {
   shop.reapplyAll({});
   prestigeShop.reapplyAll(game.prestigeUpgrades);
   game.factionSystem.reapplyAll(game);
+
+  // First-ascension transmission: covenants (Ascension upgrades) now available
+  if (game.ascensionCount === 1)
+    game.transmit('covenants_unlock', [
+      '✦ COVENANTS AVAILABLE',
+      'The Ascension tab now offers permanent upgrades purchasable with shards.',
+      'These covenants persist forever — invest wisely.',
+    ]);
 
   // Apply run-start bonuses from prestige
   game.currency = game.prestigeStartCurrency ?? 0;

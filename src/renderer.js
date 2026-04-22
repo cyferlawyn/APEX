@@ -74,6 +74,7 @@ export class Renderer {
     this._drawHUD();
     this._drawWarbornHUD();
     this._drawVanguardHUD();
+    this._drawTransmissions();
     this._drawStateOverlay();
   }
 
@@ -1384,6 +1385,55 @@ export class Renderer {
       ctx.restore();
       return true;
     });
+  }
+
+  // ── transmissions ─────────────────────────────────────────────────────────────
+  _drawTransmissions() {
+    const { ctx, canvas, game } = this;
+    if (!game.transmissions?.length) return;
+    const tx = game.transmissions[0]; // show only the frontmost
+    if (!tx) return;
+
+    const FADE_START = 3;
+    const alpha = tx.timer < FADE_START ? tx.timer / FADE_START : 1;
+
+    const W       = Math.min(520, canvas.width * 0.6);
+    const cx      = canvas.width / 2;
+    const lineH   = 18;
+    const padX    = 20;
+    const padY    = 14;
+    const boxH    = padY * 2 + lineH * tx.lines.length + (tx.lines.length - 1) * 6;
+    const boxY    = 18;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Background panel
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 1;
+    const rx = cx - W / 2;
+    ctx.beginPath();
+    ctx.roundRect(rx, boxY, W, boxH, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Text
+    ctx.textAlign = 'center';
+    for (let i = 0; i < tx.lines.length; i++) {
+      const isHeader = i === 0;
+      ctx.font      = isHeader ? 'bold 13px monospace' : '12px monospace';
+      ctx.fillStyle = isHeader ? '#00e5ff' : '#c8c8d0';
+      if (isHeader && game.quality !== 'low') {
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#00e5ff';
+      } else {
+        ctx.shadowBlur = 0;
+      }
+      ctx.fillText(tx.lines[i], cx, boxY + padY + i * (lineH + 6) + 12);
+    }
+
+    ctx.restore();
   }
 
   // ── state overlays ────────────────────────────────────────────────────────────
