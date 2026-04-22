@@ -94,6 +94,7 @@ export class Projectile {
     this.executeThreshold = executeThreshold;
     this.ricochetCount    = ricochetCount;
     this.overcharge       = overcharge;
+    this.pierced          = null; // Set of already-hit enemies when pierce is active
   }
 
   update(dt, game, bounds) {
@@ -116,11 +117,14 @@ export class Projectile {
       if (!e.active) continue;
       // Phantom: projectiles pass through while intangible
       if (e.intangible) continue;
+      // Pierce: skip enemies already hit by this projectile
+      if (this.pierced?.has(e)) continue;
       const dx = this.x - e.x;
       const dy = this.y - e.y;
       if (dx * dx + dy * dy <= e.radius * e.radius) {
         this._onHit(e, game);
-        return;
+        if (!this.active) return;
+        break; // hit processed (pierce kept us alive); re-query next frame
       }
     }
   }
@@ -135,6 +139,14 @@ export class Projectile {
 
     // Direct hit
     _damageEnemy(target, this.damage, game, this.executeThreshold, 'projectile');
+
+    // Pierce — chance to keep the projectile alive and continue through enemies
+    const pierceChance = game.tower.pierceChance ?? 0;
+    if (pierceChance > 0 && Math.random() < pierceChance) {
+      if (!this.pierced) this.pierced = new Set();
+      this.pierced.add(target);
+      this.active = true; // survive this hit
+    }
 
     // Explosive splash
     if (this.explosiveRadius > 0) {

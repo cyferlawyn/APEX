@@ -64,6 +64,7 @@ export class Tower {
 
     // Prestige: ricochet
     this.ricochetCount     = 0;     // extra bounce targets per shot
+    this.pierceChance      = 0;     // 0.0–0.50 chance to not consume projectile on hit
 
     // Prestige: poison
     this.poisonFraction    = 0;     // DoT = fraction of hit damage over 3 s (0 = disabled)

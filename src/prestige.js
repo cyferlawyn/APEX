@@ -282,6 +282,18 @@ const PRESTIGE_UPGRADES = [
     },
   },
 
+  {
+    id: 'pierce',
+    name: 'Pierce',
+    tooltip: 'Each projectile has a chance to not be consumed on hit, continuing through enemies.\nCannot hit the same enemy twice. Each new enemy is rolled independently.\nTier 1: 10%  Tier 2: 20%  Tier 3: 30%  Tier 4: 40%  Tier 5: 50% pierce chance.\nCosts: 5k / 25k / 125k / 625k / 3.125M shards.',
+    maxTier: 5,
+    baseCost: 5000,
+    costMult: 5.0,
+    apply(tower, game, tier) {
+      tower.pierceChance = tier * 0.10;
+    },
+  },
+
   // baseCost: 8000
   {
     id: 'eternalArsenal',
@@ -389,6 +401,7 @@ export class PrestigeShop {
     this.game.tower.ringCarried         = [];
     this.game.tower.invulnTimer         = 0;
     this.game.tower.ricochetCount       = 0;
+    this.game.tower.pierceChance        = 0;
     this.game.tower.poisonFraction      = 0;
     this.game.tower.resurgenceHp        = 0;
     this.game.tower.resurgenceUsed      = false;
