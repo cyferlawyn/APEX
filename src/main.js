@@ -672,6 +672,7 @@ export function newGame(confirmed) {
   game.vanguardCapstoneRank = 0;
   game.permanentNeuralStacks = 0;
   game.factionSystem.permanent = {};
+  game.traitorSystem = new TraitorSystem();
   game.factionSystem.activeFaction = null;
   game.wave               = 1;
   game.currency           = 0;
