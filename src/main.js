@@ -44,6 +44,7 @@ function bootstrap() {
     if (prefs.autoQuality != null) game.autoQuality      = prefs.autoQuality;
     if (prefs.volume != null)      audio.setVolume(prefs.volume);
     if (prefs.autoAscensionMode)   game.autoAscensionMode = prefs.autoAscensionMode;
+    if (prefs.autoBuyEnabled != null) game.autoBuyEnabled = prefs.autoBuyEnabled;
     // Tab collapse state is applied in ui.js load handler (after DOM is ready)
   }
 
@@ -209,6 +210,7 @@ function loop(timestamp) {
 }
 
 function tickAutoBuy(dt) {
+  if (!game.autoBuyEnabled) return;
   const interval = game.autoBuyInterval ?? 0;
   if (interval === 0 && (game.prestigeUpgrades?.autoBuy ?? 0) === 0) return;
 
@@ -802,18 +804,25 @@ export function setQuality(q) {
     _autoLowTimer    = 0;
     _autoCooldown    = 0;
   }
-  savePrefs({ quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality });
+  savePrefs({ quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoBuyEnabled: game.autoBuyEnabled });
 }
 
 // --- set auto-ascension mode (ENDLESS WAR capstone pref) ---
 export function setAutoAscensionMode(mode) {
   game.autoAscensionMode = mode;
-  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: mode };
+  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: mode, autoBuyEnabled: game.autoBuyEnabled };
+  savePrefs(prefs);
+}
+
+// --- toggle auto-buyer on/off ---
+export function setAutoBuyEnabled(enabled) {
+  game.autoBuyEnabled = enabled;
+  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: game.autoAscensionMode, autoBuyEnabled: enabled };
   savePrefs(prefs);
 }
 
 // Expose to UI
-window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, setAutoAscensionMode, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
+window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, setAutoAscensionMode, setAutoBuyEnabled, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
 
 // Init AudioContext on first user gesture (browser autoplay policy)
 document.addEventListener('click',    () => audio.init(), { once: true });
