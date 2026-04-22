@@ -29,9 +29,11 @@ export class Tower {
     this.laserTimer      = 0;     // time remaining in current burst
 
     // Orbital Death Ring
-    this.ringTier        = 0;     // 0 = not unlocked
-    this.ringPhase       = 0;     // ever-increasing angle driving the Archimedean spiral
-    this.ringDestroyChance = 0;   // 0.0–0.75 chance to destroy enemy projectiles on hammer hit
+    this.ringTier          = 0;     // 0 = not unlocked
+    this.ringPhase         = 0;     // ever-increasing angle driving the Archimedean spiral
+    this.ringDestroyChance = 0;     // 0.0–0.75 chance to deflect enemy projectiles on hammer hit
+    this.ringCarryChance   = 0;     // 0.0–0.25 chance to carry an enemy outward on hammer hit
+    this.ringCarried       = [];    // [{ enemy, hammerIndex, timer }] active carry slots
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -296,6 +298,56 @@ export class Tower {
           _towerKillEnemy(e, game);
         }
         break;
+      }
+    }
+
+    // Vortex Sweep — carry enemies outward along the spiral
+    if (this.ringCarryChance > 0) {
+      // Tick existing carries and force enemy position onto their hammer
+      const carried = this.ringCarried;
+      let ci = 0;
+      for (let i = 0; i < carried.length; i++) {
+        const slot = carried[i];
+        const e    = slot.enemy;
+        if (!e.active) continue; // killed mid-carry — just drop
+        slot.timer -= dt;
+        if (slot.timer <= 0) {
+          e.carriedByRing = false;
+          continue; // drop
+        }
+        const h = hammers[slot.hammerIndex % hammers.length];
+        e.x = h.x;
+        e.y = h.y;
+        // Continuous DPS while carried
+        e.hp -= DPS * dt;
+        if (game.particles && game.quality !== 'low' && Math.random() < 0.3)
+          game.particles.emitHit(e.x, e.y, '#ff6d00');
+        if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
+            || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
+          e.carriedByRing = false;
+          const wasExecute = e.hp > 0;
+          e.hp = 0;
+          if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
+          _towerKillEnemy(e, game);
+          continue;
+        }
+        carried[ci++] = slot;
+      }
+      carried.length = ci;
+
+      // Try to pick up new enemies on hammer contact
+      const carriedEnemies = new Set(carried.map(s => s.enemy));
+      for (const e of game.enemyPool.pool) {
+        if (!e.active || e.carriedByRing) continue;
+        for (let hi = 0; hi < hammers.length; hi++) {
+          const h = hammers[hi];
+          const dx = e.x - h.x, dy = e.y - h.y;
+          if (dx * dx + dy * dy <= HIT_R2 && Math.random() < this.ringCarryChance) {
+            e.carriedByRing = true;
+            carried.push({ enemy: e, hammerIndex: hi, timer: 3.0 });
+            break;
+          }
+        }
       }
     }
 

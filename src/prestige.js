@@ -194,6 +194,18 @@ const PRESTIGE_UPGRADES = [
     },
   },
 
+  {
+    id: 'vortexSweep',
+    name: 'Vortex Sweep',
+    tooltip: 'Orbital Death Ring hammers can pick up enemies on contact and carry them outward along the spiral for 3 s, dealing continuous hammer damage.\nTier 1: 5%  Tier 2: 10%  Tier 3: 15%  Tier 4: 20%  Tier 5: 25% carry chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
+    maxTier: 5,
+    baseCost: 500,
+    costMult: 4.0,
+    apply(tower, game, tier) {
+      tower.ringCarryChance = tier * 0.05;
+    },
+  },
+
   // baseCost: 1000
   {
     id: 'obliterate',
@@ -373,6 +385,8 @@ export class PrestigeShop {
     this.game.tower.laserSlowDuration   = 0;
     this.game.tower.ringStunDuration    = 0;
     this.game.tower.ringDestroyChance   = 0;
+    this.game.tower.ringCarryChance     = 0;
+    this.game.tower.ringCarried         = [];
     this.game.tower.invulnTimer         = 0;
     this.game.tower.ricochetCount       = 0;
     this.game.tower.poisonFraction      = 0;

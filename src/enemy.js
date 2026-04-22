@@ -93,6 +93,7 @@ export class Enemy {
     this.dashTimer   = 0;
     this.spawnTimer  = 1.0; // first spawn after 1s
     this.phantomTimer = 0;
+    this.carriedByRing = false; // true while Vortex Sweep carries this enemy
     this.intangible  = false;
     this.enraged     = false;
     this.armorProjectile = false;
@@ -202,6 +203,7 @@ export class Enemy {
 
     // ── Movement ─────────────────────────────────────────────────────────────
     if (now < this.stunUntil) return;
+    if (this.carriedByRing) return; // position controlled by _updateRings
 
     if (this.type === EnemyType.DASHER) {
       this._updateDasher(dt, dx, dy, dist);
