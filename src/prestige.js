@@ -369,8 +369,16 @@ export class PrestigeShop {
     const entry = this._entry(id);
     if (!entry || entry.disabled || this.isMaxed(id) || !this.canAfford(id)) return false;
     this.game.shards -= this.cost(id);
-    this.game.prestigeUpgrades[id] = this.tier(id) + 1;
+    const prevTier = this.tier(id);
+    this.game.prestigeUpgrades[id] = prevTier + 1;
     entry.apply(this.game.tower, this.game, this.game.prestigeUpgrades[id]);
+    // War Chest: award the incremental currency bonus immediately for this run
+    if (id === 'startCurrency') {
+      const bonus = [0, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000];
+      const prev = bonus[prevTier] ?? 0;
+      const curr = bonus[this.game.prestigeUpgrades[id]] ?? 1000000;
+      this.game.currency += curr - prev;
+    }
     return true;
   }
 
