@@ -30,7 +30,7 @@ const UPGRADES = [
   {
     id: 'damage',
     name: 'Damage',
-    tooltip: 'Multiplies base damage by ×1.25 per purchase. Max 50 tiers.\nBase: 35. Affects all weapons — main gun, laser, and orbital ring.',
+    tooltip: 'Multiplies base damage by ×1.25 per purchase. Max 50 tiers.\nBase: 250. Affects all weapons — main gun, laser, and orbital ring.',
     maxTier: 50,
     baseCost: 50,
     costMult: 1.25,
