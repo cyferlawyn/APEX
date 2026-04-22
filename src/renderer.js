@@ -1403,7 +1403,7 @@ export class Renderer {
     const padX    = 20;
     const padY    = 14;
     const boxH    = padY * 2 + lineH * tx.lines.length + (tx.lines.length - 1) * 6;
-    const boxY    = 18;
+    const boxY    = canvas.height * 0.72;
 
     ctx.save();
     ctx.globalAlpha = alpha;
