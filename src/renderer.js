@@ -1265,7 +1265,7 @@ export class Renderer {
     ctx.fillStyle = cleared >= 1 ? '#00e676' : '#00bcd4';
     ctx.fillRect(pbX, pbY, pbW * cleared, pbH);
 
-    // Neural stacks HUD (NEXUS C2 Stack Amplifier)
+    // Neural stacks HUD (NEXUS C1 Data Harvest)
     if (game.neuralStacks > 0) {
       ctx.font      = '13px monospace';
       ctx.textAlign = 'left';

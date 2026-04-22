@@ -555,7 +555,7 @@ function patchFactionTab() {
     const f = FACTIONS[fid];
     if (fid === 'nexus') {
       const dmgBonus  = game.stackAmplifier ? `×${game.factionDmgMult().toFixed(2)} dmg` : '';
-      const currBonus = game.stackAmplifier ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
+      const currBonus = game.dataHarvest ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
       const bonuses   = [dmgBonus, currBonus].filter(Boolean).join('  ');
       statusText = `[${f.name}]${bonuses ? '  ' + bonuses : ''}`;
     } else if (fid === 'warborn') {

@@ -239,9 +239,9 @@ export class Game {
     return 1 + this.neuralStacks * 0.008;
   }
 
-  // Multiplicative currency bonus from Neural Stacks (NEXUS C2: Stack Amplifier).
+  // Multiplicative currency bonus from Neural Stacks (NEXUS C1: Data Harvest).
   factionCurrencyMult() {
-    if (!this.stackAmplifier) return 1.0;
+    if (!this.dataHarvest) return 1.0;
     return 1 + this.neuralStacks * 0.003;
   }
 
