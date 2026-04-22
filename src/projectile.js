@@ -305,13 +305,13 @@ function _awardKill(e, game) {
     game.edgeFlash = 0.5;
     game.awardShards(game.wave);
     game.vanguardBossKilledThisWave = true;
-    if (game.wave === 50)
+    if (game.wave === 50 && game.ascensionCount === 0 && game.totalShardsEarned === 0)
       game.transmit('first_shard', [
         '◆ SHARD DETECTED',
         'A crystalline fragment has been recovered from the boss.',
         'Shards accumulate until you Ascend — check the Ascension tab.',
       ]);
-    if (game.wave === 100)
+    if (game.wave === 100 && game.ascensionCount === 0)
       game.transmit('ascension_unlock', [
         '⬆ ASCENSION UNLOCKED',
         'You have proven your dominance. Press ASCEND to reset with permanent power.',
