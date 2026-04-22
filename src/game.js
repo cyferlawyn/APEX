@@ -234,16 +234,20 @@ export class Game {
     return 1 + bonus * resonanceMult;
   }
 
-  // Multiplicative damage bonus from Neural Stacks (NEXUS C2: Stack Amplifier).
+  // Multiplicative damage bonus from Neural Stacks.
+  // Base: +0.2%/stack (all factions). +0.8%/stack extra with NEXUS C2 Stack Amplifier.
   factionDmgMult() {
-    if (!this.stackAmplifier) return 1.0;
-    return 1 + this.neuralStacks * 0.008;
+    if (this.neuralStacks <= 0) return 1.0;
+    const coeff = 0.002 + (this.stackAmplifier ? 0.008 : 0);
+    return 1 + this.neuralStacks * coeff;
   }
 
-  // Multiplicative currency bonus from Neural Stacks (NEXUS C1: Data Harvest).
+  // Multiplicative currency bonus from Neural Stacks.
+  // Base: +0.2%/stack (all factions). +0.8%/stack extra with NEXUS C1 Data Harvest.
   factionCurrencyMult() {
-    if (!this.dataHarvest) return 1.0;
-    return 1 + this.neuralStacks * 0.008;
+    if (this.neuralStacks <= 0) return 1.0;
+    const coeff = 0.002 + (this.dataHarvest ? 0.008 : 0);
+    return 1 + this.neuralStacks * coeff;
   }
 
   // WARBORN: maximum Rush Stacks (base 1000, +25 per Eternal Warrior rank)

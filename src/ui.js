@@ -553,25 +553,30 @@ function patchFactionTab() {
   let statusText = 'No faction active.';
   if (fid) {
     const f = FACTIONS[fid];
+    // Neural stack bonuses — shown for any faction that has stacks
+    const stackDmg  = game.neuralStacks > 0 && game.factionDmgMult() > 1.0
+      ? `×${game.factionDmgMult().toFixed(2)} dmg` : '';
+    const stackCurr = game.neuralStacks > 0
+      ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
+    const stackBonus = [stackDmg, stackCurr].filter(Boolean).join('  ');
     if (fid === 'nexus') {
-      const dmgBonus  = game.stackAmplifier ? `×${game.factionDmgMult().toFixed(2)} dmg` : '';
-      const currBonus = game.dataHarvest ? `+${((game.factionCurrencyMult() - 1) * 100).toFixed(1)}% currency` : '';
-      const bonuses   = [dmgBonus, currBonus].filter(Boolean).join('  ');
-      statusText = `[${f.name}]${bonuses ? '  ' + bonuses : ''}`;
+      statusText = `[${f.name}]${stackBonus ? '  ' + stackBonus : ''}`;
     } else if (fid === 'warborn') {
       const rushBonus = game.warbornBloodRush && game.rushStacks > 0
         ? `  rush ×${(1 + game.rushStacks * 0.03).toFixed(2)} dmg`
         : '';
-      statusText = `[${f.name}]${rushBonus}`;
+      const extra = [stackBonus, rushBonus.trim()].filter(Boolean).join('  ');
+      statusText = `[${f.name}]${extra ? '  ' + extra : ''}`;
     } else if (fid === 'vanguard') {
       const parts = [];
       if (game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0)
         parts.push(`spd +${Math.round(game.vanguardSpeedBonus * 100)}%`);
       if (game.vanguardSpoilsOfWar)
         parts.push(`spoils +${game.vanguardSpoilsStacks * 5}% dmg/crit`);
+      if (stackBonus) parts.push(stackBonus);
       statusText = `[${f.name}]${parts.length ? '  ' + parts.join('  ') : ''}`;
     } else {
-      statusText = `[${f.name}]`;
+      statusText = `[${f.name}]${stackBonus ? '  ' + stackBonus : ''}`;
     }
   }
   if (statusLine.textContent !== statusText) statusLine.textContent = statusText;
