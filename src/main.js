@@ -771,7 +771,7 @@ export function completeAscend(factionId) {
   if (game.ascensionCount === 1)
     game.transmit('covenants_unlock', [
       '✦ COVENANTS AVAILABLE',
-      'The Ascension tab now offers permanent upgrades purchasable with shards.',
+      'The Covenant tab now allows you to join one of three factions.',
       'These covenants persist forever — invest wisely.',
     ]);
 
