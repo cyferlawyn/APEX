@@ -5,7 +5,7 @@ export class Tower {
   constructor() {
     this.maxHp           = 1000;
     this.hp              = 1000;
-    this.damage          = 35;
+    this.damage          = 100;
     this.fireRate        = 1.5;   // shots per second
     this.projectileSpeed = 400;   // px/sec
     this.range           = 220;   // px
