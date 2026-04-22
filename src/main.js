@@ -15,7 +15,8 @@ import { save, load, clear, hasSave, savePrefs, loadPrefs,
          savePrestige, loadPrestige, clearPrestige,
          saveTraitors, loadTraitors, clearTraitors,
          saveFaction, loadFaction, clearFaction,
-         saveFactionCapstones, loadFactionCapstones, clearFactionCapstones } from './storage.js';
+         saveFactionCapstones, loadFactionCapstones, clearFactionCapstones,
+         clearAll } from './storage.js';
 
 const canvas        = document.getElementById('gameCanvas');
 const game          = new Game();
@@ -657,12 +658,21 @@ function _savePrestigeState() {
   });
 }
 
-// --- new game (full reset, keeps prestige) ---
+// --- hard reset (wipes ALL saved data including prestige, factions, traitors) ---
 export function newGame(confirmed) {
   if (!confirmed && hasSave()) return;
-  clear();
-  clearTraitors();
-  clearFaction();
+  clearAll();
+  // Reset all in-memory prestige/faction/traitor state
+  game.shards              = 0;
+  game.totalShardsEarned   = 0;
+  game.pendingShards       = 0;
+  game.ascensionCount      = 0;
+  game.prestigeUpgrades    = {};
+  game.warbornCapstoneRank = 0;
+  game.vanguardCapstoneRank = 0;
+  game.permanentNeuralStacks = 0;
+  game.factionSystem.permanent = {};
+  game.factionSystem.activeFaction = null;
   game.wave               = 1;
   game.currency           = 0;
   game.upgrades           = {};
@@ -676,12 +686,10 @@ export function newGame(confirmed) {
   game.vanguardBossKilledThisWave   = false;
   game.tower              = new Tower();
   shop.reapplyAll({});
-  prestigeShop.reapplyAll(game.prestigeUpgrades);
-  game.factionSystem.activeFaction = null;
+  prestigeShop.reapplyAll({});
   game.factionSystem.reapplyAll(game);
-  // Apply War Chest start currency
-  game.currency = game.prestigeStartCurrency ?? 0;
-  game.wave     = game.prestigeStartWave ?? 1;
+  game.currency = 0;
+  game.wave     = 1;
   beginWave();
 }
 

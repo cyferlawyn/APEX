@@ -27,6 +27,15 @@ export function clear() {
   localStorage.removeItem(SAVE_KEY);
 }
 
+export function clearAll() {
+  localStorage.removeItem(SAVE_KEY);
+  localStorage.removeItem(PRESTIGE_KEY);
+  localStorage.removeItem(TRAITOR_KEY);
+  localStorage.removeItem(FACTION_KEY);
+  localStorage.removeItem(FACTION_CAPSTONES_KEY);
+  // intentionally keeps PREFS_KEY (quality/volume survive a hard reset)
+}
+
 export function hasSave() {
   return localStorage.getItem(SAVE_KEY) !== null;
 }
