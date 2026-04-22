@@ -1,4 +1,4 @@
-import { EnemyType, earlyWaveFactor } from './enemy.js';
+import { EnemyType } from './enemy.js';
 import { audio }     from './audio.js';
 
 // Returns a spawn point on the canvas perimeter at a given angle (radians),
@@ -93,10 +93,9 @@ function buildWave(wave) {
   }
 
   const rawCount = Math.min(Math.floor(3 + wave * 0.8 + Math.pow(wave, 1.5) * 0.15), 200);
-  const afterEarly = Math.max(1, Math.round(rawCount / earlyWaveFactor(wave)));
   // Slot cap ramps from 1 to 150 over waves 1-500, then holds at 150.
   const slotCap = Math.round(1 + (Math.min(wave, 500) - 1) * (149 / 499));
-  const count   = Math.min(afterEarly, slotCap);
+  const count   = Math.min(rawCount, slotCap);
   const interval = 0.2;
 
   const MAX_SWARMS = 10;

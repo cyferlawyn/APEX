@@ -1,9 +1,3 @@
-// Early-wave relief factor: reduces enemy count and HP for waves 1-50,
-// decaying linearly from ×20 at wave 1 to ×1 at wave 51.
-export function earlyWaveFactor(wave) {
-  return wave <= 50 ? 20 - (wave - 1) * (19 / 50) : 1;
-}
-
 export const EnemyType = Object.freeze({
   DRONE:    'DRONE',
   SWARM:    'SWARM',
@@ -66,7 +60,6 @@ export class Enemy {
   init(type, wave, x, y) {
     const def = BASE_STATS[type];
     const hpScale = Math.pow(1.1, wave - 1);
-    const earlyFactor = earlyWaveFactor(wave);
 
     this.active      = true;
     this.atTower     = false;
@@ -75,14 +68,14 @@ export class Enemy {
     this.type        = type;
     this.x           = x;
     this.y           = y;
-    this.maxHp       = Math.floor(def.hp * hpScale / earlyFactor);
+    this.maxHp       = Math.floor(def.hp * hpScale);
     this.hp          = this.maxHp;
     this.speed       = def.speed;
     this.baseSpeed   = def.speed;
     this.radius      = def.radius;
     this.color       = def.color;
     this.shape       = def.shape;
-    this.reward      = Math.floor(def.reward * (1 + 0.02 * wave) * earlyFactor);
+    this.reward      = Math.floor(def.reward * (1 + 0.02 * wave));
 
     // Status effects
     this.slowUntil   = 0;
@@ -332,8 +325,7 @@ const BASE_STATS = {
 
 // Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
 export function droneHp(wave) {
-  const earlyFactor = wave <= 50 ? 20 - (wave - 1) * (19 / 50) : 1;
-  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.1, wave - 1) / earlyFactor);
+  return Math.floor(BASE_STATS[EnemyType.DRONE].hp * Math.pow(1.1, wave - 1));
 }
 
 // Returns the scaled max-HP of a Boss at a given wave — used by Tidal Convergence.
