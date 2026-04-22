@@ -124,6 +124,20 @@ export class Enemy {
         }
       }
 
+      // Phantom cycle must tick even at melee range so it doesn't get stuck intangible
+      if (this.type === EnemyType.PHANTOM) {
+        this.phantomTimer -= dt;
+        if (this.phantomTimer <= 0) {
+          if (this.intangible) {
+            this.intangible   = false;
+            this.phantomTimer = 2.0;
+          } else {
+            this.intangible   = true;
+            this.phantomTimer = 1.0;
+          }
+        }
+      }
+
       this.damageTick -= dt;
       if (this.damageTick <= 0) {
         game.tower.takeDamage(this.damage, game);
