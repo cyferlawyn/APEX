@@ -269,11 +269,11 @@ export const FACTION_NODES = {
     },
     {
       id: 'vanguard_c3', col: 2, tier: 3, prereq: 'vanguard_c2',
-      name: 'Tidal Convergence',
-      shortName: 'Tidal Conv.',
-      tooltip: 'Merges every 10-wave decade into one gigantic wave.\nWaves 1–10 become one wave; 11–20 become one; and so on.\nThe merged wave always includes a boss scaled to the boss-wave HP of that decade.\nClearing the merged wave advances the wave counter by 10.\nMakes VANGUARD the fastest faction for wave-per-second progression.',
+      name: 'Apex Momentum',
+      shortName: 'Apex Mom.',
+      tooltip: 'Your highest wave ever reached multiplies the damage used for the Obliterate check.\nObliterate check effective damage ×bestWave.\nDoes not affect actual damage output — only the Obliterate threshold calculation.',
       cost: 12_500_000,
-      apply(game) { game.vanguardTidalConvergence = true; },
+      apply(game) { game.vanguardApexMomentum = true; },
     },
   ],
 };
@@ -442,7 +442,8 @@ export class FactionSystem {
     game.vanguardBattleHardened = false;
     game.vanguardMomentum       = false;
     game.vanguardIronWill          = false; // legacy — kept so old saves don't crash
-    game.vanguardTidalConvergence  = false;
+    game.vanguardTidalConvergence  = false; // legacy — kept so old saves don't crash
+    game.vanguardApexMomentum      = false;
 
     // Restore permanent neural stacks
     game.permanentNeuralStacks = this.permanent.nexus?.permanentNeuralStacks ?? 0;

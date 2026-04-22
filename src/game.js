@@ -149,7 +149,8 @@ export class Game {
     this.vanguardIronVault     = false; // B3
     this.vanguardBattleHardened = false;// C1
     this.vanguardMomentum      = false; // C2
-    this.vanguardTidalConvergence = false; // C3
+    this.vanguardApexMomentum  = false; // C3
+    this.vanguardTidalConvergence = false; // legacy — no longer functional
     this.vanguardIronWill      = false; // C3 legacy alias (old saves) — no longer functional
 
     // Per-run VANGUARD state (reset on ascension)
@@ -299,7 +300,8 @@ export class Game {
 
   // VANGUARD capstone: multiplier applied to obliterate normShot check only
   vanguardObliterateCheckMult() {
-    if (this.vanguardCapstoneRank <= 0) return 1.0;
-    return 1 + this.vanguardCapstoneRank * 0.25;
+    const capstone = this.vanguardCapstoneRank > 0 ? 1 + this.vanguardCapstoneRank * 0.25 : 1.0;
+    const apexMult = this.vanguardApexMomentum && this.bestWave > 0 ? this.bestWave : 1;
+    return capstone * apexMult;
   }
 }

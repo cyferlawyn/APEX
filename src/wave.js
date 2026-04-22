@@ -23,11 +23,7 @@ export class WaveSpawner {
   }
 
   begin(waveNumber) {
-    // VANGUARD C3: Tidal Convergence — merge a full decade into one gigantic wave.
-    const merged   = this.game.vanguardTidalConvergence;
-    const bossWave = merged ? waveNumber + 9 : waveNumber;
-
-    const entries     = merged ? buildMergedWave(waveNumber, bossWave) : buildWave(waveNumber);
+    const entries     = buildWave(waveNumber);
     const rollovers   = this.game.enemyPool.activeCount();
     this.done         = true;
 
@@ -113,40 +109,6 @@ function buildWave(wave) {
     } else {
       entries.push({ type: pickType(wave), delay: t });
       t += interval;
-    }
-  }
-
-  return entries;
-}
-
-// Tidal Convergence: merge all 10 waves of the decade into one gigantic wave.
-// firstWave = start of decade (1, 11, 21, …); bossWave = firstWave + 9.
-// Each enemy is tagged with its own wave number so HP scales correctly.
-// The boss uses bossWave HP — matching the normal boss-wave baseline used by
-// checkObliterateAtWaveStart, so obliterate calculations remain consistent.
-function buildMergedWave(firstWave, bossWave) {
-  const entries = [];
-
-  // Boss (scaled to boss-wave of this decade)
-  entries.push({ type: EnemyType.BOSS, wave: bossWave, delay: 0 });
-
-  // Colossus escort (same logic as regular boss wave)
-  const colossusCount = bossWave >= 20 ? Math.min(Math.floor((bossWave - 10) / 20) + 1, 5) : 0;
-  for (let i = 0; i < colossusCount; i++) {
-    entries.push({ type: EnemyType.COLOSSUS, wave: bossWave, delay: 1.5 + i * 1.5 });
-  }
-
-  // Brute wave-crashers (same logic as regular boss wave)
-  const bruteCount = bossWave >= 50 ? Math.min(Math.floor((bossWave - 50) / 25) * 2 + 4, 12) : 0;
-  for (let i = 0; i < bruteCount; i++) {
-    entries.push({ type: EnemyType.BRUTE, wave: bossWave, delay: 0.5 + i * 0.4 });
-  }
-
-  // Regular enemies: build each of the 10 non-boss waves and tag them
-  for (let w = firstWave; w < bossWave; w++) {
-    const waveEntries = buildWave(w);
-    for (const e of waveEntries) {
-      entries.push({ ...e, wave: w });
     }
   }
 

@@ -332,15 +332,15 @@ function update(dt) {
           const killPct = game.waveKills / total;
 
           // VANGUARD A2: Tide Surge — 50% of wave killed triggers next wave.
-          // On boss waves (or Tidal Convergence merged waves) the boss must die first.
+          // On boss waves the boss must die first.
           if (game.vanguardTideSurge && killPct >= 0.50) {
-            const hasBoss = game.wave % 10 === 0 || game.vanguardTidalConvergence;
+            const hasBoss = game.wave % 10 === 0;
             if (!hasBoss || game.vanguardBossKilledThisWave) {
               onWaveComplete(true);
             }
           }
-          // ENDLESS WAR capstone: all factions get 75% threshold (non-boss, non-merged waves)
-          else if (game.vanguardCapstoneRank > 0 && game.wave % 10 !== 0 && !game.vanguardTidalConvergence) {
+          // ENDLESS WAR capstone: all factions get 75% threshold (non-boss waves)
+          else if (game.vanguardCapstoneRank > 0 && game.wave % 10 !== 0) {
             if (killPct >= 0.75) {
               onWaveComplete(true);
             }
@@ -588,7 +588,7 @@ function onWaveComplete(keepEnemies = false) {
     game.vanguardSpoilsStacks = 0;
   }
 
-  game.wave += game.vanguardTidalConvergence ? 10 : 1;
+  game.wave += 1;
   if (game.wave - 1 > game.bestWave) game.bestWave = game.wave - 1;
 
   saveGame();

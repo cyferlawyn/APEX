@@ -453,12 +453,12 @@ export class Renderer {
 
   _drawVanguardHUD() {
     const { ctx, game } = this;
-    if (!game.vanguardSpoilsOfWar && !game.vanguardAdvanceGuard && !game.vanguardTidalConvergence) return;
+    if (!game.vanguardSpoilsOfWar && !game.vanguardAdvanceGuard) return;
 
     const VANGUARD_GREEN = '#76ff03';
     let hudY = 80;
 
-    // Build a single line: speed bonus + spoils bonus + tidal convergence indicator
+    // Build a single line: speed bonus + spoils bonus
     const parts = [];
     if (game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0)
       parts.push(`\u26A1 +${Math.round(game.vanguardSpeedBonus * 100)}% spd`);
@@ -466,13 +466,11 @@ export class Renderer {
       const dmgBonus = game.vanguardSpoilsStacks * 5;
       parts.push(`\u2694 +${fmt(dmgBonus)}% dmg/crit`);
     }
-    if (game.vanguardTidalConvergence)
-      parts.push(`\u27BF \u00D710 wave`);
 
     if (parts.length === 0) return;
 
     const stacks     = game.vanguardSpoilsOfWar ? game.vanguardSpoilsStacks : 0;
-    const hasStacks  = stacks > 0 || game.vanguardTidalConvergence;
+    const hasStacks  = stacks > 0;
     ctx.save();
     ctx.textAlign = 'left';
     ctx.font      = '13px monospace';
