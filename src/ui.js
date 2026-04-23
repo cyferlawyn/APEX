@@ -562,11 +562,15 @@ function patchFactionTab() {
     if (fid === 'nexus') {
       statusText = `[${f.name}]${stackBonus ? '  ' + stackBonus : ''}`;
     } else if (fid === 'warborn') {
-      const rushBonus = game.warbornBloodRush && game.rushStacks > 0
-        ? `  rush ×${(1 + game.rushStacks * 0.03).toFixed(2)} dmg`
-        : '';
-      const extra = [stackBonus, rushBonus.trim()].filter(Boolean).join('  ');
-      statusText = `[${f.name}]${extra ? '  ' + extra : ''}`;
+      const parts = [];
+      if (game.warbornBloodRush && game.rushStacks > 0) {
+        parts.push(`rush ×${(1 + game.rushStacks * 0.03).toFixed(2)} dmg`);
+        if (game.warbornRampage) {
+          parts.push(`×${game.rampageFireRateMult().toFixed(2)} atk spd`);
+        }
+      }
+      if (stackBonus) parts.push(stackBonus);
+      statusText = `[${f.name}]${parts.length ? '  ' + parts.join('  ') : ''}`;
     } else if (fid === 'vanguard') {
       const parts = [];
       if (game.vanguardAdvanceGuard && game.vanguardSpeedBonus > 0)
