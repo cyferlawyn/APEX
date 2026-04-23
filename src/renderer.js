@@ -354,7 +354,9 @@ export class Renderer {
       ctx.textAlign   = 'left';
       ctx.font        = '13px monospace';
       const dmgBonus  = stacks > 0 ? `+${fmt(stacks * 3)}% dmg` : '';
-      const rushLabel = `⚔ ${fmt(stacks)} rush${dmgBonus ? '  ' + dmgBonus : ''}`;
+      const atkBonus  = stacks > 0 && game.warbornRampage
+        ? `×${game.rampageFireRateMult().toFixed(2)} spd` : '';
+      const rushLabel = `⚔ ${fmt(stacks)} rush${dmgBonus ? '  ' + dmgBonus : ''}${atkBonus ? '  ' + atkBonus : ''}`;
       ctx.fillStyle   = stacks > 0 ? WARBORN_RED : 'rgba(255,23,68,0.3)';
       if (stacks > 0 && game.quality !== 'low') {
         ctx.shadowBlur  = 6;
