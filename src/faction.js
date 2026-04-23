@@ -120,7 +120,7 @@ export const FACTION_NODES = {
       id: 'warborn_c3', col: 2, tier: 3, prereq: 'warborn_c2',
       name: 'Unstoppable',
       shortName: 'Unstoppable',
-      tooltip: 'Wave-start: decay is paused until the first kill, then resumes normally.\nMortar hits reset the decay timer. Mortar kills grant a Rush Stack. Overkill grants 2 stacks.',
+      tooltip: 'Wave-start: decay is paused until the first kill, then resumes normally.\nMortar hits reset the decay timer. Mortar kills grant a Rush Stack. Overkill grants 2 stacks.\nPassive: all damage taken reduced by 20%.',
       cost: 12_500_000,
       apply(game) { game.warbornUnstoppable = true; },
     },

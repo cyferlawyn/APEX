@@ -108,6 +108,9 @@ export class Tower {
     // Invulnerability window (Resurgence proc)
     if (this.invulnTimer > 0) return;
 
+    // WARBORN C3: Unstoppable — 20% damage reduction from all sources
+    if (game?.warbornUnstoppable) amount *= 0.8;
+
     this.hp       -= amount;
 
     // Resurgence: one-time death prevention
