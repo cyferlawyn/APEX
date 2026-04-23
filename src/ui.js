@@ -75,6 +75,7 @@ function patchPrestigeCards() {
   const { prestigeShop, game } = apex;
 
   syncAutoBuyUI(game);
+  syncAutoAbilitiesUI(game);
 
   // Show/hide Ascension tab — teaser from wave 50, fully active once shards are earned
   const tabPrestige = document.getElementById('tab-prestige');
@@ -944,6 +945,14 @@ function wireButtons() {
     apex.setAutoBuyEnabled(!apex.game.autoBuyEnabled);
     syncAutoBuyUI(apex.game);
   });
+
+  // AUTO-ABILITIES toggle button
+  document.getElementById('auto-abilities-btn').addEventListener('click', () => {
+    const apex = getApex();
+    if (!apex) return;
+    apex.setAutoAbilitiesEnabled(!apex.game.autoAbilitiesEnabled);
+    syncAutoAbilitiesUI(apex.game);
+  });
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -977,6 +986,7 @@ function syncPrefsUI() {
   if (!apex) return;
   syncQualityUI(apex.game);
   syncAutoBuyUI(apex.game);
+  syncAutoAbilitiesUI(apex.game);
   const vol = apex.audio?.volume ?? 0.4;
   document.getElementById('volume-slider').value = Math.round(vol * 100);
 }
@@ -998,4 +1008,11 @@ function syncAutoBuyUI(game) {
   const ctrl = document.getElementById('auto-buy-control');
   ctrl.style.display = hasAutoBuy ? '' : 'none';
   document.getElementById('auto-buy-btn').classList.toggle('active', game.autoBuyEnabled !== false);
+}
+
+function syncAutoAbilitiesUI(game) {
+  const hasCapstone = (game.warbornCapstoneRank ?? 0) > 0;
+  const ctrl = document.getElementById('auto-abilities-control');
+  ctrl.style.display = hasCapstone ? '' : 'none';
+  document.getElementById('auto-abilities-btn').classList.toggle('active', game.autoAbilitiesEnabled !== false);
 }

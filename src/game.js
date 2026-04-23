@@ -76,6 +76,7 @@ export class Game {
     this.autoBuyInterval    = 0;  // seconds between auto-purchases; 0 = disabled
     this.autoBuyTimer       = 0;
     this.autoBuyEnabled     = true;  // HUD toggle — user can pause auto-buying
+    this.autoAbilitiesEnabled = true; // HUD toggle — auto-fire WARBORN abilities (gated by Eternal Warrior)
 
     // ── Shard meta upgrades ─────────────────────────────────────────────────
     this.shardBonusMult      = 1.0; // multiplier on shards awarded (Shard Tithe)

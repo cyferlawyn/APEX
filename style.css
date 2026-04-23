@@ -564,6 +564,43 @@ html, body {
   line-height: 1.3;
 }
 
+#auto-abilities-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 16px;
+}
+
+#auto-abilities-btn {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid rgba(0,229,255,0.25);
+  color: rgba(0,229,255,0.35);
+  font-family: monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+#auto-abilities-btn:hover:not(.active) {
+  border-color: rgba(0,229,255,0.5);
+  color: rgba(0,229,255,0.7);
+}
+
+#auto-abilities-btn.active {
+  border-color: #00e5ff;
+  color: #00e5ff;
+  background: rgba(0,229,255,0.1);
+}
+
+#auto-abilities-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.2);
+  line-height: 1.3;
+}
+
 #new-game-btn {
   display: block;
   width: calc(100% - 20px);

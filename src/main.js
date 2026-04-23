@@ -44,7 +44,8 @@ function bootstrap() {
     if (prefs.autoQuality != null) game.autoQuality      = prefs.autoQuality;
     if (prefs.volume != null)      audio.setVolume(prefs.volume);
     if (prefs.autoAscensionMode)   game.autoAscensionMode = prefs.autoAscensionMode;
-    if (prefs.autoBuyEnabled != null) game.autoBuyEnabled = prefs.autoBuyEnabled;
+    if (prefs.autoBuyEnabled != null)      game.autoBuyEnabled      = prefs.autoBuyEnabled;
+    if (prefs.autoAbilitiesEnabled != null) game.autoAbilitiesEnabled = prefs.autoAbilitiesEnabled;
     // Tab collapse state is applied in ui.js load handler (after DOM is ready)
   }
 
@@ -431,6 +432,28 @@ function tickWarborn(dt) {
         game.ironTideActive = false;
         game.ironTideTimer  = 0;
       }
+    }
+  }
+
+  // ── Auto-abilities (Eternal Warrior capstone gate) ─────────────────────
+  if (game.autoAbilitiesEnabled && game.warbornCapstoneRank > 0) {
+    if (game.warbornRallyCry && !game.overdriveActive && game.overdriveCooldown <= 0) {
+      game.overdriveActive   = true;
+      game.overdriveTimer    = 6;
+      const baseCd = 60 - game.warbornCooldownReduction();
+      game.overdriveCooldown = Math.max(6, baseCd);
+    }
+    if (game.warbornFury && !game.furyActive && game.furyCooldown <= 0) {
+      game.furyActive   = true;
+      game.furyTimer    = 6;
+      const baseCd = 60 - game.warbornCooldownReduction();
+      game.furyCooldown = Math.max(6, baseCd);
+    }
+    if (game.warbornAvatarOfWar && !game.ironTideActive && game.ironTideCooldown <= 0) {
+      game.ironTideActive   = true;
+      game.ironTideTimer    = 6;
+      const baseCd = 60 - game.warbornCooldownReduction();
+      game.ironTideCooldown = Math.max(6, baseCd);
     }
   }
 
@@ -854,12 +877,19 @@ export function setAutoAscensionMode(mode) {
 // --- toggle auto-buyer on/off ---
 export function setAutoBuyEnabled(enabled) {
   game.autoBuyEnabled = enabled;
-  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: game.autoAscensionMode, autoBuyEnabled: enabled };
+  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: game.autoAscensionMode, autoBuyEnabled: enabled, autoAbilitiesEnabled: game.autoAbilitiesEnabled };
+  savePrefs(prefs);
+}
+
+// --- toggle auto-abilities on/off (Eternal Warrior gated) ---
+export function setAutoAbilitiesEnabled(enabled) {
+  game.autoAbilitiesEnabled = enabled;
+  const prefs = { quality: game.quality, volume: audio.volume, autoQuality: game.autoQuality, autoAscensionMode: game.autoAscensionMode, autoBuyEnabled: game.autoBuyEnabled, autoAbilitiesEnabled: enabled };
   savePrefs(prefs);
 }
 
 // Expose to UI
-window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, setAutoAscensionMode, setAutoBuyEnabled, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
+window.__apex = { newGame, beginAscend, completeAscend, selfDestruct, setAutoAscensionMode, setAutoBuyEnabled, setAutoAbilitiesEnabled, shop, prestigeShop, game, hasSave, audio, setQuality, savePrefs, saveTraitors };
 
 // Init AudioContext on first user gesture (browser autoplay policy)
 document.addEventListener('click',    () => audio.init(), { once: true });
