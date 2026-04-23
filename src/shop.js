@@ -134,7 +134,7 @@ const UPGRADES = [
   {
     id: 'chainLightning',
     name: 'Chain Lightning',
-    tooltip: 'On hit, lightning jumps to nearby enemies, dealing 60% of the previous jump\'s damage.\nEach tier adds one additional jump.\nMax (tier 5): 5 chain jumps per projectile.',
+    tooltip: 'On hit, lightning jumps to nearby enemies, dealing 60% of the previous jump\'s damage.\nEach tier adds one additional jump.\nMax (tier 5): 5 chain jumps per projectile.\nWith WARBORN Fury the range cap is removed — chain can jump to any enemy on screen.',
     maxTier: 5,
     baseCost: 12000,
     costMult: 2.0,
@@ -145,7 +145,7 @@ const UPGRADES = [
   {
     id: 'multiShot',
     name: 'Multi-Shot',
-    tooltip: 'The main gun targets and fires at multiple enemies per shot.\nTier 1: 2 targets. Each tier adds 1 more.\nMax (tier 5): 6 simultaneous targets.',
+    tooltip: 'The main gun targets and fires at multiple enemies per shot.\nTier 1: 2 targets. Each tier adds 1 more.\nMax (tier 5): 6 simultaneous targets.\nWith WARBORN Fury the shots collapse into a single bullet worth all targets combined.',
     maxTier: 5,
     baseCost: 18000,
     costMult: 1.8,

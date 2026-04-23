@@ -157,7 +157,11 @@ export class Tower {
     // Eternal Arsenal: extend target count beyond shop multiShotCount
     const effectiveShotCount = this.multiShotCount + this.arsenalProjBonus;
     const r2      = this.range * this.range;
-    const targets = _nearestEnemies(game.enemyPool.pool, this, effectiveShotCount, r2);
+
+    // Fury passive: collapse multi-shot into a single concentrated bullet worth all targets
+    const furyCollapse = game.warbornFury && effectiveShotCount > 1;
+    const queryCount   = furyCollapse ? 1 : effectiveShotCount;
+    const targets = _nearestEnemies(game.enemyPool.pool, this, queryCount, r2);
     if (targets.length === 0) return;
 
     // Overcharge: every Nth shot deals ×(4 + overchargeAmp) damage
@@ -170,21 +174,23 @@ export class Tower {
       }
     }
 
+    // furyCollapseMult folds the extra-target damage budget into the single shot
+    const furyCollapseMult = furyCollapse ? effectiveShotCount : 1;
     for (const target of targets) {
-      this._fireAt(target, game, this.x, this.y, overchargeMult);
+      this._fireAt(target, game, this.x, this.y, overchargeMult, furyCollapseMult);
     }
 
     // Echo Shot: chance to fire a free extra volley (only when multi-shot is active)
     if (this.echoShotChance > 0 && this.multiShotCount > 1 && Math.random() < this.echoShotChance) {
       for (const target of targets) {
-        this._fireAt(target, game, this.x, this.y, overchargeMult);
+        this._fireAt(target, game, this.x, this.y, overchargeMult, furyCollapseMult);
       }
     }
 
-    // Fire sound — pick variant based on active modes
+    // Fire sound
     if (this.spreadShot && !game.warbornRallyCry) audio.fireSpread();
-    else if (effectiveShotCount > 1)              audio.fireMulti();
-    else                                          audio.fireSingle();
+    else if (effectiveShotCount > 1 && !furyCollapse) audio.fireMulti();
+    else                                               audio.fireSingle();
 
     const overdriveMult = game.overdriveFireRateMult?.() ?? 1.0;
     const rampageMult   = game.rampageFireRateMult?.()   ?? 1.0;
@@ -195,7 +201,7 @@ export class Tower {
     this.fireCooldown = 1 / (this.fireRate * overdriveMult * rampageMult * apexMult * arsenalMult);
   }
 
-  _fireAt(target, game, ox, oy, overchargeMult = 1) {
+  _fireAt(target, game, ox, oy, overchargeMult = 1, furyCollapseMult = 1) {
     const dx  = target.x - ox;
     const dy  = target.y - oy;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -209,7 +215,7 @@ export class Tower {
     const effectiveCritMult = this.critMult + spoilsCritAdd;
     // forgeDmg: flat bonus applied before all multipliers
     const baseDmg = this.damage + this.forgeDmg;
-    const dmg    = Math.round(baseDmg * this._dmgMult * (isCrit ? effectiveCritMult : 1) * overchargeMult);
+    const dmg    = Math.round(baseDmg * this._dmgMult * (isCrit ? effectiveCritMult : 1) * overchargeMult * furyCollapseMult);
     const isOC   = overchargeMult > 1;
     // Detonation Field: scale explosive radius by prestige multiplier
     const effExplosiveRadius = this.explosiveRadius > 0

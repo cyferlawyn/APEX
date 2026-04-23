@@ -87,7 +87,7 @@ export const FACTION_NODES = {
       id: 'warborn_b2', col: 1, tier: 2, prereq: 'warborn_b1',
       name: 'Fury',
       shortName: 'Fury (2)',
-      tooltip: 'FURY [key 2]: all damage ×2 for 6 s, 60 s cooldown.\nPassive: each wave clear extends all currently-active ability durations by 0.5 s.',
+      tooltip: 'FURY [key 2]: all damage ×2 for 6 s, 60 s cooldown.\nPassive: Multi-Shot collapses into a single concentrated bullet worth all targets combined.\nPassive: Chain Lightning and Ricochet have no range cap — they can jump to any enemy on screen.\nPassive: each wave clear extends all currently-active ability durations by 0.5 s.',
       cost: 2_500_000,
       apply(game) { game.warbornFury = true; },
     },

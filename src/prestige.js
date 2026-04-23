@@ -84,7 +84,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'ricochet',
     name: 'Ricochet',
-    tooltip: 'Projectiles bounce to an additional enemy after each hit.\nTier 1: 1 bounce  Tier 2: 2 bounces  Tier 3: 3 bounces.\nBounces inherit explosive and chain effects at 75% damage.',
+    tooltip: 'Projectiles bounce to an additional enemy after each hit.\nTier 1: 1 bounce  Tier 2: 2 bounces  Tier 3: 3 bounces.\nBounces inherit explosive and chain effects at 75% damage.\nWith WARBORN Fury the range cap is removed — bounces can reach any enemy on screen.',
     maxTier: 3,
     baseCost: 20,
     costMult: 2.5,
