@@ -109,10 +109,11 @@ export class Enemy {
     const ty  = game.tower.y;
     const dx  = tx - this.x;
     const dy  = ty - this.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+    const d2  = dx * dx + dy * dy;
+    const contactR = game.tower.radius + this.radius;
 
     // ── Tower contact ────────────────────────────────────────────────────────
-    if (dist < game.tower.radius + this.radius) {
+    if (d2 < contactR * contactR) {
       if (!this.atTower) {
         this.atTower    = true;
         this.damageTick = 0;
@@ -212,6 +213,8 @@ export class Enemy {
     if (now < this.stunUntil) return;
     if (this.carriedByRing) return; // position controlled by _updateRings
 
+    // sqrt only needed here for movement normalisation — not for the contact check above
+    const dist = Math.sqrt(d2);
     if (this.type === EnemyType.DASHER) {
       this._updateDasher(dt, dx, dy, dist);
     } else {

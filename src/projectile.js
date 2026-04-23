@@ -447,10 +447,19 @@ export class ProjectilePool {
   constructor(size) {
     this.pool    = Array.from({ length: size }, () => new Projectile());
     this._bounds = { w: 800, h: 600 };
+    this._cursor = 0;
   }
 
   acquire() {
-    return this.pool.find(p => !p.active) ?? null;
+    const n = this.pool.length;
+    for (let i = 0; i < n; i++) {
+      const idx = (this._cursor + i) % n;
+      if (!this.pool[idx].active) {
+        this._cursor = (idx + 1) % n;
+        return this.pool[idx];
+      }
+    }
+    return null;
   }
 
   fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false) {

@@ -1,6 +1,10 @@
 // Particle system — pooled, fixed-size, oldest-first eviction
 // Each particle is a simple spark: position, velocity, color, lifetime.
 
+// Module-level friction cache — reused across frames, cleared once per update()
+// to avoid allocating a new Map every frame (was 60 allocations/second).
+const _frictionCache = new Map();
+
 class Particle {
   constructor() {
     this.active   = false;
@@ -154,10 +158,8 @@ export class ParticleSystem {
   // ── update & draw ────────────────────────────────────────────────────────────
 
   update(dt) {
-    // Precompute friction scalar for the two common friction values used by emitters.
-    // Per-particle friction is stored; we compute pow(f, dt*60) here and cache
-    // the two most common values (0.88 and 0.97) to avoid repeated Math.pow calls.
-    const _frictionCache = new Map();
+    // Reuse module-level cache — clear once per frame instead of allocating a new Map.
+    _frictionCache.clear();
     const frictionScale = f => {
       let s = _frictionCache.get(f);
       if (s === undefined) { s = Math.pow(f, dt * 60); _frictionCache.set(f, s); }

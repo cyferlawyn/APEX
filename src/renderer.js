@@ -21,6 +21,7 @@ export class Renderer {
     this.canvas = canvas;
     this.ctx    = canvas.getContext('2d');
     this.game   = game;
+    this._bgCache = null; // offscreen canvas for static background grid
 
     this._resize();
     window.addEventListener('resize', () => this._resize());
@@ -41,6 +42,24 @@ export class Renderer {
     if (this.game.projectilePool) {
       this.game.projectilePool._bounds = { w: W, h: H };
     }
+    this._buildBgCache(W, H);
+  }
+
+  _buildBgCache(W, H) {
+    const off = document.createElement('canvas');
+    off.width  = W;
+    off.height = H;
+    const ctx  = off.getContext('2d');
+    ctx.fillStyle = COLORS.bg;
+    ctx.fillRect(0, 0, W, H);
+    const step = 40;
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth   = 1;
+    ctx.beginPath();
+    for (let x = 0; x < W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = 0; y < H; y += step) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+    this._bgCache = off;
   }
 
   render() {
@@ -81,21 +100,13 @@ export class Renderer {
   // ── background ───────────────────────────────────────────────────────────────
 
   _drawBackground() {
-    const { ctx, canvas } = this;
-    ctx.fillStyle = COLORS.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const step = 40;
-    ctx.strokeStyle = COLORS.grid;
-    ctx.lineWidth   = 1;
-    ctx.beginPath();
-    for (let x = 0; x < canvas.width; x += step) {
-      ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+    if (this._bgCache) {
+      this.ctx.drawImage(this._bgCache, 0, 0);
+    } else {
+      // Fallback before cache is ready
+      this.ctx.fillStyle = COLORS.bg;
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
-    for (let y = 0; y < canvas.height; y += step) {
-      ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
-    }
-    ctx.stroke();
   }
 
   // ── tower ─────────────────────────────────────────────────────────────────────
