@@ -385,21 +385,21 @@ export class Renderer {
     if (game.warbornRallyCry) {
       abilities.push({
         key: '1', name: 'OVERDRIVE',
-        active: game.overdriveActive, timer: game.overdriveTimer, maxTimer: 5,
+        active: game.overdriveActive, timer: game.overdriveTimer, maxTimer: 6,
         cooldown: game.overdriveCooldown, maxCd: 60,
       });
     }
     if (game.warbornFury) {
       abilities.push({
         key: '2', name: 'FURY',
-        active: game.furyActive, timer: game.furyTimer, maxTimer: 4,
+        active: game.furyActive, timer: game.furyTimer, maxTimer: 6,
         cooldown: game.furyCooldown, maxCd: 60,
       });
     }
     if (game.warbornAvatarOfWar) {
       abilities.push({
         key: '3', name: 'IRON TIDE',
-        active: game.ironTideActive, timer: game.ironTideTimer, maxTimer: 8,
+        active: game.ironTideActive, timer: game.ironTideTimer, maxTimer: 6,
         cooldown: game.ironTideCooldown, maxCd: 60,
       });
     }

@@ -886,21 +886,21 @@ document.addEventListener('keydown', e => {
   if (game.state !== State.COMBAT) return;
   if (e.key === '1' && game.warbornRallyCry && !game.overdriveActive && game.overdriveCooldown <= 0) {
     game.overdriveActive  = true;
-    game.overdriveTimer   = 5;
+    game.overdriveTimer   = 6;
     const baseCd = 60 - game.warbornCooldownReduction();
-    game.overdriveCooldown = Math.max(5, baseCd);
+    game.overdriveCooldown = Math.max(6, baseCd);
   }
   if (e.key === '2' && game.warbornFury && !game.furyActive && game.furyCooldown <= 0) {
     game.furyActive  = true;
-    game.furyTimer   = 4;
+    game.furyTimer   = 6;
     const baseCd = 60 - game.warbornCooldownReduction();
-    game.furyCooldown = Math.max(4, baseCd);
+    game.furyCooldown = Math.max(6, baseCd);
   }
   if (e.key === '3' && game.warbornAvatarOfWar && !game.ironTideActive && game.ironTideCooldown <= 0) {
     game.ironTideActive  = true;
-    game.ironTideTimer   = 8;
+    game.ironTideTimer   = 6;
     const baseCd = 60 - game.warbornCooldownReduction();
-    game.ironTideCooldown = Math.max(8, baseCd);
+    game.ironTideCooldown = Math.max(6, baseCd);
   }
 });
 
