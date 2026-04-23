@@ -35,6 +35,7 @@ export class Game {
     this.obliterateTimer    = -1;   // countdown in seconds; -1 = inactive
     this.obliterateOverkill = 0;   // overkill multiplier that triggered this round
     this.obliterateInFlight = false; // true while blastwave kill setTimeout is pending
+    this.obliterateMigrated = false; // true if the active countdown carried over from a prior wave
     this.blastwaves         = []; // { x, y, r, maxR, t, life } — obliterate shockwave rings
     this.enemyProjectiles   = []; // { x, y, vx, vy, damage, type, t } — boss/colossus shots
 

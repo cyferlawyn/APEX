@@ -98,19 +98,28 @@ function bootstrap() {
     game.factionSystem.reapplyAll(game);
   }
 
-  beginWave();
+  beginWave(false, true);
 }
 
-function beginWave(keepEnemies = false) {
+function beginWave(keepEnemies = false, hardReset = false) {
   if (!keepEnemies) game.enemyPool.reset();
-  game.projectilePool.reset();
-  game.enemyProjectiles = [];
-  // Do NOT clear particle/FX arrays — let active animations finish naturally.
-  // Mark any in-flight blastwaves as kill-done so they don't kill new-wave enemies.
-  for (const w of game.blastwaves) w.killDone = true;
-  game.obliterateTimer    = -1;
-  game.obliterateInFlight = false;
-  game.obliterateOverkill = 0;
+
+  // On hard resets (fresh start, defeat retry, ascend) wipe all in-flight state.
+  // On normal wave transitions preserve projectiles and the obliterate countdown
+  // so an active obliterate carries over into the new wave.
+  if (hardReset) {
+    game.projectilePool.reset();
+    game.enemyProjectiles = [];
+    for (const w of game.blastwaves) w.killDone = true;
+    game.obliterateTimer    = -1;
+    game.obliterateInFlight = false;
+    game.obliterateOverkill = 0;
+    game.obliterateMigrated = false;
+  } else {
+    // Wave transition — mark any completed blastwaves but leave active obliterate running.
+    // Enemy projectiles are cleared (their source enemies are gone).
+    game.enemyProjectiles = [];
+  }
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
   // Apply regen between waves; full heal only on wave 1 (fresh start)
   if (game.wave === 1) {
@@ -132,13 +141,19 @@ function beginWave(keepEnemies = false) {
   game.waveSpawner.begin(game.wave);
 
   // Check obliterate overkill threshold at wave start.
-  // If the tower is strong enough, fire the countdown immediately.
-  // If not and auto-ascension is set to 'overkill', this is the signal to ascend.
+  // If obliterate is already ticking from the previous wave, let it carry over (migrated).
+  // After a migrated detonation, the check runs again immediately (see obliterate countdown block).
   if (game.tower.obliterateDelay > 0) {
-    const fires = checkObliterateAtWaveStart(game);
-    const vanguardOwned = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
-    if (!fires && game.autoAscensionMode === 'overkill' && game.pendingShards > 0 && vanguardOwned) {
-      setTimeout(() => beginAscend(), 400);
+    const alreadyActive = game.obliterateTimer > 0 || game.obliterateInFlight;
+    if (alreadyActive) {
+      game.obliterateMigrated = true;
+    } else {
+      game.obliterateMigrated = false;
+      const fires = checkObliterateAtWaveStart(game);
+      const vanguardOwned = (game.factionSystem?.permanent?.vanguard?.capstoneRank ?? 0) > 0;
+      if (!fires && game.autoAscensionMode === 'overkill' && game.pendingShards > 0 && vanguardOwned) {
+        setTimeout(() => beginAscend(), 400);
+      }
     }
   }
   game.waveEarned = 0;
@@ -312,11 +327,18 @@ function update(dt) {
           game.blastwaves.push({ x: tx, y: ty, r: game.tower.radius + 4,
             maxR, speed, t: 0.8, life: 0.8, killDone: false });
           game.obliterateInFlight = true;
+          const wasMigrated = !!game.obliterateMigrated;
+          game.obliterateMigrated = false;
           setTimeout(() => {
             obliterateWave(game);
             setTimeout(() => {
               obliterateWave(game);
               game.obliterateInFlight = false;
+              // If this detonation was migrated from a previous wave, immediately
+              // re-run the obliterate check for the current wave.
+              if (wasMigrated && game.tower.obliterateDelay > 0) {
+                checkObliterateAtWaveStart(game);
+              }
               // Let the game loop's activeCount() === 0 check fire onWaveComplete
               // naturally on the next tick — do NOT call it here to avoid double-advance.
             }, 50);
@@ -637,7 +659,7 @@ function resetToWaveOne() {
   // Upgrades and currency are kept — tower is rebuilt from upgrades
   shop.reapplyAll(game.upgrades);
   prestigeShop.reapplyAll(game.prestigeUpgrades);
-  beginWave();
+  beginWave(false, true);
 }
 
 function saveGame() {
@@ -703,7 +725,7 @@ export function newGame(confirmed) {
   game.factionSystem.reapplyAll(game);
   game.currency = 0;
   game.wave     = 1;
-  beginWave();
+  beginWave(false, true);
 }
 
 // --- ascend: step 1 — bank shards, call onAscend, show faction choice overlay ---
@@ -789,7 +811,7 @@ export function completeAscend(factionId) {
 
   saveFaction(game.factionSystem.serializeRun());
   _savePrestigeState();
-  beginWave();
+  beginWave(false, true);
 }
 
 // --- self-destruct: treat as a voluntary defeat (keeps upgrades + currency) ---
