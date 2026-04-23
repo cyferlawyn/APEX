@@ -95,12 +95,12 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'ringSlow',
     name: 'Ring Stun',
-    tooltip: 'Orbital Death Ring contact briefly stuns enemies (stops movement).\nTier 1: 0.3 s  Tier 2: 0.5 s  Tier 3: 0.75 s stun.',
+    tooltip: 'Enemies inside the Orbital Death Ring zone are briefly stunned (stops movement).\nTier 1: 0.15 s  Tier 2: 0.25 s  Tier 3: 0.4 s stun.\nApplied each frame, so enemies inside the zone are held in place.',
     maxTier: 3,
     baseCost: 20,
     costMult: 2.0,
     apply(tower, game, tier) {
-      tower.ringStunDuration = [0, 0.3, 0.5, 0.75][tier];
+      tower.ringStunDuration = [0, 0.15, 0.25, 0.4][tier];
     },
   },
 
@@ -197,12 +197,12 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'vortexSweep',
     name: 'Vortex Sweep',
-    tooltip: 'Enemies inside the Orbital Death Ring zone are periodically grabbed and held in orbit for 3 s, taking continuous ring damage.\nCarry chance is checked once per second per enemy in the zone.\nTier 1: 5%  Tier 2: 10%  Tier 3: 15%  Tier 4: 20%  Tier 5: 25% carry chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
+    tooltip: 'Enemies inside the Orbital Death Ring zone are periodically grabbed and held in orbit for 3 s, taking continuous ring damage.\nCarry chance is checked once per second per enemy in the zone.\nTier 1: 3%  Tier 2: 6%  Tier 3: 9%  Tier 4: 12%  Tier 5: 15% carry chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
     maxTier: 5,
     baseCost: 500,
     costMult: 4.0,
     apply(tower, game, tier) {
-      tower.ringCarryChance = tier * 0.05;
+      tower.ringCarryChance = tier * 0.03;
     },
   },
 
