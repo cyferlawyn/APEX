@@ -246,7 +246,7 @@ export const FACTION_NODES = {
       id: 'vanguard_b3', col: 1, tier: 3, prereq: 'vanguard_b2',
       name: 'Iron Vault',
       shortName: 'Iron Vault',
-      tooltip: 'On ascension, gain 1% of your current shards as bonus shards (rounded down, min 1).\nScale: 100 shards → +1, 1000 shards → +10, 10000 shards → +100.',
+      tooltip: 'On ascension, gain 1 bonus shard for every enemy still alive on the board.\nVANGUARD\'s natural death state — overrun by a swarm — becomes the optimal exit.\nMore enemies alive at the moment of ascension = more shards banked.',
       cost: 12_500_000,
       apply(game) { game.vanguardIronVault = true; },
     },
@@ -271,7 +271,7 @@ export const FACTION_NODES = {
       id: 'vanguard_c3', col: 2, tier: 3, prereq: 'vanguard_c2',
       name: 'Apex Momentum',
       shortName: 'Apex Mom.',
-      tooltip: 'Your highest wave ever reached multiplies the damage used for the Obliterate check.\nObliterate check effective damage ×bestWave.\nDoes not affect actual damage output — only the Obliterate threshold calculation.',
+      tooltip: 'On each ascension, permanently gain +(bestWave × 0.1)% flat damage bonus.\nThis compounds across all future runs regardless of active faction.\nPush a deep wave with WARBORN or NEXUS, then ascend as VANGUARD to convert that depth into permanent power.',
       cost: 12_500_000,
       apply(game) { game.vanguardApexMomentum = true; },
     },
@@ -317,7 +317,7 @@ export class FactionSystem {
       nexus:    { nodes: {}, capstoneRank: 0, permanentNeuralStacks: 0 },
       conclave: { nodes: {}, capstoneRank: 0 },
       warborn:  { nodes: {}, capstoneRank: 0 },
-      vanguard: { nodes: {}, capstoneRank: 0 },
+      vanguard: { nodes: {}, capstoneRank: 0, apexDmgBonus: 0 },
     };
   }
 
@@ -475,6 +475,9 @@ export class FactionSystem {
     // Always sync VANGUARD capstone rank (cross-faction benefit)
     game.vanguardCapstoneRank = this.permanent.vanguard?.capstoneRank ?? 0;
 
+    // Always sync Apex Momentum permanent damage bonus (cross-faction)
+    game.vanguardApexDmgBonus = this.permanent.vanguard?.apexDmgBonus ?? 0;
+
     // Apply merge count reduction from Apex Protocol
     if (game.traitorSystem) {
       game.traitorSystem.mergeCount = game.apexProtocol ? 4 : 5;
@@ -489,6 +492,15 @@ export class FactionSystem {
       const preserved = Math.floor(runStacks * rank / 100);
       this.permanent.nexus.permanentNeuralStacks += preserved;
     }
+  }
+
+  // Called at ascension when Apex Momentum (VANGUARD C3) is active.
+  // Accrues bestWave × 0.1% as a permanent flat damage bonus (all factions).
+  accrueApexMomentum(game) {
+    if (game.bestWave <= 0) return;
+    const gain = game.bestWave * 0.001; // bestWave 60 → +0.06 (+6%)
+    this.permanent.vanguard.apexDmgBonus =
+      (this.permanent.vanguard.apexDmgBonus ?? 0) + gain;
   }
 
   // ── Serialization ─────────────────────────────────────────────────────────
@@ -517,6 +529,9 @@ export class FactionSystem {
       if (fid === 'nexus') {
         this.permanent.nexus.permanentNeuralStacks =
           p.nexus.permanentNeuralStacks ?? 0;
+      }
+      if (fid === 'vanguard') {
+        this.permanent.vanguard.apexDmgBonus = p.vanguard.apexDmgBonus ?? 0;
       }
     }
     // Legacy: if saved data has old keys not in this.permanent, ignore them

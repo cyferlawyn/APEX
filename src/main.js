@@ -786,11 +786,19 @@ export function beginAscend() {
     game.totalShardsEarned += bonus;
   }
 
-  // VANGUARD B3: Iron Vault — +1% of current shards (rounded down, min 1)
-  if (game.vanguardIronVault && game.shards > 0) {
-    const bonus = Math.max(1, Math.floor(game.shards * 0.01));
-    game.shards            += bonus;
-    game.totalShardsEarned += bonus;
+  // VANGUARD B3: Iron Vault — 1 bonus shard per enemy alive on the board at ascension
+  // The natural Vanguard death state (overrun by a swarm) is the optimal exit condition.
+  if (game.vanguardIronVault) {
+    const aliveCount = game.enemyPool.activeCount();
+    if (aliveCount > 0) {
+      game.shards            += aliveCount;
+      game.totalShardsEarned += aliveCount;
+    }
+  }
+
+  // VANGUARD C3: Apex Momentum — accrue permanent damage bonus via FactionSystem
+  if (game.vanguardApexMomentum) {
+    game.factionSystem.accrueApexMomentum(game);
   }
 
   // Preserve neural stacks via Singularity before run resets

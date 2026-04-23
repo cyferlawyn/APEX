@@ -169,6 +169,10 @@ export class Game {
     this.vanguardSpoilsStacks  = 0;     // current A3 additive stack count
     this.vanguardBossKilledThisWave = false; // track boss death for Tide Surge trigger
 
+    // Permanent Apex Momentum bonus — accrues on ascension, cross-faction
+    // Stored in FactionSystem.permanent.vanguard.apexDmgBonus and synced here each run
+    this.vanguardApexDmgBonus  = 0;    // fractional multiplier, e.g. 0.06 = +6%
+
     // Cross-faction capstone rank
     this.vanguardCapstoneRank  = 0;
 
@@ -317,10 +321,16 @@ export class Game {
     return this.vanguardSpoilsStacks * 0.05;
   }
 
+  // VANGUARD C3: Apex Momentum — permanent cross-faction damage bonus accrued on ascension
+  // Each ascension adds bestWave × 0.001 (i.e. bestWave × 0.1%) to the permanent pool.
+  vanguardApexDmgMult() {
+    if (this.vanguardApexDmgBonus <= 0) return 1.0;
+    return 1 + this.vanguardApexDmgBonus;
+  }
+
   // VANGUARD capstone: multiplier applied to obliterate normShot check only
   vanguardObliterateCheckMult() {
-    const capstone = this.vanguardCapstoneRank > 0 ? 1 + this.vanguardCapstoneRank * 0.25 : 1.0;
-    const apexMult = this.vanguardApexMomentum && this.bestWave > 0 ? this.bestWave : 1;
-    return capstone * apexMult;
+    if (this.vanguardCapstoneRank <= 0) return 1.0;
+    return 1 + this.vanguardCapstoneRank * 0.25;
   }
 }

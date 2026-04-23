@@ -132,11 +132,12 @@ export class Tower {
     if (this.hitFlash  > 0) this.hitFlash  -= dt;
     if (this.invulnTimer > 0) this.invulnTimer -= dt;
 
-    // Shard passive × traitor pet bonus × faction (neural stacks) × WARBORN (rush+fury) × VANGUARD (spoils) for all weapons this frame
+    // Shard passive × traitor pet bonus × faction (neural stacks) × WARBORN (rush+fury) × VANGUARD (spoils+apex) for all weapons this frame
     this._dmgMult = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
       * (game.rushDmgMult?.() ?? 1.0)
       * (game.furyDmgMult?.() ?? 1.0)
       * (game.vanguardSpoilsDmgMult?.() ?? 1.0)
+      * (game.vanguardApexDmgMult?.() ?? 1.0)
       * this.voidSurgeMult
       * this.shardCovenantBonus;
 
@@ -557,7 +558,7 @@ function _towerKillEnemy(e, game) {
 // WARBORN rush/fury, and expected crit value — but NOT overcharge, spread, explosive, or other modifiers.
 // Returns the expected (normalized) damage of a single shot event against a single target, factoring in:
 // base damage (incl. Damage upgrade + forgeDmg), shard multiplier, traitor bonus, faction stacks,
-// WARBORN rush/fury, VANGUARD spoils, voidSurgeMult, shardCovenantBonus, crit (chance × mult),
+// WARBORN rush/fury, VANGUARD spoils+apex, voidSurgeMult, shardCovenantBonus, crit (chance × mult),
 // overcharge expected factor, execute HP skip factor, spread pellet count, and echo shot chance.
 // NOTE: WARBORN capstone HP%-removal is NOT included here — it is added at the call site in
 // checkObliterateAtWaveStart() because it scales with enemy HP, not a flat dmg multiplier.
@@ -566,6 +567,7 @@ export function normalizedShotDamage(tower, game) {
                          * (game.rushDmgMult?.() ?? 1.0)
                          * (game.furyDmgMult?.() ?? 1.0)
                          * (game.vanguardSpoilsDmgMult?.() ?? 1.0)
+                         * (game.vanguardApexDmgMult?.() ?? 1.0)
                          * tower.voidSurgeMult
                          * tower.shardCovenantBonus;
   const spoilsCritAdd  = game.vanguardSpoilsCritAdd?.() ?? 0;
