@@ -284,7 +284,7 @@ export const FACTION_CAPSTONES = {
   warborn: {
     id:       'warborn_cs',
     name:     'ETERNAL WARRIOR',
-    tooltip:  'Rank 1: mortar hits remove 5% of current HP in blast radius.\nEach rank: +0.1% mortar current-HP removal (rank 10 = 6%, rank 20 = 7%).\nEach rank: regular projectiles remove (rank × 0.1)% current HP — active regardless of faction.\nHP% damage (both mortar and projectile) cannot reduce an enemy below 33% of its max HP.\nEach rank: all ability cooldowns −0.1 s (cap −30 s).\nEach rank: Rush Stack cap +25 (base 1000).',
+    tooltip:  'Rank 1: mortar hits remove 5% of current HP in blast radius.\nEach rank: +0.1% mortar current-HP removal (rank 10 = 6%, rank 20 = 7%).\nEach rank: regular projectiles remove (rank × 0.1)% current HP — active regardless of faction.\nHP% damage (both mortar and projectile) cannot reduce an enemy below 33% of its max HP.\nEach rank: all ability cooldowns −0.5 s (cap −40 s).\nEach rank: Rush Stack cap +25 (base 1000).',
     baseCost: 1_000_000,
     costMult: 1.30,
   },

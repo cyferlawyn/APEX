@@ -295,9 +295,9 @@ export class Game {
     return 0.05 + (this.warbornCapstoneRank - 1) * 0.001;
   }
 
-  // WARBORN: ability cooldown reduction from capstone (cap 30 s)
+  // WARBORN: ability cooldown reduction from capstone (cap 40 s)
   warbornCooldownReduction() {
-    return Math.min(30, this.warbornCapstoneRank * 0.1);
+    return Math.min(40, this.warbornCapstoneRank * 0.5);
   }
 
   // VANGUARD: Spoils of War damage multiplier (A3)
