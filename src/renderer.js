@@ -398,9 +398,9 @@ export class Renderer {
     }
     if (game.warbornAvatarOfWar) {
       abilities.push({
-        key: '3', name: 'ANNIHIL.',
-        active: false, timer: 0, maxTimer: 1,
-        cooldown: game.annihilationCooldown, maxCd: 60,
+        key: '3', name: 'IRON TIDE',
+        active: game.ironTideActive, timer: game.ironTideTimer, maxTimer: 8,
+        cooldown: game.ironTideCooldown, maxCd: 60,
       });
     }
 

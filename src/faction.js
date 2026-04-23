@@ -95,7 +95,7 @@ export const FACTION_NODES = {
       id: 'warborn_b3', col: 1, tier: 3, prereq: 'warborn_b2',
       name: 'Avatar of War',
       shortName: 'Avatar (3)',
-      tooltip: 'ANNIHILATION [key 3]: all enemies instantly lose 30% of their current HP, 60 s cooldown.\nPassive: each wave clear removes another 1 s from all ability cooldowns (total −2 s/wave with Rallying Cry).',
+      tooltip: 'IRON TIDE [key 3]: all projectiles pierce through every enemy for 8 s, 60 s cooldown.\nPassive: each wave clear removes another 1 s from all ability cooldowns (total −2 s/wave with Rallying Cry).',
       cost: 12_500_000,
       apply(game) { game.warbornAvatarOfWar = true; },
     },

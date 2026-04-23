@@ -140,9 +140,10 @@ export class Projectile {
     // Direct hit
     _damageEnemy(target, this.damage, game, this.executeThreshold, 'projectile');
 
-    // Pierce — chance to keep the projectile alive and continue through enemies
+    // Pierce — chance to keep the projectile alive and continue through enemies.
+    // Iron Tide (WARBORN B3) forces 100% pierce for its duration.
     const pierceChance = game.tower.pierceChance ?? 0;
-    if (pierceChance > 0 && Math.random() < pierceChance) {
+    if (pierceChance > 0 && Math.random() < pierceChance || game.ironTideActive) {
       if (!this.pierced) this.pierced = new Set();
       this.pierced.add(target);
       this.active = true; // survive this hit

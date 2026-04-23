@@ -135,7 +135,9 @@ export class Game {
     this.furyCooldown       = 0;
     this.furyActive         = false;
     this.furyTimer          = 0;
-    this.annihilationCooldown = 0;
+    this.ironTideCooldown   = 0;
+    this.ironTideActive     = false;
+    this.ironTideTimer      = 0;
 
     // Rush Stack state (per-run, not saved)
     this.rushStacks         = 0;

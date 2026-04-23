@@ -422,9 +422,16 @@ function tickWarborn(dt) {
     }
   }
 
-  // ── Annihilation (B3) ──────────────────────────────────────────────────
+  // ── Iron Tide (B3) ─────────────────────────────────────────────────────
   if (game.warbornAvatarOfWar) {
-    if (game.annihilationCooldown > 0) game.annihilationCooldown -= dt;
+    if (game.ironTideCooldown > 0) game.ironTideCooldown -= dt;
+    if (game.ironTideActive) {
+      game.ironTideTimer -= dt;
+      if (game.ironTideTimer <= 0) {
+        game.ironTideActive = false;
+        game.ironTideTimer  = 0;
+      }
+    }
   }
 
   // ── Rush Stack decay (C1) ──────────────────────────────────────────────
@@ -592,15 +599,16 @@ function onWaveComplete(keepEnemies = false) {
   // WARBORN B1 passive: each wave clear removes 1s from all cooldowns
   if (game.warbornRallyCry) {
     const cdReduce = 1 + (game.warbornAvatarOfWar ? 1 : 0);  // +1 from B3
-    game.overdriveCooldown    = Math.max(0, game.overdriveCooldown    - cdReduce);
-    game.furyCooldown         = Math.max(0, game.furyCooldown         - cdReduce);
-    game.annihilationCooldown = Math.max(0, game.annihilationCooldown - cdReduce);
+    game.overdriveCooldown = Math.max(0, game.overdriveCooldown - cdReduce);
+    game.furyCooldown      = Math.max(0, game.furyCooldown      - cdReduce);
+    game.ironTideCooldown  = Math.max(0, game.ironTideCooldown  - cdReduce);
   }
 
   // WARBORN B2 passive: each wave clear extends active ability durations by 0.5s
   if (game.warbornFury) {
-    if (game.overdriveActive) game.overdriveTimer += 0.5;
-    if (game.furyActive)      game.furyTimer      += 0.5;
+    if (game.overdriveActive)  game.overdriveTimer  += 0.5;
+    if (game.furyActive)       game.furyTimer       += 0.5;
+    if (game.ironTideActive)   game.ironTideTimer   += 0.5;
   }
 
   // WARBORN C3 Unstoppable: 10s decay protection at wave start
@@ -888,19 +896,11 @@ document.addEventListener('keydown', e => {
     const baseCd = 60 - game.warbornCooldownReduction();
     game.furyCooldown = Math.max(4, baseCd);
   }
-  if (e.key === '3' && game.warbornAvatarOfWar && game.annihilationCooldown <= 0) {
-    // Instantly remove 30% current HP from all active enemies
-    for (const e of game.enemyPool.pool) {
-      if (!e.active) continue;
-      e.hp -= e.hp * 0.30;
-      if (e.hp <= 0) {
-        e.hp = 0;
-        // award kill via projectile module helper (re-uses existing logic)
-        // We use a minimal inline kill — full kill award not needed for balance
-      }
-    }
+  if (e.key === '3' && game.warbornAvatarOfWar && !game.ironTideActive && game.ironTideCooldown <= 0) {
+    game.ironTideActive  = true;
+    game.ironTideTimer   = 8;
     const baseCd = 60 - game.warbornCooldownReduction();
-    game.annihilationCooldown = Math.max(5, baseCd);
+    game.ironTideCooldown = Math.max(8, baseCd);
   }
 });
 
