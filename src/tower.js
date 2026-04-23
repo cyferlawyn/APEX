@@ -262,7 +262,7 @@ export class Tower {
   _updateRings(dt, game) {
     const t        = this.ringTier;
     const rotSpeed = (t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150)) * 3; // °/s (visual only)
-    const DPS      = this.damage * this.fireRate * 18.0 * this._dmgMult * this.ringDpsMult;
+    const DPS      = this.damage * this.fireRate * 3.0 * this._dmgMult * this.ringDpsMult;
 
     // Zone geometry — tighter than the old spiral for a well-defined ring
     const ORBIT_MIN = this.radius + 16;
