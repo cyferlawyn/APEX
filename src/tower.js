@@ -182,7 +182,7 @@ export class Tower {
     }
 
     // Fire sound — pick variant based on active modes
-    if (this.spreadShot && !game.overdriveActive) audio.fireSpread();
+    if (this.spreadShot && !game.warbornRallyCry) audio.fireSpread();
     else if (effectiveShotCount > 1)              audio.fireMulti();
     else                                          audio.fireSingle();
 
@@ -218,7 +218,7 @@ export class Tower {
     // Arc Mastery: extra chain jumps on top of shop chainJumps
     const effChainJumps = this.chainJumps + this.arcMasteryJumps;
 
-    if (this.spreadShot && !game.overdriveActive) {
+    if (this.spreadShot && !game.warbornRallyCry) {
       const baseA = Math.atan2(ny, nx);
       const half  = (this.spreadAngle / 2) * (Math.PI / 180);
       const extra = this.spreadPellets - 1;
@@ -234,8 +234,8 @@ export class Tower {
         game.projectilePool.fire(ox, oy, Math.cos(a) * this.projectileSpeed, Math.sin(a) * this.projectileSpeed,
           dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
       }
-    } else if (this.spreadShot && game.overdriveActive) {
-      // Overdrive: collapse spread fan into a single concentrated shot with pellet-count damage
+    } else if (this.spreadShot && game.warbornRallyCry) {
+      // Rallying Cry passive: collapse spread fan into a single concentrated shot with pellet-count damage
       const concentratedDmg = dmg * this.spreadPellets;
       game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
         concentratedDmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);

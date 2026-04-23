@@ -79,7 +79,7 @@ export const FACTION_NODES = {
       id: 'warborn_b1', col: 1, tier: 1, prereq: null,
       name: 'Rallying Cry',
       shortName: 'Rally (1)',
-      tooltip: 'OVERDRIVE [key 1]: 3× fire rate for 6 s, 60 s cooldown.\nWhile active, Spread Shot collapses into a single concentrated shot worth all pellets.\nPassive: each wave clear removes 1 s from all ability cooldowns.',
+      tooltip: 'OVERDRIVE [key 1]: 3× fire rate for 6 s, 60 s cooldown.\nPassive: each wave clear removes 1 s from all ability cooldowns.\nPassive: Spread Shot collapses into a single concentrated shot worth all pellets.',
       cost: 500_000,
       apply(game) { game.warbornRallyCry = true; },
     },
