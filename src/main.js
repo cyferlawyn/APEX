@@ -513,12 +513,13 @@ function _mortarBlast(ix, iy, dmg, blastR, stunDur, isMain) {
     const prevHp = e.hp;
     e.hp -= dmg;
 
-    // Capstone current-HP removal
+    // Capstone current-HP removal — capped at 33% max HP floor
     if (hpPct > 0 && e.hp > 0) {
-      e.hp -= e.hp * hpPct;
+      const floor = e.maxHp * 0.33;
+      if (e.hp > floor) {
+        e.hp = Math.max(floor, e.hp - e.hp * hpPct);
+      }
     }
-
-    // Rush stack mechanics (C3 Unstoppable: mortar hits reset decay timer)
     if (game.warbornUnstoppable) {
       game.rushDecayTimer = 3.0;
     }

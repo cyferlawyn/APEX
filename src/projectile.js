@@ -226,10 +226,14 @@ function _damageEnemy(e, dmg, game, executeThreshold = 0, source = 'projectile')
   e.hp -= dmg;
 
   // WARBORN capstone: regular projectiles remove (rank × 0.1)% current HP — cross-faction
+  // HP% damage is capped: it cannot reduce the enemy below 33% of max HP.
   if (source === 'projectile') {
     const hpPct = game.warbornProjectileHpPct?.() ?? 0;
     if (hpPct > 0 && e.hp > 0) {
-      e.hp -= e.hp * hpPct;
+      const floor = e.maxHp * 0.33;
+      if (e.hp > floor) {
+        e.hp = Math.max(floor, e.hp - e.hp * hpPct);
+      }
     }
   }
 
