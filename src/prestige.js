@@ -183,9 +183,9 @@ const PRESTIGE_UPGRADES = [
   },
 
   {
-    id: 'hammerGuard',
-    name: 'Hammer Guard',
-    tooltip: 'Orbital Death Ring hammers deflect enemy projectiles back at the shooter, dealing the tower\'s normal shot damage.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75% deflect chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
+    id: 'deflectorRing',
+    name: 'Deflector Ring',
+    tooltip: 'Enemy projectiles that enter the Orbital Death Ring zone are deflected back at the shooter, dealing the tower\'s normal shot damage.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75% deflect chance per projectile per frame.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
     maxTier: 5,
     baseCost: 500,
     costMult: 4.0,
@@ -197,7 +197,7 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'vortexSweep',
     name: 'Vortex Sweep',
-    tooltip: 'Orbital Death Ring hammers can pick up enemies on contact and carry them outward along the spiral for 3 s, dealing continuous hammer damage.\nTier 1: 5%  Tier 2: 10%  Tier 3: 15%  Tier 4: 20%  Tier 5: 25% carry chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
+    tooltip: 'Enemies inside the Orbital Death Ring zone are periodically grabbed and held in orbit for 3 s, taking continuous ring damage.\nCarry chance is checked once per second per enemy in the zone.\nTier 1: 5%  Tier 2: 10%  Tier 3: 15%  Tier 4: 20%  Tier 5: 25% carry chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
     maxTier: 5,
     baseCost: 500,
     costMult: 4.0,
@@ -395,6 +395,12 @@ export class PrestigeShop {
       this.game.shards += refund;
       delete prestigeUpgrades['waveRush'];
       console.log(`Wave Rush refunded: +${refund} shards`);
+    }
+
+    // Hammer Guard renamed to Deflector Ring in v1.11.87 — migrate save key silently.
+    if ((prestigeUpgrades['hammerGuard'] ?? 0) > 0 && !prestigeUpgrades['deflectorRing']) {
+      prestigeUpgrades['deflectorRing'] = prestigeUpgrades['hammerGuard'];
+      delete prestigeUpgrades['hammerGuard'];
     }
 
     // Reset prestige-driven tower fields to defaults before replaying

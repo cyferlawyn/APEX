@@ -131,21 +131,32 @@ export class Renderer {
       glowColor = COLORS.laser;
     }
 
-    // Orbital Death Ring — Archimedean spiral hammers (drawn behind tower hex)
+    // Orbital Death Ring — cosmetic spiral nodes + zone damage circle
     if (t.ringTier > 0 && t.hammers?.length) {
-      const ORBIT_MIN  = t.radius + 20;
-      const ORBIT_MAX  = t.radius + 220;
+      const ORBIT_MIN  = t.radius + 16;
+      const ORBIT_MAX  = t.radius + 160;
       const N_TURNS    = 3;
       const WRAP       = N_TURNS * Math.PI * 2;
       const dotR       = 5 + t.ringTier * 1.5;
       const glowBlur   = 18 + t.ringTier * 6;
       const TRAIL_STEPS  = 18;
       const TRAIL_DANGLE = 0.18;
-      const hammerCount  = t.hammers.length;
+      const nodeCount    = t.hammers.length;
 
-      for (let hi = 0; hi < hammerCount; hi++) {
+      // Faint zone boundary circle — shows the ring's damage radius
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, ORBIT_MAX, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,109,0,0.18)';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([6, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      for (let hi = 0; hi < nodeCount; hi++) {
         const h           = t.hammers[hi];
-        const phaseOffset = hi * (Math.PI * 2 / hammerCount);
+        const phaseOffset = hi * (Math.PI * 2 / nodeCount);
         ctx.save();
 
         // Trail — polyline stepping back along the spiral
@@ -167,7 +178,7 @@ export class Renderer {
           ctx.fill();
         }
 
-        // Hammer head
+        // Ring node head
         ctx.globalAlpha = 1;
         ctx.fillStyle   = '#ffffff';
         ctx.shadowBlur  = game.quality !== 'low' ? glowBlur : 0;

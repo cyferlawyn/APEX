@@ -100,7 +100,7 @@ const UPGRADES = [
   {
     id: 'turrets',
     name: 'Orbital Death Ring',
-    tooltip: 'An energy arc orbits the tower, burning any enemy it sweeps through.\nDPS = damage × fire rate × 8 (high — contact time per pass is brief).\nTier 1: 1 ring, 30° arc, 90°/s.\nTier 2: 1 ring, 45° arc, 110°/s.\nTier 3: second counter-rotating ring added.\nTier 4: both rings at 60° arc, 130°/s.\nTier 5: both rings at 75° arc, 150°/s.',
+    tooltip: 'A swirling ring of energy surrounds the tower, dealing continuous damage to all enemies inside the zone.\nDPS = damage × fire rate × 200 (scales with all damage multipliers).\nZone radius: tower radius + 160 px.\nTier 1: 1 node.  Each tier adds another node (cosmetic — zone is the same size).\nUnlocks Deflector Ring and Vortex Sweep prestige upgrades.',
     maxTier: 5,
     baseCost: 1500,
     costMult: 2.1,

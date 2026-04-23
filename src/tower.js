@@ -31,9 +31,9 @@ export class Tower {
     // Orbital Death Ring
     this.ringTier          = 0;     // 0 = not unlocked
     this.ringPhase         = 0;     // ever-increasing angle driving the Archimedean spiral
-    this.ringDestroyChance = 0;     // 0.0–0.75 chance to deflect enemy projectiles on hammer hit
-    this.ringCarryChance   = 0;     // 0.0–0.25 chance to carry an enemy outward on hammer hit
-    this.ringCarried       = [];    // [{ enemy, hammerIndex, timer }] active carry slots
+    this.ringDestroyChance = 0;     // 0.0–0.75 chance to deflect enemy projectiles inside the zone
+    this.ringCarryChance   = 0;     // 0.0–0.25 chance to carry an enemy orbiting in the zone
+    this.ringCarried       = [];    // [{ enemy, angle, timer }] active carry slots
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -254,90 +254,81 @@ export class Tower {
   }
 
   // ── Orbital Death Ring ──────────────────────────────────────────────────────
-  // Two hammer-like energy points trace an Archimedean spiral outward from the
-  // tower, 180° apart.  When a point reaches ORBIT_MAX it snaps back to ORBIT_MIN
-  // and begins the next outward sweep.  Rotation speed scales with tier.
+  // The ring is a damaging zone centred on the tower.  Any enemy within ZONE_R
+  // takes continuous DPS each frame.  The spiral/trail visuals are purely cosmetic.
+  // ORBIT_MAX is intentionally tighter than the old spiral to keep the zone readable.
 
   _updateRings(dt, game) {
     const t        = this.ringTier;
-    const rotSpeed = (t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150)) * 3; // °/s
+    const rotSpeed = (t <= 2 ? (t === 1 ? 90 : 110) : (t === 3 ? 110 : t === 4 ? 130 : 150)) * 3; // °/s (visual only)
     const DPS      = this.damage * this.fireRate * 200.0 * this._dmgMult * this.ringDpsMult;
 
-    // Spiral geometry — 3 full rotations to sweep from MIN to MAX
-    const ORBIT_MIN   = this.radius + 20;
-    const ORBIT_MAX   = this.radius + 220;
-    const N_TURNS     = 3;                          // rotations per outward sweep
-    const WRAP        = N_TURNS * Math.PI * 2;      // phase range for one sweep
+    // Zone geometry — tighter than the old spiral for a well-defined ring
+    const ORBIT_MIN = this.radius + 16;
+    const ORBIT_MAX = this.radius + 160;
+    const N_TURNS   = 3;
+    const WRAP      = N_TURNS * Math.PI * 2;
 
+    // Advance visual phase (cosmetic only)
     this.ringPhase += rotSpeed * (Math.PI / 180) * dt;
 
-    // Helper: compute (x,y,r) for a hammer given its phase offset
-    const hammerPos = (phaseOffset) => {
-      const phase = (this.ringPhase + phaseOffset) % (Math.PI * 2 * 1e6); // prevent float drift
-      const t01   = (phase % WRAP) / WRAP;          // 0→1 within current sweep
+    // Compute visual node positions for renderer (cosmetic spiral, unchanged look)
+    const nodeCount = t;
+    const nodes = [];
+    for (let i = 0; i < nodeCount; i++) {
+      const phaseOffset = i * (Math.PI * 2 / nodeCount);
+      const phase  = (this.ringPhase + phaseOffset) % (Math.PI * 2 * 1e6);
+      const t01    = (phase % WRAP) / WRAP;
       const orbitR = ORBIT_MIN + t01 * (ORBIT_MAX - ORBIT_MIN);
       const angle  = phase;
-      return { x: this.x + Math.cos(angle) * orbitR,
-               y: this.y + Math.sin(angle) * orbitR,
-               r: orbitR, angle };
-    };
-
-    // One hammer per tier, evenly spaced around the spiral
-    const hammerCount = t;
-    const hammers = [];
-    for (let i = 0; i < hammerCount; i++) {
-      hammers.push(hammerPos(i * (Math.PI * 2 / hammerCount)));
+      nodes.push({ x: this.x + Math.cos(angle) * orbitR,
+                   y: this.y + Math.sin(angle) * orbitR,
+                   r: orbitR, angle });
     }
+    this.hammers  = nodes;   // kept as "hammers" so renderer needs no change
+    this.ringZoneR = ORBIT_MAX; // exposed for renderer zone circle
 
-    // Store on tower for renderer
-    this.hammers = hammers;
-
-    // Damage check
-    const HIT_R  = 18;
-    const HIT_R2 = HIT_R * HIT_R;
+    // ── Zone DPS — simple distance check against tower centre ────────────────
+    const ZONE_R2 = ORBIT_MAX * ORBIT_MAX;
     for (const e of game.enemyPool.pool) {
-      if (!e.active) continue;
-      for (const h of hammers) {
-        const dx = e.x - h.x, dy = e.y - h.y;
-        if (dx * dx + dy * dy > HIT_R2) continue;
-        // Colossus armor: absorb first ring tick per wave
-        if (e.type === EnemyType.COLOSSUS && !e.armorRing) { e.armorRing = true; break; }
-        e.hp -= DPS * dt;
-        if (game.particles && game.quality !== 'low' && Math.random() < 0.3)
-          game.particles.emitHit(e.x, e.y, '#ff6d00');
-        if (this.ringStunDuration > 0)
-          e.stunUntil = (game.elapsed ?? 0) + this.ringStunDuration;
-        if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
-            || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
-          const wasExecute = e.hp > 0;
-          e.hp = 0;
-          if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
-          _towerKillEnemy(e, game);
-        }
-        break;
+      if (!e.active || e.carriedByRing) continue;
+      const dx = e.x - this.x, dy = e.y - this.y;
+      if (dx * dx + dy * dy > ZONE_R2) continue;
+      // Colossus armor: absorb first ring tick per wave
+      if (e.type === EnemyType.COLOSSUS && !e.armorRing) { e.armorRing = true; continue; }
+      e.hp -= DPS * dt;
+      if (game.particles && game.quality !== 'low' && Math.random() < 0.25)
+        game.particles.emitHit(e.x, e.y, '#ff6d00');
+      if (this.ringStunDuration > 0)
+        e.stunUntil = (game.elapsed ?? 0) + this.ringStunDuration;
+      if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
+          || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
+        const wasExecute = e.hp > 0;
+        e.hp = 0;
+        if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
+        _towerKillEnemy(e, game);
       }
     }
 
-    // Vortex Sweep — carry enemies outward along the spiral
+    // ── Vortex Sweep — zone-based carry, checked once per second ─────────────
     if (this.ringCarryChance > 0) {
-      // Tick existing carries and force enemy position onto their hammer
+      // Tick existing carries — lock carried enemy at a fixed orbit radius
+      const CARRY_R = ORBIT_MIN + (ORBIT_MAX - ORBIT_MIN) * 0.65;
       const carried = this.ringCarried;
       let ci = 0;
       for (let i = 0; i < carried.length; i++) {
         const slot = carried[i];
         const e    = slot.enemy;
-        if (!e.active) continue; // killed mid-carry — just drop
+        if (!e.active) continue;
         slot.timer -= dt;
-        if (slot.timer <= 0) {
-          e.carriedByRing = false;
-          continue; // drop
-        }
-        const h = hammers[slot.hammerIndex % hammers.length];
-        e.x = h.x;
-        e.y = h.y;
-        // Continuous DPS while carried
+        if (slot.timer <= 0) { e.carriedByRing = false; continue; }
+        // Keep enemy orbiting at CARRY_R around the tower
+        slot.angle = (slot.angle ?? 0) + rotSpeed * (Math.PI / 180) * dt;
+        e.x = this.x + Math.cos(slot.angle) * CARRY_R;
+        e.y = this.y + Math.sin(slot.angle) * CARRY_R;
+        // Continuous DPS while carried (zone DPS loop above is skipped for carriedByRing)
         e.hp -= DPS * dt;
-        if (game.particles && game.quality !== 'low' && Math.random() < 0.3)
+        if (game.particles && game.quality !== 'low' && Math.random() < 0.25)
           game.particles.emitHit(e.x, e.y, '#ff6d00');
         if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
             || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
@@ -352,50 +343,47 @@ export class Tower {
       }
       carried.length = ci;
 
-      // Try to pick up new enemies on hammer contact
-      const carriedEnemies = new Set(carried.map(s => s.enemy));
-      for (const e of game.enemyPool.pool) {
-        if (!e.active || e.carriedByRing) continue;
-        for (let hi = 0; hi < hammers.length; hi++) {
-          const h = hammers[hi];
-          const dx = e.x - h.x, dy = e.y - h.y;
-          if (dx * dx + dy * dy <= HIT_R2 && Math.random() < this.ringCarryChance) {
+      // Once-per-second pickup check — zone distance only, no per-node loop
+      this._vortexPickupTimer = (this._vortexPickupTimer ?? 0) - dt;
+      if (this._vortexPickupTimer <= 0) {
+        this._vortexPickupTimer = 1.0;
+        for (const e of game.enemyPool.pool) {
+          if (!e.active || e.carriedByRing) continue;
+          const dx = e.x - this.x, dy = e.y - this.y;
+          if (dx * dx + dy * dy > ZONE_R2) continue;
+          if (Math.random() < this.ringCarryChance) {
+            const startAngle = Math.atan2(e.y - this.y, e.x - this.x);
             e.carriedByRing = true;
-            carried.push({ enemy: e, hammerIndex: hi, timer: 3.0 });
-            break;
+            carried.push({ enemy: e, angle: startAngle, timer: 3.0 });
           }
         }
       }
     }
 
-    // Enemy-projectile deflection — Hammer Guard prestige upgrade
+    // ── Deflector Ring — zone-based projectile deflection ────────────────────
     if (this.ringDestroyChance > 0 && game.enemyProjectiles?.length) {
       const deflectDmg = Math.round(this.damage * this._dmgMult);
       for (const p of game.enemyProjectiles) {
         if (p.deflected) continue;
-        for (const h of hammers) {
-          const dx = p.x - h.x, dy = p.y - h.y;
-          if (dx * dx + dy * dy <= HIT_R2 && Math.random() < this.ringDestroyChance) {
-            // Redirect velocity toward the source enemy (if still active), else reverse
-            const src = p.sourceEnemy;
-            if (src?.active) {
-              const ex = src.x - p.x, ey = src.y - p.y;
-              const len = Math.sqrt(ex * ex + ey * ey) || 1;
-              const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-              p.vx = (ex / len) * spd;
-              p.vy = (ey / len) * spd;
-            } else {
-              p.vx = -p.vx;
-              p.vy = -p.vy;
-            }
-            p.deflected     = true;
-            p.deflectDamage = deflectDmg;
-            p.t             = 4.0; // reset lifetime for return trip
-            if (game.particles && game.quality !== 'low')
-              game.particles.emitHit(p.x, p.y, '#ff6d00');
-            break;
-          }
+        const dx = p.x - this.x, dy = p.y - this.y;
+        if (dx * dx + dy * dy > ZONE_R2) continue;
+        if (Math.random() > this.ringDestroyChance) continue;
+        const src = p.sourceEnemy;
+        if (src?.active) {
+          const ex = src.x - p.x, ey = src.y - p.y;
+          const len = Math.sqrt(ex * ex + ey * ey) || 1;
+          const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          p.vx = (ex / len) * spd;
+          p.vy = (ey / len) * spd;
+        } else {
+          p.vx = -p.vx;
+          p.vy = -p.vy;
         }
+        p.deflected     = true;
+        p.deflectDamage = deflectDmg;
+        p.t             = 4.0;
+        if (game.particles && game.quality !== 'low')
+          game.particles.emitHit(p.x, p.y, '#ff6d00');
       }
     }
   }
