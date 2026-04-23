@@ -233,7 +233,7 @@ export class Tower {
       const extra = this.spreadPellets - 1;
 
       game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
-        dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
+        dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
 
       const step = extra > 0 ? half / Math.ceil(extra / 2) : 0;
       for (let i = 1; i <= extra; i++) {
@@ -241,16 +241,16 @@ export class Tower {
         const offset = Math.ceil(i / 2) * step * side;
         const a      = baseA + offset;
         game.projectilePool.fire(ox, oy, Math.cos(a) * effProjSpeed, Math.sin(a) * effProjSpeed,
-          dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
+          dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
       }
     } else if (this.spreadShot && game.warbornRallyCry) {
       // Rallying Cry passive: collapse spread fan into a single concentrated shot with pellet-count damage
       const concentratedDmg = dmg * this.spreadPellets;
       game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
-        concentratedDmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
+        concentratedDmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
     } else {
       game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
-        dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
+        dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
     }
   }
 

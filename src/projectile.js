@@ -65,6 +65,24 @@ class SpatialGrid {
 const _grid        = new SpatialGrid(64);
 const _gridScratch = [];  // reusable result buffer — avoids per-query allocation
 
+// Find the nearest active, non-intangible, non-pierced enemy that is ahead of
+// the projectile (dot product with velocity > 0). Used for re-targeting after a
+// kill and for pierce chaining.
+function _findNearestAhead(x, y, vx, vy, pierced, game) {
+  let best = null, bestD2 = Infinity;
+  for (const e of game.enemyPool.pool) {
+    if (!e.active || e.intangible) continue;
+    if (pierced?.has(e)) continue;
+    const dx = e.x - x;
+    const dy = e.y - y;
+    // Must be roughly ahead of us (dot > 0)
+    if (dx * vx + dy * vy <= 0) continue;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD2) { best = e; bestD2 = d2; }
+  }
+  return best;
+}
+
 export class Projectile {
   constructor() {
     this.active           = false;
@@ -79,9 +97,14 @@ export class Projectile {
     this.executeThreshold = 0;   // 0 = no execute
     this.ricochetCount    = 0;   // remaining bounces
     this.overcharge       = false; // true = ×4 overcharge shot, distinct visual
+    // Distance-travelled hit detection
+    this.target           = null; // locked enemy reference
+    this.distToHit        = 0;    // travel distance at which we reach target's edge
+    this.distTravelled    = 0;
+    this.speed            = 0;    // magnitude of velocity, cached
   }
 
-  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false) {
+  init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false, target = null) {
     this.active           = true;
     this.x                = x;
     this.y                = y;
@@ -95,6 +118,16 @@ export class Projectile {
     this.ricochetCount    = ricochetCount;
     this.overcharge       = overcharge;
     this.pierced          = null; // Set of already-hit enemies when pierce is active
+    this.distTravelled    = 0;
+    this.speed            = Math.sqrt(vx * vx + vy * vy);
+    this.target           = target;
+    if (target) {
+      const dx = target.x - x;
+      const dy = target.y - y;
+      this.distToHit = Math.sqrt(dx * dx + dy * dy) - target.radius;
+    } else {
+      this.distToHit = Infinity;
+    }
   }
 
   update(dt, game, bounds) {
@@ -102,6 +135,7 @@ export class Projectile {
 
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+    this.distTravelled += this.speed * dt;
 
     // Deactivate if off-screen
     if (this.x < -20 || this.x > bounds.w + 20 ||
@@ -110,21 +144,36 @@ export class Projectile {
       return;
     }
 
-    // Collision vs enemies — query grid instead of full pool scan
-    const QUERY_R = 32;
-    _grid.queryInto(this.x, this.y, QUERY_R, _gridScratch);
-    for (const e of _gridScratch) {
-      if (!e.active) continue;
-      // Phantom: projectiles pass through while intangible
-      if (e.intangible) continue;
-      // Pierce: skip enemies already hit by this projectile
-      if (this.pierced?.has(e)) continue;
-      const dx = this.x - e.x;
-      const dy = this.y - e.y;
-      if (dx * dx + dy * dy <= e.radius * e.radius) {
-        this._onHit(e, game);
-        if (!this.active) return;
-        break; // hit processed (pierce kept us alive); re-query next frame
+    // Re-acquire target if original was killed or became intangible before we arrived
+    if (!this.target?.active || this.target.intangible) {
+      this.target = _findNearestAhead(this.x, this.y, this.vx, this.vy, this.pierced, game);
+      if (this.target) {
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        this.distToHit = this.distTravelled + Math.sqrt(dx * dx + dy * dy) - this.target.radius;
+      } else {
+        // No enemies remain — fly off screen
+        this.distToHit = Infinity;
+      }
+    }
+
+    // Distance-travelled hit check
+    if (this.distTravelled >= this.distToHit && this.target?.active && !this.target.intangible) {
+      // Snap to target centre so secondary effects (chain, splash) originate correctly
+      this.x = this.target.x;
+      this.y = this.target.y;
+      const hitTarget = this.target;
+      this._onHit(hitTarget, game);
+      if (!this.active) return;
+
+      // Projectile survived (pierce) — find next target ahead
+      this.target = _findNearestAhead(this.x, this.y, this.vx, this.vy, this.pierced, game);
+      if (this.target) {
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        this.distToHit = this.distTravelled + Math.sqrt(dx * dx + dy * dy) - this.target.radius;
+      } else {
+        this.distToHit = Infinity;
       }
     }
   }
@@ -462,9 +511,9 @@ export class ProjectilePool {
     return null;
   }
 
-  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false) {
+  fire(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false, target = null) {
     const p = this.acquire();
-    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold, ricochetCount, overcharge);
+    if (p) p.init(x, y, vx, vy, damage, explosiveRadius, chainJumps, executeThreshold, ricochetCount, overcharge, target);
     return p;
   }
 
