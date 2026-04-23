@@ -404,38 +404,43 @@ export class Tower {
       this.laserTimer -= dt;
       this.laserAngle += SWEEP_SPEED * dt;
 
-      const laserR2 = this.laserRange * this.laserRange;
+      // Precompute laser beam unit vector and dot-product threshold — avoids
+      // Math.atan2 per enemy.  dot(enemyDir, laserDir) >= cos(0.15) ≈ 0.9888
+      // is equivalent to |angle diff| < 0.15 rad, which is what the old code checked.
+      const laserR2    = this.laserRange * this.laserRange;
+      const laserA     = this.laserAngle % (Math.PI * 2);
+      const laserDirX  = Math.cos(laserA);
+      const laserDirY  = Math.sin(laserA);
+      const DOT_THRESH = Math.cos(0.15); // ~0.9888, computed once per frame
+
       for (const e of game.enemyPool.pool) {
         if (!e.active) continue;
         const dx = e.x - this.x;
         const dy = e.y - this.y;
-        if (dx * dx + dy * dy > laserR2) continue;
-
-        const eAngle = Math.atan2(dy, dx);
-        let dAngle   = Math.abs(eAngle - (this.laserAngle % (Math.PI * 2)));
-        if (dAngle > Math.PI) dAngle = Math.PI * 2 - dAngle;
-        if (dAngle < 0.15) {
-          // Colossus armor: absorb first laser tick per wave
-          if (e.type === EnemyType.COLOSSUS && !e.armorLaser) {
-            e.armorLaser = true;
-            continue;
-          }
-          e.hp -= DPS * dt;
-          if (game.particles && game.quality !== 'low' && Math.random() < 0.5) {
-            game.particles.emitHit(e.x, e.y, '#ff4081');
-          }
-          // Laser slow (prestige)
-          if (this.laserSlowFactor < 1.0) {
-            e.slowUntil  = (game.elapsed ?? 0) + this.laserSlowDuration;
-            e.slowFactor = this.laserSlowFactor;
-          }
-          if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
-              || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
-            const wasExecute = e.hp > 0;
-            e.hp = 0;
-            if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
-            _towerKillEnemy(e, game);
-          }
+        const d2 = dx * dx + dy * dy;
+        if (d2 > laserR2) continue;
+        // Dot-product beam test: no sqrt needed since we normalise by 1/sqrt(d2)
+        const invD = 1 / Math.sqrt(d2);
+        if (dx * invD * laserDirX + dy * invD * laserDirY < DOT_THRESH) continue;
+        // Colossus armor: absorb first laser tick per wave
+        if (e.type === EnemyType.COLOSSUS && !e.armorLaser) {
+          e.armorLaser = true;
+          continue;
+        }
+        e.hp -= DPS * dt;
+        if (game.particles && game.quality !== 'low' && Math.random() < 0.5) {
+          game.particles.emitHit(e.x, e.y, '#ff4081');
+        }
+        if (this.laserSlowFactor < 1.0) {
+          e.slowUntil  = (game.elapsed ?? 0) + this.laserSlowDuration;
+          e.slowFactor = this.laserSlowFactor;
+        }
+        if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
+            || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
+          const wasExecute = e.hp > 0;
+          e.hp = 0;
+          if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
+          _towerKillEnemy(e, game);
         }
       }
 
