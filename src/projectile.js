@@ -345,17 +345,26 @@ function _spawnCurrencyPopup(amount, game, x, y) {
 
 function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
   const CHAIN_RANGE = 220;
-  const r2 = CHAIN_RANGE * CHAIN_RANGE;
   const unlimited = game.warbornFury;
 
-  // Find nearest active enemy not already hit in this chain
   let best = null, bestD2 = Infinity;
-  _grid.queryInto(x, y, unlimited ? 1e9 : CHAIN_RANGE, _gridScratch);
-  for (const e of _gridScratch) {
-    if (!e.active || e === lastHit) continue;
-    const dx = x - e.x, dy = y - e.y;
-    const d2 = dx * dx + dy * dy;
-    if ((unlimited || d2 < r2) && d2 < bestD2) { best = e; bestD2 = d2; }
+  if (unlimited) {
+    // Fury: scan all active enemies directly — avoids a catastrophic grid range query
+    for (const e of game.enemyPool.pool) {
+      if (!e.active || e === lastHit) continue;
+      const dx = x - e.x, dy = y - e.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestD2) { best = e; bestD2 = d2; }
+    }
+  } else {
+    const r2 = CHAIN_RANGE * CHAIN_RANGE;
+    _grid.queryInto(x, y, CHAIN_RANGE, _gridScratch);
+    for (const e of _gridScratch) {
+      if (!e.active || e === lastHit) continue;
+      const dx = x - e.x, dy = y - e.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < r2 && d2 < bestD2) { best = e; bestD2 = d2; }
+    }
   }
 
   if (!best) return;
@@ -378,16 +387,26 @@ function _chainFrom(x, y, lastHit, damage, jumpsLeft, game) {
 
 function _ricochetFrom(x, y, lastHit, damage, bouncesLeft, explosiveRadius, chainJumps, executeThreshold, game) {
   const RICOCHET_RANGE = 300;
-  const r2 = RICOCHET_RANGE * RICOCHET_RANGE;
   const unlimited = game.warbornFury;
 
   let best = null, bestD2 = Infinity;
-  _grid.queryInto(x, y, unlimited ? 1e9 : RICOCHET_RANGE, _gridScratch);
-  for (const e of _gridScratch) {
-    if (!e.active || e === lastHit) continue;
-    const dx = x - e.x, dy = y - e.y;
-    const d2 = dx * dx + dy * dy;
-    if ((unlimited || d2 < r2) && d2 < bestD2) { best = e; bestD2 = d2; }
+  if (unlimited) {
+    // Fury: scan all active enemies directly — avoids a catastrophic grid range query
+    for (const e of game.enemyPool.pool) {
+      if (!e.active || e === lastHit) continue;
+      const dx = x - e.x, dy = y - e.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < bestD2) { best = e; bestD2 = d2; }
+    }
+  } else {
+    const r2 = RICOCHET_RANGE * RICOCHET_RANGE;
+    _grid.queryInto(x, y, RICOCHET_RANGE, _gridScratch);
+    for (const e of _gridScratch) {
+      if (!e.active || e === lastHit) continue;
+      const dx = x - e.x, dy = y - e.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < r2 && d2 < bestD2) { best = e; bestD2 = d2; }
+    }
   }
   if (!best) return;
 
