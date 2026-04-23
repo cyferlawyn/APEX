@@ -172,6 +172,7 @@ export class Enemy {
             t: 4.0,
             sourceEnemy: this,
             deflected: false,
+            deflectChecked: false,
           });
         }
       }

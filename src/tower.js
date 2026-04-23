@@ -361,13 +361,15 @@ export class Tower {
       }
     }
 
-    // ── Deflector Ring — zone-based projectile deflection ────────────────────
+    // ── Deflector Ring — one-time roll per projectile on zone entry ───────────
     if (this.ringDestroyChance > 0 && game.enemyProjectiles?.length) {
       const deflectDmg = Math.round(this.damage * this._dmgMult);
       for (const p of game.enemyProjectiles) {
-        if (p.deflected) continue;
+        if (p.deflected || p.deflectChecked) continue;
         const dx = p.x - this.x, dy = p.y - this.y;
         if (dx * dx + dy * dy > ZONE_R2) continue;
+        // Mark as checked so this roll never repeats, regardless of outcome
+        p.deflectChecked = true;
         if (Math.random() > this.ringDestroyChance) continue;
         const src = p.sourceEnemy;
         if (src?.active) {

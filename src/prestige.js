@@ -185,12 +185,12 @@ const PRESTIGE_UPGRADES = [
   {
     id: 'deflectorRing',
     name: 'Deflector Ring',
-    tooltip: 'Enemy projectiles that enter the Orbital Death Ring zone are deflected back at the shooter, dealing the tower\'s normal shot damage.\nTier 1: 15%  Tier 2: 30%  Tier 3: 45%  Tier 4: 60%  Tier 5: 75% deflect chance per projectile per frame.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
+    tooltip: 'Enemy projectiles are deflected back at the shooter when they first enter the Orbital Death Ring zone, dealing the tower\'s normal shot damage.\nOne roll per projectile on zone entry.\nTier 1: 20%  Tier 2: 28%  Tier 3: 34%  Tier 4: 38%  Tier 5: 40% deflect chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
     maxTier: 5,
     baseCost: 500,
     costMult: 4.0,
     apply(tower, game, tier) {
-      tower.ringDestroyChance = tier * 0.15;
+      tower.ringDestroyChance = [0, 0.20, 0.28, 0.34, 0.38, 0.40][tier] ?? 0.40;
     },
   },
 
