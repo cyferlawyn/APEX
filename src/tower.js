@@ -223,13 +223,15 @@ export class Tower {
       : 0;
     // Arc Mastery: extra chain jumps on top of shop chainJumps
     const effChainJumps = this.chainJumps + this.arcMasteryJumps;
+    // Avatar of War passive: double projectile speed
+    const effProjSpeed = this.projectileSpeed * (game.warbornAvatarOfWar ? 2 : 1);
 
     if (this.spreadShot && !game.warbornRallyCry) {
       const baseA = Math.atan2(ny, nx);
       const half  = (this.spreadAngle / 2) * (Math.PI / 180);
       const extra = this.spreadPellets - 1;
 
-      game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
+      game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
         dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
 
       const step = extra > 0 ? half / Math.ceil(extra / 2) : 0;
@@ -237,16 +239,16 @@ export class Tower {
         const side   = i % 2 === 1 ? 1 : -1;
         const offset = Math.ceil(i / 2) * step * side;
         const a      = baseA + offset;
-        game.projectilePool.fire(ox, oy, Math.cos(a) * this.projectileSpeed, Math.sin(a) * this.projectileSpeed,
+        game.projectilePool.fire(ox, oy, Math.cos(a) * effProjSpeed, Math.sin(a) * effProjSpeed,
           dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
       }
     } else if (this.spreadShot && game.warbornRallyCry) {
       // Rallying Cry passive: collapse spread fan into a single concentrated shot with pellet-count damage
       const concentratedDmg = dmg * this.spreadPellets;
-      game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
+      game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
         concentratedDmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
     } else {
-      game.projectilePool.fire(ox, oy, nx * this.projectileSpeed, ny * this.projectileSpeed,
+      game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
         dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC);
     }
   }
