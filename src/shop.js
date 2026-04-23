@@ -87,6 +87,7 @@ const UPGRADES = [
   {
     id: 'spreadShot',
     name: 'Spread Shot',
+    disabled: true,
     tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 14° cone.\nEach tier adds 1 pellet and widens the cone by 4°.\nMax (tier 5): 8 pellets, 34° cone.\nWith WARBORN Rallying Cry the fan collapses into a single shot worth all pellets combined.',
     maxTier: 5,
     baseCost: 300,
@@ -243,8 +244,8 @@ export class Shop {
   }
 
   purchase(id) {
-    if (this.isMaxed(id) || !this.canAfford(id)) return false;
     const entry = this._entry(id);
+    if (entry?.disabled || this.isMaxed(id) || !this.canAfford(id)) return false;
     this.game.currency -= this.cost(id);
     this.game.upgrades[id] = this.tier(id) + 1;
     entry.apply(this.game.tower, this.game, this.game.upgrades[id]);

@@ -199,7 +199,10 @@ function patchShopCards() {
 
     // Buy button
     const btn = card.querySelector('.upgrade-buy-btn');
-    if (maxed) {
+    if (entry.disabled) {
+      if (tierEl.textContent !== '[OFF]') tierEl.textContent = '[OFF]';
+      setBtn(btn, 'DISABLED', true, true);
+    } else if (maxed) {
       setBtn(btn, 'MAXED', true, true);
     } else {
       let label = `$ ${fmt(cost)}`;
