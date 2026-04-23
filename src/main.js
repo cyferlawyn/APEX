@@ -786,13 +786,15 @@ export function beginAscend() {
     game.totalShardsEarned += bonus;
   }
 
-  // VANGUARD B3: Iron Vault — 1 bonus shard per enemy alive on the board at ascension
-  // The natural Vanguard death state (overrun by a swarm) is the optimal exit condition.
+  // VANGUARD B3: Iron Vault — shards per enemy alive on the board at ascension.
+  // Base: 1 shard/enemy. Endless War capstone adds +1/enemy per rank (rank 1 = 2, rank 10 = 11).
   if (game.vanguardIronVault) {
     const aliveCount = game.enemyPool.activeCount();
     if (aliveCount > 0) {
-      game.shards            += aliveCount;
-      game.totalShardsEarned += aliveCount;
+      const shardsPerEnemy = 1 + (game.vanguardCapstoneRank ?? 0);
+      const bonus = aliveCount * shardsPerEnemy;
+      game.shards            += bonus;
+      game.totalShardsEarned += bonus;
     }
   }
 

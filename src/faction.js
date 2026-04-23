@@ -298,7 +298,7 @@ export const FACTION_CAPSTONES = {
   vanguard: {
     id:       'vanguard_cs',
     name:     'ENDLESS WAR',
-    tooltip:  'All factions: once 75% of a wave is killed, the next wave triggers (boss not required; VANGUARD keeps 50% + boss-dead).\nAll factions: auto-ascension dropdown on the ascension overlay — Off / On overkill end / On defeat.\nAll factions: faction choice overlay gains a 10-second countdown that re-selects the previous faction.\nEach rank: the obliterate overkill check treats your shot as ×(1 + rank × 0.25) stronger — does NOT change actual damage.',
+    tooltip:  'All factions: once 75% of a wave is killed, the next wave triggers (boss not required; VANGUARD keeps 50% + boss-dead).\nAll factions: auto-ascension dropdown on the ascension overlay — Off / On overkill end / On defeat.\nAll factions: faction choice overlay gains a 10-second countdown that re-selects the previous faction.\nEach rank: Iron Vault pays out +1 additional shard per enemy alive at ascension.\n(Rank 1 = 2 shards/enemy. Rank 10 = 11 shards/enemy.)',
     baseCost: 1_000_000,
     costMult: 1.30,
   },

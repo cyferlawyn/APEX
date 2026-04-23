@@ -514,14 +514,13 @@ export function checkObliterateAtWaveStart(game) {
   if (game.tower.obliterateDelay <= 0) return false;
   const baseline  = droneHp(game.wave);
   const normShot  = normalizedShotDamage(game.tower, game);
-  const checkMult = game.vanguardObliterateCheckMult?.() ?? 1.0;
   // WARBORN capstone: each projectile also removes hpPct × currentHP as true damage.
   // Against a baseline-HP drone this adds hpPct × baseline to effective damage.
   const hpPctBonus = (game.warbornProjectileHpPct?.() ?? 0) * baseline;
   const effectiveDmg = normShot + hpPctBonus;
-  if (effectiveDmg * checkMult >= baseline * 10) {
+  if (effectiveDmg >= baseline * 10) {
     game.obliterateTimer    = game.tower.obliterateDelay;
-    game.obliterateOverkill = Math.floor(effectiveDmg * checkMult / baseline);
+    game.obliterateOverkill = Math.floor(effectiveDmg / baseline);
     return true;
   }
   return false;

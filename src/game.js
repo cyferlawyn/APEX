@@ -327,10 +327,4 @@ export class Game {
     if (this.vanguardApexDmgBonus <= 0) return 1.0;
     return 1 + this.vanguardApexDmgBonus;
   }
-
-  // VANGUARD capstone: multiplier applied to obliterate normShot check only
-  vanguardObliterateCheckMult() {
-    if (this.vanguardCapstoneRank <= 0) return 1.0;
-    return 1 + this.vanguardCapstoneRank * 0.25;
-  }
 }
