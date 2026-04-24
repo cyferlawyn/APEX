@@ -91,23 +91,6 @@ export class AudioManager {
 
   fireMulti() { this.fireSingle(1.25); }
 
-  // Spread shot: a short noise whoosh.
-  fireSpread() {
-    if (!this._ctx) return;
-    const ac  = this._ac();
-    const now = ac.currentTime;
-    const { src, gain } = this._noise(0.12);
-    // High-pass the noise for a crisp 'shhhk'
-    const hpf = ac.createBiquadFilter();
-    hpf.type            = 'highpass';
-    hpf.frequency.value = 2200;
-    src.disconnect();
-    src.connect(hpf);
-    hpf.connect(gain);
-    this._env(gain, 0.18, 0.003, 0.10, now);
-    src.start(now);
-  }
-
   // Explosive impact: low thud + noise crunch.
   fireExplosive() {
     if (!this._ctx) return;

@@ -13,9 +13,6 @@ export class Tower {
 
     // Fire mode flags (set by upgrades)
     this.multiShotCount       = 1;
-    this.spreadShot           = false;
-    this.spreadPellets        = 3;
-    this.spreadAngle          = 20;    // degrees
     this.satelliteTurrets     = 0;     // 0 = none; 1–4 active diagonal turrets
     this.satelliteDamageMult  = 1.0;   // baked damage multiplier from satellite tiers
     this.explosiveRadius      = 0;
@@ -191,9 +188,8 @@ export class Tower {
     }
 
     // Fire sound
-    if (this.spreadShot && !game.warbornRallyCry) audio.fireSpread();
-    else if (effectiveShotCount > 1 && !furyCollapse) audio.fireMulti();
-    else                                               audio.fireSingle();
+    if (effectiveShotCount > 1 && !furyCollapse) audio.fireMulti();
+    else                                          audio.fireSingle();
 
     const overdriveMult = game.overdriveFireRateMult?.() ?? 1.0;
     const rampageMult   = game.rampageFireRateMult?.()   ?? 1.0;
@@ -229,31 +225,8 @@ export class Tower {
     // Avatar of War passive: double projectile speed
     const effProjSpeed = this.projectileSpeed * (game.warbornAvatarOfWar ? 2 : 1);
 
-    if (this.spreadShot && !game.warbornRallyCry) {
-      const baseA = Math.atan2(ny, nx);
-      const half  = (this.spreadAngle / 2) * (Math.PI / 180);
-      const extra = this.spreadPellets - 1;
-
-      game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
-        dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
-
-      const step = extra > 0 ? half / Math.ceil(extra / 2) : 0;
-      for (let i = 1; i <= extra; i++) {
-        const side   = i % 2 === 1 ? 1 : -1;
-        const offset = Math.ceil(i / 2) * step * side;
-        const a      = baseA + offset;
-        game.projectilePool.fire(ox, oy, Math.cos(a) * effProjSpeed, Math.sin(a) * effProjSpeed,
-          dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
-      }
-    } else if (this.spreadShot && game.warbornRallyCry) {
-      // Rallying Cry passive: collapse spread fan into a single concentrated shot with pellet-count damage
-      const concentratedDmg = dmg * this.spreadPellets;
-      game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
-        concentratedDmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
-    } else {
-      game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
-        dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
-    }
+    game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
+      dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
 
     // ── Satellite turret tracers (cosmetic only — damage already in main shot) ─
     if (this.satelliteTurrets > 0 && game.satelliteTracers) {
@@ -613,13 +586,11 @@ export function normalizedShotDamage(tower, game) {
   const executeFactor  = tower.executeThreshold > 0 ? 1 / (1 - tower.executeThreshold) : 1;
   // forgeDmg: flat bonus before multipliers
   const baseDmg        = tower.damage + tower.forgeDmg;
-  // Spread shot: all pellets hit the same primary target simultaneously — multiply by pellet count
-  const spreadFactor   = tower.spreadShot ? tower.spreadPellets : 1;
   // Satellite turrets: damage baked into main shot
   const satelliteFactor = tower.satelliteDamageMult ?? 1.0;
   // Echo Shot: expected extra volley factor when multi-shot is active
   const echoFactor     = (tower.echoShotChance > 0 && tower.multiShotCount > 1)
                          ? (1 + tower.echoShotChance) : 1;
 
-  return baseDmg * dmgMult * critFactor * overchargeFactor * executeFactor * spreadFactor * satelliteFactor * echoFactor;
+  return baseDmg * dmgMult * critFactor * overchargeFactor * executeFactor * satelliteFactor * echoFactor;
 }
