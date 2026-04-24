@@ -242,7 +242,7 @@ function tickAutoBuy(dt) {
   let bestId   = null;
   let bestCost = Infinity;
   for (const entry of shop.catalogue) {
-    if (shop.isMaxed(entry.id)) continue;
+    if (shop.isMaxed(entry.id) || entry.disabled) continue;
     const c = shop.cost(entry.id);
     if (c < bestCost) { bestCost = c; bestId = entry.id; }
   }
