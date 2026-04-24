@@ -92,31 +92,6 @@ const PRESTIGE_UPGRADES = [
       tower.ricochetCount = tier;
     },
   },
-  {
-    id: 'ringSlow',
-    name: 'Ring Stun',
-    tooltip: 'Enemies inside the Orbital Death Ring zone are briefly stunned (stops movement).\nTier 1: 0.15 s  Tier 2: 0.25 s  Tier 3: 0.4 s stun.\nApplied each frame, so enemies inside the zone are held in place.',
-    maxTier: 3,
-    baseCost: 20,
-    costMult: 2.0,
-    apply(tower, game, tier) {
-      tower.ringStunDuration = [0, 0.15, 0.25, 0.4][tier];
-    },
-  },
-
-  // baseCost: 25
-  {
-    id: 'poisonTouch',
-    name: 'Poison Touch',
-    tooltip: '[Temporarily disabled] Projectile hits apply a poison that deals bonus damage over 3 seconds in ticks every 0.1s.\nTier 1: 25%  Tier 2: 40%  Tier 3: 55% of hit damage as DoT.\nPoison stacks additively and refreshes duration on each new hit.',
-    maxTier: 3,
-    baseCost: 25,
-    costMult: 2.5,
-    apply(tower, game, tier) {
-      tower.poisonFraction = [0, 0.25, 0.40, 0.55][tier];
-    },
-  },
-
   // baseCost: 30
   {
     id: 'veteranBounty',
@@ -179,30 +154,6 @@ const PRESTIGE_UPGRADES = [
     costMult: 4.0,
     apply(tower, game, tier) {
       tower.overchargeAmp += 0.5;
-    },
-  },
-
-  {
-    id: 'deflectorRing',
-    name: 'Deflector Ring',
-    tooltip: 'Enemy projectiles are deflected back at the shooter when they first enter the Orbital Death Ring zone, dealing the tower\'s normal shot damage.\nOne roll per projectile on zone entry.\nTier 1: 20%  Tier 2: 28%  Tier 3: 34%  Tier 4: 38%  Tier 5: 40% deflect chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
-    maxTier: 5,
-    baseCost: 500,
-    costMult: 4.0,
-    apply(tower, game, tier) {
-      tower.ringDestroyChance = [0, 0.20, 0.28, 0.34, 0.38, 0.40][tier] ?? 0.40;
-    },
-  },
-
-  {
-    id: 'vortexSweep',
-    name: 'Vortex Sweep',
-    tooltip: 'Enemies inside the Orbital Death Ring zone are periodically grabbed and held in orbit for 3 s, taking continuous ring damage.\nCarry chance is checked once per second per enemy in the zone.\nTier 1: 3%  Tier 2: 6%  Tier 3: 9%  Tier 4: 12%  Tier 5: 15% carry chance.\nRequires Orbital Death Ring shop upgrade.\nCosts: 500 / 2k / 8k / 32k / 128k shards.',
-    maxTier: 5,
-    baseCost: 500,
-    costMult: 4.0,
-    apply(tower, game, tier) {
-      tower.ringCarryChance = tier * 0.03;
     },
   },
 
@@ -397,26 +348,15 @@ export class PrestigeShop {
       console.log(`Wave Rush refunded: +${refund} shards`);
     }
 
-    // Hammer Guard renamed to Deflector Ring in v1.11.87 — migrate save key silently.
-    if ((prestigeUpgrades['hammerGuard'] ?? 0) > 0 && !prestigeUpgrades['deflectorRing']) {
-      prestigeUpgrades['deflectorRing'] = prestigeUpgrades['hammerGuard'];
-      delete prestigeUpgrades['hammerGuard'];
-    }
-
     // Reset prestige-driven tower fields to defaults before replaying
     this.game.tower.critChance          = 0;
     this.game.tower.critMult            = 2.0;
     this.game.tower.executeThreshold    = 0;
     this.game.tower.laserSlowFactor     = 1.0;  // 1.0 = no slow
     this.game.tower.laserSlowDuration   = 0;
-    this.game.tower.ringStunDuration    = 0;
-    this.game.tower.ringDestroyChance   = 0;
-    this.game.tower.ringCarryChance     = 0;
-    this.game.tower.ringCarried         = [];
     this.game.tower.invulnTimer         = 0;
     this.game.tower.ricochetCount       = 0;
     this.game.tower.pierceChance        = 0;
-    this.game.tower.poisonFraction      = 0;
     this.game.tower.resurgenceHp        = 0;
     this.game.tower.resurgenceUsed      = false;
     this.game.tower.waveSkipThreshold   = 0;

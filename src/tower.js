@@ -30,9 +30,9 @@ export class Tower {
     // Orbital Death Ring
     this.ringTier          = 0;     // 0 = not unlocked
     this.ringPhase         = 0;     // ever-increasing angle driving the Archimedean spiral
-    this.ringDestroyChance = 0;     // 0.0–0.75 chance to deflect enemy projectiles inside the zone
-    this.ringCarryChance   = 0;     // 0.0–0.25 chance to carry an enemy orbiting in the zone
-    this.ringCarried       = [];    // [{ enemy, angle, timer }] active carry slots
+    this.ringDestroyChance = 0;     // unused — kept for save compat
+    this.ringCarryChance   = 0;     // unused — kept for save compat
+    this.ringCarried       = [];    // unused — kept for save compat
 
     // Regen (applied between waves as a fraction of maxHp)
     this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
@@ -49,8 +49,6 @@ export class Tower {
     this.laserSlowDuration = 0;   // seconds
 
     // Prestige: ring stun
-    this.ringStunDuration  = 0;   // seconds
-
     this.invulnTimer       = 0;   // seconds of invulnerability remaining (Resurgence)
 
     // Shop late-game upgrades
@@ -64,9 +62,6 @@ export class Tower {
     // Prestige: ricochet
     this.ricochetCount     = 0;     // extra bounce targets per shot
     this.pierceChance      = 0;     // 0.0–0.50 chance to not consume projectile on hit
-
-    // Prestige: poison
-    this.poisonFraction    = 0;     // DoT = fraction of hit damage over 3 s (0 = disabled)
 
     // Prestige: resurgence
     this.resurgenceHp      = 0;     // fraction of maxHp to revive at (0 = disabled)
@@ -296,7 +291,7 @@ export class Tower {
     // ── Zone DPS — simple distance check against tower centre ────────────────
     const ZONE_R2 = ORBIT_MAX * ORBIT_MAX;
     for (const e of game.enemyPool.pool) {
-      if (!e.active || e.carriedByRing) continue;
+      if (!e.active) continue;
       const dx = e.x - this.x, dy = e.y - this.y;
       if (dx * dx + dy * dy > ZONE_R2) continue;
       // Colossus armor: absorb first ring tick per wave
@@ -304,93 +299,12 @@ export class Tower {
       e.hp -= DPS * dt;
       if (game.particles && game.quality !== 'low' && Math.random() < 0.25)
         game.particles.emitHit(e.x, e.y, '#ff6d00');
-      if (this.ringStunDuration > 0)
-        e.stunUntil = (game.elapsed ?? 0) + this.ringStunDuration;
       if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
           || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
         const wasExecute = e.hp > 0;
         e.hp = 0;
         if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
         _towerKillEnemy(e, game);
-      }
-    }
-
-    // ── Vortex Sweep — zone-based carry, checked once per second ─────────────
-    if (this.ringCarryChance > 0) {
-      // Tick existing carries — lock carried enemy at a fixed orbit radius
-      const CARRY_R = ORBIT_MIN + (ORBIT_MAX - ORBIT_MIN) * 0.65;
-      const carried = this.ringCarried;
-      let ci = 0;
-      for (let i = 0; i < carried.length; i++) {
-        const slot = carried[i];
-        const e    = slot.enemy;
-        if (!e.active) continue;
-        slot.timer -= dt;
-        if (slot.timer <= 0) { e.carriedByRing = false; continue; }
-        // Keep enemy orbiting at CARRY_R around the tower
-        slot.angle = (slot.angle ?? 0) + rotSpeed * (Math.PI / 180) * dt;
-        e.x = this.x + Math.cos(slot.angle) * CARRY_R;
-        e.y = this.y + Math.sin(slot.angle) * CARRY_R;
-        // Continuous DPS while carried (zone DPS loop above is skipped for carriedByRing)
-        e.hp -= DPS * dt;
-        if (game.particles && game.quality !== 'low' && Math.random() < 0.25)
-          game.particles.emitHit(e.x, e.y, '#ff6d00');
-        if (e.hp <= 0 || (this.executeThreshold > 0 && e.hp / e.maxHp < this.executeThreshold)
-            || (this.apexBossExecute > 0 && e.type === EnemyType.BOSS && e.hp / e.maxHp < this.apexBossExecute)) {
-          e.carriedByRing = false;
-          const wasExecute = e.hp > 0;
-          e.hp = 0;
-          if (wasExecute && this.apexFireRateBurst > 0) this.apexBurstTimer = this.apexBurstDuration;
-          _towerKillEnemy(e, game);
-          continue;
-        }
-        carried[ci++] = slot;
-      }
-      carried.length = ci;
-
-      // Once-per-second pickup check — zone distance only, no per-node loop
-      this._vortexPickupTimer = (this._vortexPickupTimer ?? 0) - dt;
-      if (this._vortexPickupTimer <= 0) {
-        this._vortexPickupTimer = 1.0;
-        for (const e of game.enemyPool.pool) {
-          if (!e.active || e.carriedByRing) continue;
-          const dx = e.x - this.x, dy = e.y - this.y;
-          if (dx * dx + dy * dy > ZONE_R2) continue;
-          if (Math.random() < this.ringCarryChance) {
-            const startAngle = Math.atan2(e.y - this.y, e.x - this.x);
-            e.carriedByRing = true;
-            carried.push({ enemy: e, angle: startAngle, timer: 3.0 });
-          }
-        }
-      }
-    }
-
-    // ── Deflector Ring — one-time roll per projectile on zone entry ───────────
-    if (this.ringDestroyChance > 0 && game.enemyProjectiles?.length) {
-      const deflectDmg = Math.round(this.damage * this._dmgMult);
-      for (const p of game.enemyProjectiles) {
-        if (p.deflected || p.deflectChecked) continue;
-        const dx = p.x - this.x, dy = p.y - this.y;
-        if (dx * dx + dy * dy > ZONE_R2) continue;
-        // Mark as checked so this roll never repeats, regardless of outcome
-        p.deflectChecked = true;
-        if (Math.random() > this.ringDestroyChance) continue;
-        const src = p.sourceEnemy;
-        if (src?.active) {
-          const ex = src.x - p.x, ey = src.y - p.y;
-          const len = Math.sqrt(ex * ex + ey * ey) || 1;
-          const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-          p.vx = (ex / len) * spd;
-          p.vy = (ey / len) * spd;
-        } else {
-          p.vx = -p.vx;
-          p.vy = -p.vy;
-        }
-        p.deflected     = true;
-        p.deflectDamage = deflectDmg;
-        p.t             = 4.0;
-        if (game.particles && game.quality !== 'low')
-          game.particles.emitHit(p.x, p.y, '#ff6d00');
       }
     }
   }

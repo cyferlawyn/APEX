@@ -284,29 +284,11 @@ function update(dt) {
           p.y += p.vy * dt;
           p.t -= dt;
           if (p.t <= 0) continue;
-          if (p.deflected) {
-            // Deflected: check if it hits its source enemy
-            const src = p.sourceEnemy;
-            if (src?.active) {
-              const dx = p.x - src.x, dy = p.y - src.y;
-              if (dx * dx + dy * dy <= src.radius * src.radius) {
-                src.hp -= p.deflectDamage;
-                if (game.particles && game.quality !== 'low')
-                  game.particles.emitHit(src.x, src.y, '#ff6d00');
-                if (src.hp <= 0) killEnemy(src, game);
-                continue; // consumed
-              }
-            } else {
-              // Source gone — un-deflect and let it continue toward the tower
-              p.deflected = false;
-            }
-          } else {
-            // Normal: hit tower
-            const dx = p.x - tw.x, dy = p.y - tw.y;
-            if (dx * dx + dy * dy <= tr2) {
-              tw.takeDamage(p.damage, game);
-              continue;
-            }
+          // Normal: hit tower
+          const dx = p.x - tw.x, dy = p.y - tw.y;
+          if (dx * dx + dy * dy <= tr2) {
+            tw.takeDamage(p.damage, game);
+            continue;
           }
           ep[wi++] = p;
         }

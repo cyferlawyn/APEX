@@ -48,17 +48,11 @@ export class Enemy {
     // Boss enrage state
     this.enraged      = false;
 
-    // Ranged attack timer (BOSS + COLOSSUS)
+    // Ranged attack timer
     this.shootTimer   = 0;
-
-    // Poison DoT state
-    this.poisonDps      = 0;   // damage per second from poison
-    this.poisonTimer    = 0;   // seconds of poison remaining
-    this.poisonTickTimer = 0;  // countdown to next 0.1s tick
   }
 
   init(type, wave, x, y) {
-    const def = BASE_STATS[type];
     const hpScale = Math.pow(1.07, wave - 1);
 
     this.active      = true;
@@ -86,7 +80,6 @@ export class Enemy {
     this.dashTimer   = 0;
     this.spawnTimer  = 1.0; // first spawn after 1s
     this.phantomTimer = 0;
-    this.carriedByRing = false; // true while Vortex Sweep carries this enemy
     this.intangible  = false;
     this.enraged     = false;
     this.armorProjectile = false;
@@ -95,9 +88,6 @@ export class Enemy {
     // Stagger first shot by up to full interval so enemies don't all volley together
     const rs = RANGED_STATS[type];
     this.shootTimer = rs ? rs.interval * Math.random() : 0;
-    this.poisonDps       = 0;
-    this.poisonTimer     = 0;
-    this.poisonTickTimer = 0;
   }
 
   update(dt, game) {
@@ -174,8 +164,6 @@ export class Enemy {
               type: this.type,
               t: 5.0,
               sourceEnemy: this,
-              deflected: false,
-              deflectChecked: false,
             });
           }
         }
@@ -216,8 +204,6 @@ export class Enemy {
 
     // ── Movement ─────────────────────────────────────────────────────────────
     if (now < this.stunUntil) return;
-    if (this.carriedByRing) return; // position controlled by _updateRings
-
     // sqrt only needed here for movement normalisation — not for the contact check above
     const dist = Math.sqrt(d2);
     if (this.type === EnemyType.DASHER) {
