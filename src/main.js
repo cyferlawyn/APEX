@@ -127,11 +127,6 @@ function beginWave(keepEnemies = false, hardReset = false) {
   // Apply regen between waves; full heal only on wave 1 (fresh start)
   if (game.wave === 1) {
     game.tower.hp = game.tower.maxHp;
-  } else {
-    game.tower.hp = Math.min(
-      game.tower.hp + Math.floor(game.tower.maxHp * game.tower.regenFraction),
-      game.tower.maxHp
-    );
   }
   game.tower.invulnTimer = 0;
   game.tower.overchargeCounter = 0;

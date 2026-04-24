@@ -35,7 +35,7 @@ export class Tower {
     this.ringCarried       = [];    // unused — kept for save compat
 
     // Regen (applied between waves as a fraction of maxHp)
-    this.regenFraction   = 0;     // e.g. 0.09 = heal 9% of maxHp per wave
+    this.regenFraction   = 0;     // heal % of maxHp per second (0.005 per tier)
 
     // Prestige: crits
     this.critChance      = 0;     // 0.0–1.0 probability
@@ -125,6 +125,11 @@ export class Tower {
   update(dt, game) {
     if (this.hitFlash  > 0) this.hitFlash  -= dt;
     if (this.invulnTimer > 0) this.invulnTimer -= dt;
+
+    // Continuous HP regen
+    if (this.regenFraction > 0 && this.hp < this.maxHp) {
+      this.hp = Math.min(this.maxHp, this.hp + this.maxHp * this.regenFraction * dt);
+    }
 
     // Shard passive × traitor pet bonus × faction (neural stacks) × WARBORN (rush+fury) × VANGUARD (spoils+apex) for all weapons this frame
     this._dmgMult = game.shardDmgMult() * game.traitorDmgMult() * game.factionDmgMult()
