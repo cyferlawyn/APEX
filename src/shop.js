@@ -87,13 +87,13 @@ const UPGRADES = [
   {
     id: 'satelliteTurrets',
     name: 'Satellite Turrets',
-    tooltip: 'Four small turrets orbit the tower at diagonal positions, firing tracers that mirror every main shot and converge on the same target.\nDamage is baked into the main projectile — tracers are purely visual.\nTier 1: 1 turret ×1.4 dmg  Tier 2: 2 turrets ×1.8 dmg\nTier 3: 3 turrets ×2.2 dmg  Tier 4: 4 turrets ×2.6 dmg\nTier 5: 4 turrets ×3.0 dmg (overcharged).',
-    maxTier: 5,
+    tooltip: 'Four small turrets orbit the tower at diagonal positions, firing tracers that mirror every main shot and converge on the same target.\nDamage is baked into the main projectile — tracers are purely visual.\nTier 1: 1 turret +100% dmg  Tier 2: 2 turrets +200% dmg\nTier 3: 3 turrets +300% dmg  Tier 4: 4 turrets +400% dmg.',
+    maxTier: 4,
     baseCost: 300,
     costMult: 1.9,
     apply(tower, game, tier) {
-      tower.satelliteTurrets     = Math.min(tier, 4);
-      tower.satelliteDamageMult  = 1 + tier * 0.4;
+      tower.satelliteTurrets     = tier;
+      tower.satelliteDamageMult  = 1 + tier;
     },
   },
   {
