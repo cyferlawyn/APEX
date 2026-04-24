@@ -1069,13 +1069,12 @@ export class Renderer {
     if (!game.enemyProjectiles?.length) return;
 
     for (const p of game.enemyProjectiles) {
-      const isBoss = p.type === 'BOSS';
-      const color  = isBoss ? '#ff1744' : '#ff4081';
-      const radius = isBoss ? 5 : 4;
+      const color  = p.color ?? '#ff4081';
+      const radius = p.type === 'BOSS' ? 5 : 3;
 
       if (game.quality !== 'low') {
         ctx.save();
-        ctx.shadowBlur  = isBoss ? 14 : 10;
+        ctx.shadowBlur  = p.type === 'BOSS' ? 14 : 8;
         ctx.shadowColor = color;
         ctx.fillStyle   = color;
         ctx.beginPath();

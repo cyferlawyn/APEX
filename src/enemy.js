@@ -92,10 +92,9 @@ export class Enemy {
     this.armorProjectile = false;
     this.armorRing       = false;
     this.armorLaser      = false;
-    // Stagger first shot by up to half the interval so waves don't all volley together
-    if (type === EnemyType.BOSS)     this.shootTimer = 0.5 + Math.random() * 0.75;
-    else if (type === EnemyType.COLOSSUS) this.shootTimer = 1.0 + Math.random() * 1.5;
-    else                             this.shootTimer = 0;
+    // Stagger first shot by up to full interval so enemies don't all volley together
+    const rs = RANGED_STATS[type];
+    this.shootTimer = rs ? rs.interval * Math.random() : 0;
     this.poisonDps       = 0;
     this.poisonTimer     = 0;
     this.poisonTickTimer = 0;
@@ -149,31 +148,36 @@ export class Enemy {
 
     this.atTower = false;
 
-    // ── Ranged attack: BOSS fires every 1.5 s, COLOSSUS every 3 s ───────────
-    if (this.type === EnemyType.BOSS || this.type === EnemyType.COLOSSUS) {
-      this.shootTimer -= dt;
-      if (this.shootTimer <= 0) {
-        const isBoss   = this.type === EnemyType.BOSS;
-        this.shootTimer = isBoss ? 1.5 : 3.0;
-        const tx  = game.tower.x;
-        const ty  = game.tower.y;
-        const dx  = tx - this.x;
-        const dy  = ty - this.y;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len > 0) {
-          const spd    = isBoss ? 380 : 260;
-          const dmg    = this.damage * (isBoss ? 0.6 : 0.8);
-          game.enemyProjectiles.push({
-            x: this.x, y: this.y,
-            vx: (dx / len) * spd,
-            vy: (dy / len) * spd,
-            damage: dmg,
-            type: this.type,
-            t: 4.0,
-            sourceEnemy: this,
-            deflected: false,
-            deflectChecked: false,
-          });
+    // ── Ranged attack: all enemy types shoot once fully inside the viewport ────
+    const rs = RANGED_STATS[this.type];
+    if (rs) {
+      const bounds = game.projectilePool?._bounds;
+      const inView = bounds
+        ? this.x >= 0 && this.x <= bounds.w && this.y >= 0 && this.y <= bounds.h
+        : false;
+      if (inView) {
+        this.shootTimer -= dt;
+        if (this.shootTimer <= 0) {
+          this.shootTimer = rs.interval;
+          const tx  = game.tower.x;
+          const ty  = game.tower.y;
+          const dx  = tx - this.x;
+          const dy  = ty - this.y;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          if (len > 0) {
+            game.enemyProjectiles.push({
+              x: this.x, y: this.y,
+              vx: (dx / len) * rs.speed,
+              vy: (dy / len) * rs.speed,
+              damage: rs.damage,
+              color: this.color,
+              type: this.type,
+              t: 5.0,
+              sourceEnemy: this,
+              deflected: false,
+              deflectChecked: false,
+            });
+          }
         }
       }
     }
@@ -326,6 +330,23 @@ export class EnemyPool {
     }
   }
 }
+
+// Ranged attack parameters for every enemy type.
+// interval: seconds between shots (first shot staggered by up to interval at spawn)
+// damage:   flat damage per hit
+// speed:    projectile speed px/s
+const RANGED_STATS = {
+  [EnemyType.DRONE]:    { interval: 3.0, damage: 8,   speed: 280 },
+  [EnemyType.SWARM]:    { interval: 4.0, damage: 4,   speed: 220 },
+  [EnemyType.DASHER]:   { interval: 2.5, damage: 10,  speed: 320 },
+  [EnemyType.ELITE]:    { interval: 2.0, damage: 18,  speed: 300 },
+  [EnemyType.BRUTE]:    { interval: 4.0, damage: 35,  speed: 200 },
+  [EnemyType.PHANTOM]:  { interval: 2.5, damage: 15,  speed: 280 },
+  [EnemyType.SPAWNER]:  { interval: 5.0, damage: 12,  speed: 180 },
+  [EnemyType.BOMBER]:   { interval: 3.5, damage: 20,  speed: 240 },
+  [EnemyType.COLOSSUS]: { interval: 3.0, damage: 75,  speed: 260 },
+  [EnemyType.BOSS]:     { interval: 1.5, damage: 150, speed: 380 },
+};
 
 const BASE_STATS = {
   [EnemyType.DRONE]:    { hp: 250,   speed: 156, radius: 11, color: '#00e5ff', shape: 'circle',   reward: 24,  damage: 15  },
