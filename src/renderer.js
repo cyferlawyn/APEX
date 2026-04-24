@@ -213,6 +213,62 @@ export class Renderer {
         ctx.restore();
       }
     }
+    // ── Satellite turrets ───────────────────────────────────────────────────
+    if (t.satelliteTurrets > 0) {
+      const DIAG = 80 * 0.7071;
+      const offsets = [
+        {  ox:  DIAG, oy: -DIAG },
+        {  ox: -DIAG, oy: -DIAG },
+        {  ox: -DIAG, oy:  DIAG },
+        {  ox:  DIAG, oy:  DIAG },
+      ];
+      const sr = 7;  // satellite hex radius
+      const pulse = 0.7 + Math.sin(this._now / 400) * 0.2;
+
+      for (let i = 0; i < t.satelliteTurrets; i++) {
+        const sx = cx + offsets[i].ox;
+        const sy = cy + offsets[i].oy;
+
+        // Connecting line tower → satellite
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        ctx.strokeStyle = '#ffd740';
+        ctx.lineWidth   = 1;
+        ctx.setLineDash([4, 6]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(sx, sy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+
+        // Satellite hex body
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.shadowBlur  = game.quality !== 'low' ? 14 : 0;
+        ctx.shadowColor = '#ffd740';
+        ctx.beginPath();
+        this._hexPath(sx, sy, sr);
+        ctx.fillStyle   = '#1a1a2e';
+        ctx.fill();
+        ctx.strokeStyle = '#ffd740';
+        ctx.lineWidth   = 1.5;
+        ctx.stroke();
+        ctx.restore();
+
+        // Core dot
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle   = '#fff9c4';
+        ctx.shadowBlur  = game.quality !== 'low' ? 8 : 0;
+        ctx.shadowColor = '#ffd740';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
     // Tower hex
     ctx.save();
     ctx.shadowBlur  = t.hitFlash > 0 ? 32 : 24;
