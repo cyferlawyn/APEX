@@ -23,6 +23,8 @@ export class Game {
     this.DEFEATED_DURATION  = 3;
     this.resultsTimer       = 0;  // counts down; results overlay shown while > 0
     this.RESULTS_DURATION   = 2;
+    this.wavePending            = false; // true = next wave held until enemy count < 250
+    this.wavePendingKeepEnemies = false;
 
     // Short-lived visual effects (drained each frame by renderer)
     this.explosions    = []; // { x, y, r, t } — t counts down to 0

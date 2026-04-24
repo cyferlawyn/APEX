@@ -116,6 +116,8 @@ function beginWave(keepEnemies = false, hardReset = false) {
     game.obliterateInFlight = false;
     game.obliterateOverkill = 0;
     game.obliterateMigrated = false;
+    game.wavePending            = false;
+    game.wavePendingKeepEnemies = false;
   } else {
     // Wave transition — mark any completed blastwaves but leave active obliterate running.
     // Enemy projectiles are cleared (their source enemies are gone).
@@ -262,6 +264,12 @@ function update(dt) {
       game.enemyPool.update(dt, game);
       game.projectilePool.update(dt, game);
       game.tower.update(dt, game);
+
+      // Wave pending: held after wave complete until enemy count drops below cap
+      if (game.wavePending && game.enemyPool.activeCount() < 250) {
+        game.wavePending = false;
+        beginWave(game.wavePendingKeepEnemies ?? false);
+      }
 
       // ── Enemy projectiles (boss / colossus ranged shots) ─────────────────
       if (game.enemyProjectiles.length) {
@@ -659,9 +667,14 @@ function onWaveComplete(keepEnemies = false) {
   saveGame();
   audio.waveComplete();
 
-  // Show results overlay but start next wave immediately
+  // Show results overlay then start next wave (or hold if enemy cap is reached)
   game.resultsTimer = game.RESULTS_DURATION;
-  beginWave(keepEnemies);
+  if (game.enemyPool.activeCount() >= 250) {
+    game.wavePending            = true;
+    game.wavePendingKeepEnemies = keepEnemies;
+  } else {
+    beginWave(keepEnemies);
+  }
 }
 
 function onDefeated() {

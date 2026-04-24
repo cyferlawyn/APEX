@@ -25,6 +25,7 @@ export class WaveSpawner {
   begin(waveNumber) {
     const entries     = buildWave(waveNumber);
     const rollovers   = this.game.enemyPool.activeCount();
+    const ENEMY_CAP   = 250;
     this.done         = true;
 
     const bounds = this.game.projectilePool._bounds;
@@ -36,6 +37,8 @@ export class WaveSpawner {
 
     let spawned = 0;
     for (const entry of entries) {
+      // Hard cap: never exceed 250 total active enemies
+      if (rollovers + spawned >= ENEMY_CAP) break;
       // Radial spawn: pick a random angle from canvas centre → perimeter point.
       // Swarm clusters share one angle (entry.angle pre-assigned in buildWave).
       const jitter = entry.type === EnemyType.SWARM ? (Math.random() - 0.5) * 80 : 0;
