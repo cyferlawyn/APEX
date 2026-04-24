@@ -98,10 +98,7 @@ export class Projectile {
     this.ricochetCount    = 0;   // remaining bounces
     this.overcharge       = false; // true = ×4 overcharge shot, distinct visual
     // Distance-travelled hit detection
-    this.target           = null; // locked enemy reference
-    this.distToHit        = 0;    // travel distance at which we reach target's edge
-    this.distTravelled    = 0;
-    this.speed            = 0;    // magnitude of velocity, cached
+    this.target           = null;
   }
 
   init(x, y, vx, vy, damage, explosiveRadius = 0, chainJumps = 0, executeThreshold = 0, ricochetCount = 0, overcharge = false, target = null) {
@@ -117,17 +114,8 @@ export class Projectile {
     this.executeThreshold = executeThreshold;
     this.ricochetCount    = ricochetCount;
     this.overcharge       = overcharge;
-    this.pierced          = null; // Set of already-hit enemies when pierce is active
-    this.distTravelled    = 0;
-    this.speed            = Math.sqrt(vx * vx + vy * vy);
+    this.pierced          = null;
     this.target           = target;
-    if (target) {
-      const dx = target.x - x;
-      const dy = target.y - y;
-      this.distToHit = Math.sqrt(dx * dx + dy * dy) - target.radius;
-    } else {
-      this.distToHit = Infinity;
-    }
   }
 
   update(dt, game, bounds) {
@@ -135,7 +123,6 @@ export class Projectile {
 
     this.x += this.vx * dt;
     this.y += this.vy * dt;
-    this.distTravelled += this.speed * dt;
 
     // Deactivate if off-screen
     if (this.x < -20 || this.x > bounds.w + 20 ||
@@ -147,33 +134,21 @@ export class Projectile {
     // Re-acquire target if original was killed or became intangible before we arrived
     if (!this.target?.active || this.target.intangible) {
       this.target = _findNearestAhead(this.x, this.y, this.vx, this.vy, this.pierced, game);
-      if (this.target) {
-        const dx = this.target.x - this.x;
-        const dy = this.target.y - this.y;
-        this.distToHit = this.distTravelled + Math.sqrt(dx * dx + dy * dy) - this.target.radius;
-      } else {
-        // No enemies remain — fly off screen
-        this.distToHit = Infinity;
-      }
     }
 
-    // Distance-travelled hit check
-    if (this.distTravelled >= this.distToHit && this.target?.active && !this.target.intangible) {
-      // Snap to target centre so secondary effects (chain, splash) originate correctly
-      this.x = this.target.x;
-      this.y = this.target.y;
-      const hitTarget = this.target;
-      this._onHit(hitTarget, game);
-      if (!this.active) return;
+    // Hit check: trigger when projectile reaches target's radius
+    if (this.target?.active && !this.target.intangible) {
+      const dx = this.target.x - this.x;
+      const dy = this.target.y - this.y;
+      if (dx * dx + dy * dy <= this.target.radius * this.target.radius) {
+        this.x = this.target.x;
+        this.y = this.target.y;
+        const hitTarget = this.target;
+        this._onHit(hitTarget, game);
+        if (!this.active) return;
 
-      // Projectile survived (pierce) — find next target ahead
-      this.target = _findNearestAhead(this.x, this.y, this.vx, this.vy, this.pierced, game);
-      if (this.target) {
-        const dx = this.target.x - this.x;
-        const dy = this.target.y - this.y;
-        this.distToHit = this.distTravelled + Math.sqrt(dx * dx + dy * dy) - this.target.radius;
-      } else {
-        this.distToHit = Infinity;
+        // Projectile survived (pierce) — find next target ahead
+        this.target = _findNearestAhead(this.x, this.y, this.vx, this.vy, this.pierced, game);
       }
     }
   }
