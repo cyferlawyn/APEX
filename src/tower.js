@@ -234,7 +234,7 @@ export class Tower {
         {  ox: -DIAG, oy:  DIAG },
         {  ox:  DIAG, oy:  DIAG },
       ];
-      for (let i = 0; i < this.satelliteTurrets; i++) {
+      for (let i = 0; i < Math.min(this.satelliteTurrets, offsets.length); i++) {
         const off = offsets[i];
         const tx  = off.ox + this.x;
         const ty  = off.oy + this.y;

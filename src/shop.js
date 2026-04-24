@@ -92,7 +92,7 @@ const UPGRADES = [
     baseCost: 300,
     costMult: 1.9,
     apply(tower, game, tier) {
-      tower.satelliteTurrets     = tier;
+      tower.satelliteTurrets     = Math.min(tier, 4);
       tower.satelliteDamageMult  = 1 + tier;
     },
   },
