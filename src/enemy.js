@@ -340,13 +340,13 @@ const BASE_STATS = {
   [EnemyType.SWARM]:    { hp: 84,    speed: 120, radius: 8,  color: '#69ff47', shape: 'circle',   reward: 8,   damage: 5   },
   [EnemyType.BRUTE]:    { hp: 1250,  speed: 78,  radius: 16, color: '#ff9100', shape: 'square',   reward: 100, damage: 50  },
   [EnemyType.ELITE]:    { hp: 625,   speed: 129, radius: 11, color: '#ea00ff', shape: 'triangle', reward: 60,  damage: 30  },
-  [EnemyType.BOSS]:     { hp: 20834, speed: 80,  radius: 28, color: '#ff1744', shape: 'star8',    reward: 600, damage: 250 },
+  [EnemyType.BOSS]:     { hp: 10417, speed: 80,  radius: 28, color: '#ff1744', shape: 'star8',    reward: 600, damage: 250 },
   // New types
   [EnemyType.DASHER]:   { hp: 188,   speed: 164, radius: 9,  color: '#00e676', shape: 'circle',   reward: 36,  damage: 20  },
   [EnemyType.BOMBER]:   { hp: 500,   speed: 112, radius: 13, color: '#ff6d00', shape: 'circle',   reward: 70,  damage: 60  },
   [EnemyType.SPAWNER]:  { hp: 2084,  speed: 38,  radius: 18, color: '#ffd600', shape: 'square',   reward: 160, damage: 20  },
   [EnemyType.PHANTOM]:  { hp: 542,   speed: 138, radius: 11, color: '#b388ff', shape: 'triangle', reward: 56,  damage: 25  },
-  [EnemyType.COLOSSUS]: { hp: 5000,  speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 400, damage: 75  },
+  [EnemyType.COLOSSUS]: { hp: 2500,  speed: 48,  radius: 24, color: '#ff4081', shape: 'hexagon',  reward: 400, damage: 75  },
 };
 
 // Returns the scaled max-HP of a Drone at a given wave — used as the overkill baseline.
