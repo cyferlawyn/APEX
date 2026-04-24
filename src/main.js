@@ -120,8 +120,7 @@ function beginWave(keepEnemies = false, hardReset = false) {
     game.wavePendingKeepEnemies = false;
   } else {
     // Wave transition — mark any completed blastwaves but leave active obliterate running.
-    // Enemy projectiles are cleared (their source enemies are gone).
-    game.enemyProjectiles = [];
+    // Enemy projectiles are preserved — they outlive their source enemies.
   }
   game.elapsed        = 0;  // reset per-wave timestamp used by slow/stun
   // Apply regen between waves; full heal only on wave 1 (fresh start)
