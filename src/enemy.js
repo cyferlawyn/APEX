@@ -53,6 +53,7 @@ export class Enemy {
   }
 
   init(type, wave, x, y) {
+    const def     = BASE_STATS[type];
     const hpScale = Math.pow(1.07, wave - 1);
 
     this.active      = true;
