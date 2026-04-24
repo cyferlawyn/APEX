@@ -3,8 +3,8 @@ import { EnemyType, _bomberDetonate } from './enemy.js';
 
 export class Tower {
   constructor() {
-    this.maxHp           = 1000;
-    this.hp              = 1000;
+    this.maxHp           = 2500;
+    this.hp              = 2500;
     this.damage          = 250;
     this.fireRate        = 1.5;   // shots per second
     this.projectileSpeed = 400;   // px/sec

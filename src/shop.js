@@ -52,14 +52,16 @@ const UPGRADES = [
   {
     id: 'maxHp',
     name: 'Max HP',
-    tooltip: 'Adds 20% of current max HP per tier.\nBase: 1000 HP → max (tier 10): ~6190 HP.\nThe bonus is added to current HP immediately.',
-    maxTier: 10,
+    tooltip: 'Adds 10% of base HP (250) per tier, additively.\nBase: 2500 HP → max (tier 15): 6250 HP.',
+    maxTier: 15,
     baseCost: 70,
     costMult: 1.85,
     apply(tower, game, tier) {
-      const delta = Math.floor(tower.maxHp * 0.20);
-      tower.maxHp += delta;
-      tower.hp    += delta;
+      const BASE_HP  = 2500;
+      const newMaxHp = BASE_HP + tier * 250;
+      const delta    = newMaxHp - tower.maxHp;
+      tower.maxHp    = newMaxHp;
+      tower.hp       = Math.min(tower.hp + delta, tower.maxHp);
     },
   },
   {
