@@ -296,7 +296,8 @@ function update(dt) {
                 continue; // consumed
               }
             } else {
-              continue; // source gone, discard
+              // Source gone — un-deflect and let it continue toward the tower
+              p.deflected = false;
             }
           } else {
             // Normal: hit tower
