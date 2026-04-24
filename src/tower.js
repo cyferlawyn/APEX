@@ -258,7 +258,7 @@ export class Tower {
     // ── Satellite turret tracers (cosmetic only — damage already in main shot) ─
     if (this.satelliteTurrets > 0 && game.satelliteTracers) {
       // Four diagonal offsets: NE, NW, SW, SE (relative to tower centre)
-      const TURRET_OFFSET = 42;
+      const TURRET_OFFSET = 80;
       const DIAG = TURRET_OFFSET * 0.7071; // cos/sin 45°
       const offsets = [
         {  ox:  DIAG, oy: -DIAG },
