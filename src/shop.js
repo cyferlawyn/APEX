@@ -65,12 +65,12 @@ const UPGRADES = [
   {
     id: 'hpRegen',
     name: 'HP Regen',
-    tooltip: 'Continuously heals the tower during combat.\nTier 1: 0.5%/s — Tier 2: 1.0%/s — Tier 3: 1.5%/s — Tier 4: 2.0%/s — Tier 5: 2.5%/s\nTier 6: 3.0%/s — Tier 7: 3.5%/s — Tier 8: 4.0%/s — Tier 9: 4.5%/s — Tier 10: 5.0%/s',
+    tooltip: 'Continuously heals the tower during combat.\nTier 1: 0.25%/s — Tier 2: 0.5%/s — Tier 3: 0.75%/s — Tier 4: 1.0%/s — Tier 5: 1.25%/s\nTier 6: 1.5%/s — Tier 7: 1.75%/s — Tier 8: 2.0%/s — Tier 9: 2.25%/s — Tier 10: 2.5%/s',
     maxTier: 10,
     baseCost: 80,
     costMult: 1.65,
     apply(tower, game, tier) {
-      tower.regenFraction = tier * 0.005;
+      tower.regenFraction = tier * 0.0025;
     },
   },
   {
