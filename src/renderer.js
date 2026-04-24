@@ -1232,8 +1232,8 @@ export class Renderer {
     game.satelliteTracers = game.satelliteTracers.filter(tr => {
       tr.x += tr.vx * dt;
       tr.y += tr.vy * dt;
-      tr.t -= dt;
-      if (tr.t <= 0) return false;
+      // Cull when the main projectile has hit (or was never allocated)
+      if (tr.mainProjectile && !tr.mainProjectile.active) return false;
 
       if (quality === 'low') {
         ctx.fillStyle = '#ffd740';

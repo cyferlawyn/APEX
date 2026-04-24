@@ -220,7 +220,7 @@ export class Tower {
     // Avatar of War passive: double projectile speed
     const effProjSpeed = this.projectileSpeed * (game.warbornAvatarOfWar ? 2 : 1);
 
-    game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
+    const mainProjectile = game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
       dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
 
     // ── Satellite turret tracers (cosmetic only — damage already in main shot) ─
@@ -242,12 +242,12 @@ export class Tower {
         const tdy = target.y - ty;
         const tlen = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
         game.satelliteTracers.push({
-          x:    tx,
-          y:    ty,
-          vx:   (tdx / tlen) * effProjSpeed,
-          vy:   (tdy / tlen) * effProjSpeed,
-          life: tlen / effProjSpeed + 0.05,
-          t:    tlen / effProjSpeed + 0.05,
+          x:              tx,
+          y:              ty,
+          vx:             (tdx / tlen) * effProjSpeed,
+          vy:             (tdy / tlen) * effProjSpeed,
+          t:              1, // dummy — lifetime driven by mainProjectile
+          mainProjectile: mainProjectile || null,
         });
       }
     }
