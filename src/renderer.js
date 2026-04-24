@@ -81,6 +81,7 @@ export class Renderer {
     this._drawEnemies();
     this._drawEnemyProjectiles();
     this._drawProjectiles();
+    this._drawSatelliteTracers();
     this._drawLightningArcs();
     this._drawRicochetLines();
     this._drawLaser();
@@ -1165,6 +1166,46 @@ export class Renderer {
         ctx.restore();
       }
     }
+  }
+
+  _drawSatelliteTracers() {
+    const { ctx, game } = this;
+    if (!game.satelliteTracers?.length) return;
+    const dt = game.lastDt ?? 0.016;
+    const quality = game.quality;
+
+    game.satelliteTracers = game.satelliteTracers.filter(tr => {
+      tr.x += tr.vx * dt;
+      tr.y += tr.vy * dt;
+      tr.t -= dt;
+      if (tr.t <= 0) return false;
+
+      if (quality === 'low') {
+        ctx.fillStyle = '#ffd740';
+        ctx.beginPath();
+        ctx.arc(tr.x, tr.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Soft gold halo
+        ctx.save();
+        ctx.globalAlpha = 0.30;
+        ctx.fillStyle   = '#ffd740';
+        ctx.beginPath();
+        ctx.arc(tr.x, tr.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        // Bright core
+        ctx.save();
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#ffd740';
+        ctx.fillStyle   = '#fff9c4';
+        ctx.beginPath();
+        ctx.arc(tr.x, tr.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      return true;
+    });
   }
 
   // ── Obliterate blastwaves ─────────────────────────────────────────────────────

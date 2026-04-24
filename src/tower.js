@@ -12,12 +12,14 @@ export class Tower {
     this.fireCooldown    = 0;
 
     // Fire mode flags (set by upgrades)
-    this.multiShotCount  = 1;
-    this.spreadShot      = false;
-    this.spreadPellets   = 3;
-    this.spreadAngle     = 20;    // degrees
-    this.explosiveRadius = 0;
-    this.chainJumps      = 0;
+    this.multiShotCount       = 1;
+    this.spreadShot           = false;
+    this.spreadPellets        = 3;
+    this.spreadAngle          = 20;    // degrees
+    this.satelliteTurrets     = 0;     // 0 = none; 1–4 active diagonal turrets
+    this.satelliteDamageMult  = 1.0;   // baked damage multiplier from satellite tiers
+    this.explosiveRadius      = 0;
+    this.chainJumps           = 0;
 
     // Laser burst
     this.laserUnlocked   = false;
@@ -216,7 +218,7 @@ export class Tower {
     const effectiveCritMult = this.critMult + spoilsCritAdd;
     // forgeDmg: flat bonus applied before all multipliers
     const baseDmg = this.damage + this.forgeDmg;
-    const dmg    = Math.round(baseDmg * this._dmgMult * (isCrit ? effectiveCritMult : 1) * overchargeMult * furyCollapseMult);
+    const dmg    = Math.round(baseDmg * this._dmgMult * (isCrit ? effectiveCritMult : 1) * overchargeMult * furyCollapseMult * this.satelliteDamageMult);
     const isOC   = overchargeMult > 1;
     // Detonation Field: scale explosive radius by prestige multiplier
     const effExplosiveRadius = this.explosiveRadius > 0
@@ -251,6 +253,35 @@ export class Tower {
     } else {
       game.projectilePool.fire(ox, oy, nx * effProjSpeed, ny * effProjSpeed,
         dmg, effExplosiveRadius, effChainJumps, this.executeThreshold, this.ricochetCount, isOC, target);
+    }
+
+    // ── Satellite turret tracers (cosmetic only — damage already in main shot) ─
+    if (this.satelliteTurrets > 0 && game.satelliteTracers) {
+      // Four diagonal offsets: NE, NW, SW, SE (relative to tower centre)
+      const TURRET_OFFSET = 42;
+      const DIAG = TURRET_OFFSET * 0.7071; // cos/sin 45°
+      const offsets = [
+        {  ox:  DIAG, oy: -DIAG },
+        {  ox: -DIAG, oy: -DIAG },
+        {  ox: -DIAG, oy:  DIAG },
+        {  ox:  DIAG, oy:  DIAG },
+      ];
+      for (let i = 0; i < this.satelliteTurrets; i++) {
+        const off = offsets[i];
+        const tx  = off.ox + this.x;
+        const ty  = off.oy + this.y;
+        const tdx = target.x - tx;
+        const tdy = target.y - ty;
+        const tlen = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
+        game.satelliteTracers.push({
+          x:    tx,
+          y:    ty,
+          vx:   (tdx / tlen) * effProjSpeed,
+          vy:   (tdy / tlen) * effProjSpeed,
+          life: tlen / effProjSpeed + 0.05,
+          t:    tlen / effProjSpeed + 0.05,
+        });
+      }
     }
   }
 
@@ -584,9 +615,11 @@ export function normalizedShotDamage(tower, game) {
   const baseDmg        = tower.damage + tower.forgeDmg;
   // Spread shot: all pellets hit the same primary target simultaneously — multiply by pellet count
   const spreadFactor   = tower.spreadShot ? tower.spreadPellets : 1;
+  // Satellite turrets: damage baked into main shot
+  const satelliteFactor = tower.satelliteDamageMult ?? 1.0;
   // Echo Shot: expected extra volley factor when multi-shot is active
   const echoFactor     = (tower.echoShotChance > 0 && tower.multiShotCount > 1)
                          ? (1 + tower.echoShotChance) : 1;
 
-  return baseDmg * dmgMult * critFactor * overchargeFactor * executeFactor * spreadFactor * echoFactor;
+  return baseDmg * dmgMult * critFactor * overchargeFactor * executeFactor * spreadFactor * satelliteFactor * echoFactor;
 }

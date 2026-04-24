@@ -85,16 +85,15 @@ const UPGRADES = [
     },
   },
   {
-    id: 'spreadShot',
-    name: 'Spread Shot',
-    tooltip: 'Fires a fan of projectiles at the nearest enemy.\nTier 1: 3 pellets, 14° cone.\nEach tier adds 1 pellet and widens the cone by 4°.\nMax (tier 5): 8 pellets, 34° cone.\nWith WARBORN Rallying Cry the fan collapses into a single shot worth all pellets combined.',
+    id: 'satelliteTurrets',
+    name: 'Satellite Turrets',
+    tooltip: 'Four small turrets orbit the tower at diagonal positions, firing tracers that mirror every main shot and converge on the same target.\nDamage is baked into the main projectile — tracers are purely visual.\nTier 1: 1 turret ×1.4 dmg  Tier 2: 2 turrets ×1.8 dmg\nTier 3: 3 turrets ×2.2 dmg  Tier 4: 4 turrets ×2.6 dmg\nTier 5: 4 turrets ×3.0 dmg (overcharged).',
     maxTier: 5,
     baseCost: 300,
     costMult: 1.9,
     apply(tower, game, tier) {
-      tower.spreadShot    = true;
-      tower.spreadPellets = 2 + tier;
-      tower.spreadAngle   = 10 + tier * 4;
+      tower.satelliteTurrets     = Math.min(tier, 4);
+      tower.satelliteDamageMult  = 1 + tier * 0.4;
     },
   },
   {

@@ -118,6 +118,7 @@ function beginWave(keepEnemies = false, hardReset = false) {
     game.obliterateMigrated = false;
     game.wavePending            = false;
     game.wavePendingKeepEnemies = false;
+    game.satelliteTracers       = [];
   } else {
     // Wave transition — mark any completed blastwaves but leave active obliterate running.
     // Enemy projectiles are preserved — they outlive their source enemies.
@@ -222,6 +223,7 @@ function loop(timestamp) {
   }
 
   update(dt);
+  game.lastDt = dt;
   renderer.render();
 
   requestAnimationFrame(loop);

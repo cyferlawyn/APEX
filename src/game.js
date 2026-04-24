@@ -31,6 +31,7 @@ export class Game {
     this.lightningArcs = []; // { x1, y1, x2, y2, t }
     this.ricochetLines = []; // { x1, y1, x2, y2, t, life }
     this.deathRings    = []; // { x, y, r, t, color } — expanding ring on enemy death
+    this.satelliteTracers = []; // { x, y, vx, vy, t } — cosmetic satellite turret shots
     this.edgeFlash     = 0;  // seconds remaining for boss screen-edge flash
     this.currencyPopups = []; // { amount, x, y, t } — +$N floaters above killed enemies
     this.skullPopups    = []; // { x, y, t } — skull floaters on execute kills
